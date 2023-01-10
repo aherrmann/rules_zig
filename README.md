@@ -1,19 +1,9 @@
-# Template for Bazel rules
+# Zig rules for Bazel
 
-Copy this template to create a Bazel ruleset.
+Build [Zig code][zig] with the [Bazel build system][bazel].
 
-Features:
-
-- follows the official style guide at https://docs.bazel.build/versions/main/skylark/deploying.html
-- includes Bazel formatting as a pre-commit hook (using [buildifier])
-- includes stardoc API documentation generator
-- includes typical toolchain setup
-- CI configured with GitHub Actions
-- Release on GitHub Actions when pushing a tag
-
-See https://docs.bazel.build/versions/main/skylark/deploying.html#readme
-
-[buildifier]: https://github.com/bazelbuild/buildtools/tree/master/buildifier#readme
+[zig]: https://ziglang.org/
+[bazel]: https://bazel.build/
 
 Ready to get started? Copy this repo, then
 
@@ -29,10 +19,10 @@ Ready to get started? Copy this repo, then
 
 ---- SNIP ----
 
-# Bazel rules for mylang
+# Bazel rules for Zig
 
 ## Installation
 
 From the release you wish to use:
-<https://github.com/myorg/rules_mylang/releases>
+<https://github.com/aherrmann/rules_zig/releases>
 copy the WORKSPACE snippet into your `WORKSPACE` file.
