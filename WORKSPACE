@@ -13,10 +13,9 @@ load("//zig:repositories.bzl", "rules_zig_dependencies", "zig_register_toolchain
 # Fetch dependencies which users need as well
 rules_zig_dependencies()
 
-# TODO[AH] Zig version
 zig_register_toolchains(
-    name = "zig1_14",
-    zig_version = "1.14.2",
+    name = "zig",
+    zig_version = "0.10.1",
 )
 
 # For running our own unit tests
