@@ -1,5 +1,5 @@
 "Public API re-exports"
 
-def example():
-    """This is an example"""
-    pass
+load("//zig/private:zig_binary.bzl", _zig_binary = "zig_binary")
+
+zig_binary = _zig_binary
