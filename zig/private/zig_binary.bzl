@@ -42,9 +42,7 @@ def _zig_binary_impl(ctx):
         progress_message = "Building %{input} as Zig binary %{output}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
     )
-    # TODO[AH] Forward tags as execution constraints
 
-    # TODO[AH] analysis test to ensure that default output, files to run executable, and runfiles contain the binary.
     default = DefaultInfo(
         executable = output,
         files = depset([output]),
