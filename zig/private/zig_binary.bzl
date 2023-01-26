@@ -41,7 +41,9 @@ def _zig_binary_impl(ctx):
         mnemonic = "ZigBuildExe",
         progress_message = "Building Zig binary %{output} from %{input}",
     )
+    # TODO[AH] Forward tags as execution constraints
 
+    # TODO[AH] analysis test to ensure that default output, files to run executable, and runfiles contain the binary.
     default = DefaultInfo(
         executable = output,
         files = depset([output]),
