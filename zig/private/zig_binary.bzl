@@ -40,6 +40,7 @@ def _zig_binary_impl(ctx):
         arguments = ["build-exe", args],
         mnemonic = "ZigBuildExe",
         progress_message = "Building %{input} as Zig binary %{output}",
+        execution_requirements = {tag: "" for tag in ctx.attr.tags},
     )
     # TODO[AH] Forward tags as execution constraints
 
