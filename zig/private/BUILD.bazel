@@ -11,3 +11,10 @@ bzl_library(
     srcs = ["versions.bzl"],
     visibility = ["//zig:__subpackages__"],
 )
+
+bzl_library(
+    name = "zig_binary",
+    srcs = ["zig_binary.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["@bazel_skylib//lib:paths"],
+)
