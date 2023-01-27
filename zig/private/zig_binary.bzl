@@ -2,14 +2,21 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
+ZIG_SOURCE_EXTENSIONS = [".zig"]
+
 DOC = """\
 """
 
 ATTRS = {
     "main": attr.label(
-        allow_single_file = [".zig"],
+        allow_single_file = ZIG_SOURCE_EXTENSIONS,
         doc = "The main source file.",
         mandatory = True,
+    ),
+    "srcs": attr.label_list(
+        allow_files = ZIG_SOURCE_EXTENSIONS,
+        doc = "Other source files required to build the target.",
+        mandatory = False,
     ),
 }
 
@@ -34,7 +41,7 @@ def _zig_binary_impl(ctx):
 
     ctx.actions.run(
         outputs = [output, local_cache, global_cache],
-        inputs = [ctx.file.main],
+        inputs = [ctx.file.main] + ctx.files.srcs,
         executable = ziginfo.target_tool_path,
         tools = ziginfo.tool_files,
         arguments = ["build-exe", args],
