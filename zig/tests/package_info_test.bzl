@@ -13,7 +13,7 @@ load(
 def _mock_args():
     self_args = []
 
-    def add_all(args):
+    def add_all(args, *, map_each = None):
         for arg in args:
             if type(arg) == "File":
                 self_args.append(arg.path)

@@ -27,11 +27,31 @@ ATTRS = {
 def _zig_package_impl(ctx):
     default = DefaultInfo(
     )
+
+    description = (ctx.label.name, ctx.file.main)
+    srcs = [ctx.file.main] + ctx.files.srcs
+    flags = ["--pkg-begin", ctx.label.name, ctx.file.main.path]
+    all_srcs = []
+
+    for dep in ctx.attr.deps:
+        if ZigPackageInfo in dep:
+            package = dep[ZigPackageInfo]
+            flags.extend(package.flags)
+            all_srcs.append(package.all_srcs)
+
+    flags.append("--pkg-end")
+
     package = ZigPackageInfo(
         name = ctx.label.name,
         main = ctx.file.main,
         srcs = ctx.files.srcs,
+        flags = flags,
+        all_srcs = depset(
+            direct = srcs,
+            transitive = all_srcs,
+        ),
     )
+
     return [default, package]
 
 zig_package = rule(
