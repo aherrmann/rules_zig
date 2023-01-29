@@ -1,8 +1,7 @@
 """Implementation of the zig_package rule."""
 
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
-
-ZIG_SOURCE_EXTENSIONS = [".zig"]
+load("//zig/private:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 
 DOC = """\
 """

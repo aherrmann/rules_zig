@@ -16,12 +16,24 @@ bzl_library(
     name = "zig_binary",
     srcs = ["zig_binary.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["@bazel_skylib//lib:paths"],
+    deps = [
+        ":filetypes",
+        "@bazel_skylib//lib:paths",
+    ],
 )
 
 bzl_library(
     name = "zig_package",
     srcs = ["zig_package.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_package_info"],
+    deps = [
+        ":filetypes",
+        "//zig/private/providers:zig_package_info",
+    ],
+)
+
+bzl_library(
+    name = "filetypes",
+    srcs = ["filetypes.bzl"],
+    visibility = ["//zig:__subpackages__"],
 )

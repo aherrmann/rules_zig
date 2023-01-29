@@ -1,8 +1,7 @@
 """Implementation of the zig_binary rule."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-
-ZIG_SOURCE_EXTENSIONS = [".zig"]
+load("//zig/private:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 
 DOC = """\
 """
