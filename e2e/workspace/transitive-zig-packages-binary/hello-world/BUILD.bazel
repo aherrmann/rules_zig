@@ -1,0 +1,11 @@
+load("@rules_zig//zig:defs.bzl", "zig_package")
+
+zig_package(
+    name = "hello-world",
+    main = "hello_world.zig",
+    visibility = ["//transitive-zig-packages-binary:__pkg__"],
+    deps = [
+        "//transitive-zig-packages-binary/hello-world/data",
+        "//transitive-zig-packages-binary/hello-world/io",
+    ],
+)
