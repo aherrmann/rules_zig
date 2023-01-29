@@ -27,7 +27,10 @@ bzl_library(
     name = "defs",
     srcs = ["defs.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["//zig/private:zig_binary"],
+    deps = [
+        "//zig/private:zig_binary",
+        "//zig/private:zig_package",
+    ],
 )
 
 bzl_library(
