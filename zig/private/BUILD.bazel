@@ -18,3 +18,10 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = ["@bazel_skylib//lib:paths"],
 )
+
+bzl_library(
+    name = "zig_package",
+    srcs = ["zig_package.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["//zig/private/providers:zig_package_info"],
+)
