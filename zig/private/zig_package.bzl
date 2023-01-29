@@ -17,6 +17,11 @@ ATTRS = {
         doc = "Other source files required when building the package.",
         mandatory = False,
     ),
+    "deps": attr.label_list(
+        doc = "Other packages required when building the package.",
+        mandatory = False,
+        providers = [ZigPackageInfo],
+    ),
 }
 
 def _zig_package_impl(ctx):
