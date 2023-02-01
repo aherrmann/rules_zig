@@ -4,9 +4,11 @@ DOC = """\
 """
 
 FIELDS = {
-    "name": "The import name of the package.",
-    "main": "The main source file of the package.",
-    "srcs": "Other source files required when building the package.",
+    "name": "string, The import name of the package.",
+    "main": "File, The main source file of the package.",
+    "srcs": "list of File, Other source files that belong to the package.",
+    "flags": "list of string, Zig compiler flags requried when depending on the package.",
+    "all_srcs": "depset of File, All source files required when depending on the package.",
 }
 
 ZigPackageInfo = provider(
@@ -24,8 +26,8 @@ def add_package_flags(args, package):
       args: The Args object to extend with the required flags.
       package: The package to generate flags for.
     """
-    args.add_all(["--pkg-begin", package.name, package.main, "--pkg-end"])
+    args.add_all(package.flags)
 
 def get_package_files(package):
     """Generate a `depset` of the files required to depend on the package."""
-    return depset([package.main] + package.srcs)
+    return package.all_srcs
