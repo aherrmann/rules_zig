@@ -19,7 +19,7 @@ http_archive(
     name = "rules_zig",
     sha256 = "${SHA}",
     strip_prefix = "${PREFIX}",
-    url = "https://github.com/myorg/rules_zig/releases/download/${TAG}/rules_zig-${TAG}.tar.gz",
+    url = "https://github.com/myorg/rules_zig/releases/download/${TAG}/${ARCHIVE}",
 )
 EOF
 
