@@ -16,22 +16,6 @@ ZigPackageInfo = provider(
     doc = DOC,
 )
 
-def add_package_flags(args, package):
-    """Generate the Zig compiler flags to depend on the given package.
-
-    Generates `--pkg-begin` and `--pkg-end` flags required to build a target
-    that depends on this package.
-
-    Args:
-      args: The Args object to extend with the required flags.
-      package: The package to generate flags for.
-    """
-    args.add_all(package.flags)
-
-def get_package_files(package):
-    """Generate a `depset` of the files required to depend on the package."""
-    return package.all_srcs
-
 def zig_package_dependencies(*, deps, inputs, args):
     """Collect inputs and flags for Zig package dependencies.
 
@@ -44,5 +28,5 @@ def zig_package_dependencies(*, deps, inputs, args):
         if not ZigPackageInfo in dep:
             continue
         package = dep[ZigPackageInfo]
-        inputs.append(get_package_files(package))
-        add_package_flags(args, package)
+        inputs.append(package.all_srcs)
+        args.add_all(package.flags)
