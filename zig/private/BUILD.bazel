@@ -18,7 +18,8 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         ":filetypes",
-        "@bazel_skylib//lib:paths",
+        "//zig/private/common:zig_cache",
+        "//zig/private/providers:zig_package_info",
     ],
 )
 
@@ -44,7 +45,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         ":filetypes",
+        "//zig/private/common:zig_cache",
         "//zig/private/providers:zig_package_info",
-        "@bazel_skylib//lib:paths",
     ],
 )

@@ -1,6 +1,6 @@
 """Implementation of the zig_binary rule."""
 
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load(
     "//zig/private/providers:zig_package_info.bzl",
@@ -33,19 +33,18 @@ ATTRS = {
 def _zig_binary_impl(ctx):
     ziginfo = ctx.toolchains["//zig:toolchain_type"].ziginfo
 
+    outputs = []
+
+    args = ctx.actions.args()
+    args.use_param_file("@%s")
+
     # TODO[AH] Append `.exe` extension on Windows.
     output = ctx.actions.declare_file(ctx.label.name)
-
-    # TODO[AH] Factor out common zig-cache handling code.
-    local_cache = ctx.actions.declare_directory(paths.join(".zig-cache", "local", ctx.label.name))
-    global_cache = ctx.actions.declare_directory(paths.join(".zig-cache", "global", ctx.label.name))
+    outputs.append(output)
 
     # TODO[AH] Factor out common dependency management code.
     direct_inputs = [ctx.file.main] + ctx.files.srcs
     transitive_inputs = []
-
-    args = ctx.actions.args()
-    args.use_param_file("@%s")
 
     args.add(output, format = "-femit-bin=%s")
     args.add(ctx.file.main)
@@ -57,13 +56,15 @@ def _zig_binary_impl(ctx):
             transitive_inputs.append(get_package_files(package))
             add_package_flags(args, package)
 
-    # TODO[AH] Factor out common zig-cache handling code.
-    # TODO[AH] Persist or share at least the global cache somehow.
-    args.add_all(["--cache-dir", local_cache.path])
-    args.add_all(["--global-cache-dir", global_cache.path])
+    zig_cache_output(
+        actions = ctx.actions,
+        name = ctx.label.name,
+        outputs = outputs,
+        args = args,
+    )
 
     ctx.actions.run(
-        outputs = [output, local_cache, global_cache],
+        outputs = outputs,
         inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
         executable = ziginfo.target_tool_path,
         tools = ziginfo.tool_files,
