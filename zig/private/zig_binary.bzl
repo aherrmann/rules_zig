@@ -5,8 +5,7 @@ load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
-    "add_package_flags",
-    "get_package_files",
+    "zig_package_dependencies",
 )
 
 DOC = """\
@@ -49,12 +48,11 @@ def _zig_binary_impl(ctx):
     args.add(output, format = "-femit-bin=%s")
     args.add(ctx.file.main)
 
-    # TODO[AH] Factor out common dependency management code.
-    for dep in ctx.attr.deps:
-        if ZigPackageInfo in dep:
-            package = dep[ZigPackageInfo]
-            transitive_inputs.append(get_package_files(package))
-            add_package_flags(args, package)
+    zig_package_dependencies(
+        deps = ctx.attr.deps,
+        inputs = transitive_inputs,
+        args = args,
+    )
 
     zig_cache_output(
         actions = ctx.actions,

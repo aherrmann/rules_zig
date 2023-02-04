@@ -31,3 +31,18 @@ def add_package_flags(args, package):
 def get_package_files(package):
     """Generate a `depset` of the files required to depend on the package."""
     return package.all_srcs
+
+def zig_package_dependencies(*, deps, inputs, args):
+    """Collect inputs and flags for Zig package dependencies.
+
+    Args:
+      deps: List of Target, Considers the targets that have a ZigPackageInfo provider.
+      inputs: List of depset of File; mutable, Append the needed inputs to this list.
+      args: Args; mutable, Append the needed Zig compiler flags to this object.
+    """
+    for dep in deps:
+        if not ZigPackageInfo in dep:
+            continue
+        package = dep[ZigPackageInfo]
+        inputs.append(get_package_files(package))
+        add_package_flags(args, package)
