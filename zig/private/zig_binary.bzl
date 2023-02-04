@@ -1,7 +1,7 @@
 """Implementation of the zig_binary rule."""
 
+load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
-load("//zig/private:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
