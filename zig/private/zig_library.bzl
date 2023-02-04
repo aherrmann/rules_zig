@@ -34,19 +34,20 @@ def _zig_library_impl(ctx):
 
     outputs = []
 
+    direct_inputs = []
+    transitive_inputs = []
+
     args = ctx.actions.args()
     args.use_param_file("@%s")
 
     # TODO[AH] Set `.lib` extension on Windows.
     static = ctx.actions.declare_file(ctx.label.name + ".a")
     outputs.append(static)
+    args.add(static, format = "-femit-bin=%s")
     # TODO[AH] Support dynamic library output.
 
-    # TODO[AH] Factor out common dependency management code.
-    direct_inputs = [ctx.file.main] + ctx.files.srcs
-    transitive_inputs = []
-
-    args.add(static, format = "-femit-bin=%s")
+    direct_inputs.append(ctx.file.main)
+    direct_inputs.extend(ctx.files.srcs)
     args.add(ctx.file.main)
 
     zig_package_dependencies(
