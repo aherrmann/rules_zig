@@ -1,0 +1,23 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_library")
+
+zig_library(
+    name = "library",
+    main = "main.zig",
+)
+
+genrule(
+    name = "library-symbol",
+    srcs = [":library"],
+    outs = ["library-symbol.txt"],
+    cmd = "$(NM) -j --defined-only $(SRCS) | grep sayHello > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+build_test(
+    name = "library_build_test",
+    targets = [
+        ":library",
+        ":library-symbol",
+    ],
+)

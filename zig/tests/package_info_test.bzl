@@ -6,8 +6,7 @@ load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
-    "add_package_flags",
-    "get_package_files",
+    "zig_package_dependencies",
 )
 
 def _mock_args():
@@ -31,23 +30,30 @@ def _mock_args():
 def _single_package_test_impl(ctx):
     env = unittest.begin(ctx)
 
+    transitive_inputs = []
+    args = _mock_args()
+
+    zig_package_dependencies(
+        deps = [ctx.attr.pkg],
+        inputs = transitive_inputs,
+        args = args,
+    )
+
     package = ctx.attr.pkg[ZigPackageInfo]
 
-    args = _mock_args()
-    add_package_flags(args, package)
     asserts.equals(
         env,
         ["--pkg-begin", package.name, package.main.path, "--pkg-end"],
         args.get_args(),
-        "add_package_flags should generate the expected arguments.",
+        "zig_package_dependencies should generate the expected arguments.",
     )
 
-    files = get_package_files(package)
+    inputs = depset(transitive = transitive_inputs)
     asserts.set_equals(
         env,
         sets.make([package.main] + package.srcs),
-        sets.make(files.to_list()),
-        "get_package_files should capture all package files.",
+        sets.make(inputs.to_list()),
+        "zig_package_dependencies should capture all package files.",
     )
 
     return unittest.end(env)
@@ -62,13 +68,20 @@ _single_package_test = unittest.make(
 def _nested_packages_test_impl(ctx):
     env = unittest.begin(ctx)
 
+    transitive_inputs = []
+    args = _mock_args()
+
+    zig_package_dependencies(
+        deps = [dep for dep in ctx.attr.pkgs if dep.label.name == "a"],
+        inputs = transitive_inputs,
+        args = args,
+    )
+
     pkgs = {
         pkg.label.name: pkg[ZigPackageInfo]
         for pkg in ctx.attr.pkgs
     }
 
-    args = _mock_args()
-    add_package_flags(args, pkgs["a"])
     asserts.equals(
         env,
         [
@@ -122,10 +135,10 @@ def _nested_packages_test_impl(ctx):
             "--pkg-end",
         ],
         args.get_args(),
-        "add_package_flags should unfold the transitive dependency graph onto the command-line.",
+        "zig_package_dependencies should unfold the transitive dependency graph onto the command-line.",
     )
 
-    files = get_package_files(pkgs["a"])
+    inputs = depset(transitive = transitive_inputs)
     asserts.set_equals(
         env,
         sets.make([
@@ -133,8 +146,8 @@ def _nested_packages_test_impl(ctx):
             for pkg in pkgs.values()
             for src in [pkg.main] + pkg.srcs
         ]),
-        sets.make(files.to_list()),
-        "get_package_files should capture all package files.",
+        sets.make(inputs.to_list()),
+        "zig_package_dependencies should capture all package files.",
     )
 
     return unittest.end(env)

@@ -23,6 +23,27 @@ zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps<
 | <a id="zig_binary-srcs"></a>srcs |  Other source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 
 
+<a id="zig_library"></a>
+
+## zig_library
+
+<pre>
+zig_library(<a href="#zig_library-name">name</a>, <a href="#zig_library-deps">deps</a>, <a href="#zig_library-main">main</a>, <a href="#zig_library-srcs">srcs</a>)
+</pre>
+
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_library-deps"></a>deps |  Packages or libraries required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="zig_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_library-srcs"></a>srcs |  Other source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+
+
 <a id="zig_package"></a>
 
 ## zig_package
