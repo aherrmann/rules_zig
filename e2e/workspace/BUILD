@@ -13,7 +13,7 @@ genrule(
     name = "zig_version",
     outs = ["zig_version.actual"],
     cmd = "$(ZIG_BIN) version > $(OUTS)",
-    toolchains = ["@zig_toolchains//:resolved_toolchain"],
+    toolchains = ["@rules_zig//zig:resolved_toolchain"],
 )
 
 build_test(
