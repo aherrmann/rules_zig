@@ -31,6 +31,7 @@ bzl_library(
         "//zig/private:zig_binary",
         "//zig/private:zig_library",
         "//zig/private:zig_package",
+        "//zig/private:zig_test",
     ],
 )
 
