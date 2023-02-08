@@ -33,6 +33,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_test",
+    srcs = ["zig_test.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        "//zig/private/common:filetypes",
+        "//zig/private/common:zig_cache",
+        "//zig/private/providers:zig_package_info",
+    ],
+)
+
+bzl_library(
     name = "toolchains_repo",
     srcs = ["toolchains_repo.bzl"],
     visibility = ["//zig:__subpackages__"],

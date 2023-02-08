@@ -1,0 +1,18 @@
+load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
+
+zig_test(
+    name = "test",
+    srcs = [
+        "test/a.zig",
+        "test/b.zig",
+    ],
+    main = "main.zig",
+    deps = [
+        ":pkg",
+    ],
+)
+
+zig_package(
+    name = "pkg",
+    main = "pkg/main.zig",
+)
