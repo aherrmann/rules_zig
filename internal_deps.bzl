@@ -14,14 +14,14 @@ def rules_zig_internal_deps():
     "Fetch deps needed for local development"
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "56d8c5a5c91e1af73eca71a6fab2ced959b67c86d12ba37feedb0a2dfea441a6",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip"],
+        sha256 = "19ef30b21eae581177e0028f6f4b1f54c66467017be33d211ab6fc81da01ea4d",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.38.0/rules_go-v0.38.0.zip"],
     )
 
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "448e37e0dbf61d6fa8f00aaa12d191745e14f07c31cabfa731f0c8e8a4f41b97",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.28.0/bazel-gazelle-v0.28.0.tar.gz"],
+        sha256 = "ecba0f04f96b4960a5b250c8e8eeec42281035970aa8852dda73098274d14a1d",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.29.0/bazel-gazelle-v0.29.0.tar.gz"],
     )
 
     # Override bazel_skylib distribution to fetch sources instead
@@ -42,7 +42,7 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "a7bfc7aed7b86a4caaba382116e0214ebbaa623f393a9e716d87a3e1bab29d78",
-        strip_prefix = "bazel-lib-1.19.0",
-        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.19.0.tar.gz",
+        sha256 = "ae56efc54ce3025ea908900e0d061423310b15e4676ae1359105583a2944665c",
+        strip_prefix = "bazel-lib-1.19.1",
+        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.19.1.tar.gz",
     )

@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-    # Cancel previous actions from the same PR: https://stackoverflow.com/a/72408109
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
+  # Cancel previous actions from the same PR: https://stackoverflow.com/a/72408109
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # matrix-prep-* steps generate JSON used to create a dynamic actions matrix.
@@ -36,7 +36,7 @@ jobs:
 
   test:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     needs:
       - matrix-prep-bazelversion
@@ -45,6 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest] # TODO[AH] Support MacOS: [ubuntu-latest, macos-latest]
         bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
         folder:
           - "."
@@ -83,9 +84,9 @@ jobs:
         # Checks for the existence of test.sh in the folder. Downstream steps can use
         # steps.has_test_sh.outputs.files_exists as a conditional.
         id: has_test_sh
-        uses: andstor/file-existence-action@v1
+        uses: andstor/file-existence-action@v2
         with:
-            files: '${{ matrix.folder }}/test.sh'
+          files: "${{ matrix.folder }}/test.sh"
 
       - name: bazel test //...
         env:
