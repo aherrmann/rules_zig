@@ -1,0 +1,13 @@
+local_repository(
+    name = "rules_zig",
+    path = "../../../..",
+)
+
+load("@rules_zig//zig:repositories.bzl", "rules_zig_dependencies", "zig_register_toolchains")
+
+rules_zig_dependencies()
+
+zig_register_toolchains(
+    name = "zig",
+    zig_version = "0.10.1",
+)

@@ -15,6 +15,9 @@ bazel_integration_tests(
     name = "run_binary_test",
     bazel_versions = SUPPORTED_BAZEL_VERSIONS,
     test_runner = ":simple_test_runner",
+    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
+        "//:all_files",
+    ],
     workspace_path = "workspace",
 )
 

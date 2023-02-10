@@ -1,4 +1,6 @@
-sh_binary(
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+
+zig_binary(
     name = "binary",
-    srcs = ["binary.sh"],
+    main = "main.zig",
 )
