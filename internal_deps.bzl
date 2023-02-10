@@ -46,3 +46,10 @@ def rules_zig_internal_deps():
         strip_prefix = "bazel-lib-1.19.1",
         url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.19.1.tar.gz",
     )
+
+    http_archive(
+        name = "contrib_rules_bazel_integration_test",
+        sha256 = "20d670bb614d311a2a0fc8af53760439214731c3d5be2d9b0a197dccc19583f5",
+        strip_prefix = "rules_bazel_integration_test-0.9.0",
+        url = "http://github.com/bazel-contrib/rules_bazel_integration_test/archive/v0.9.0.tar.gz",
+    )
