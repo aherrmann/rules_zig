@@ -34,7 +34,8 @@ bzl_library(
 
 bzl_library(
     name = "zig_test",
-    srcs = ["zig_test.bzl"],
+    # Gazelle removes the srcs attribute for some reason.
+    srcs = ["zig_test.bzl"],  # keep
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:filetypes",
