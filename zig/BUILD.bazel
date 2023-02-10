@@ -49,3 +49,16 @@ bzl_library(
     srcs = ["toolchain.bzl"],
     visibility = ["//visibility:public"],
 )
+
+# Run `scripts/all_files.py` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":defs.bzl",
+        ":repositories.bzl",
+        ":toolchain.bzl",
+        "//zig/private:all_files",
+    ],
+    visibility = ["//:__pkg__"],
+)

@@ -8,3 +8,13 @@ stardoc_with_diff_test(
 )
 
 update_docs(name = "update")
+
+# Run `scripts/all_files.py` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":rules.md",
+    ],
+    visibility = ["//:__pkg__"],
+)
