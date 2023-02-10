@@ -85,5 +85,6 @@ zig_binary = rule(
     _zig_binary_impl,
     attrs = ATTRS,
     doc = DOC,
+    executable = True,
     toolchains = ["//zig:toolchain_type"],
 )
