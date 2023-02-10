@@ -44,14 +44,14 @@ bzl_library(
 )
 
 bzl_library(
-    name = "toolchains_repo",
-    srcs = ["toolchains_repo.bzl"],
+    name = "resolved_toolchain",
+    srcs = ["resolved_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
 )
 
 bzl_library(
-    name = "resolved_toolchain",
-    srcs = ["resolved_toolchain.bzl"],
+    name = "toolchains_repo",
+    srcs = ["toolchains_repo.bzl"],
     visibility = ["//zig:__subpackages__"],
 )
 

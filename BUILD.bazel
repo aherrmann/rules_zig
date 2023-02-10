@@ -21,12 +21,19 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "bazel_versions",
+    srcs = ["bazel_versions.bzl"],
+    visibility = ["//visibility:public"],
+)
+
 # Run `scripts/all_files.py` to update this target.
 filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
         ":WORKSPACE",
+        ":bazel_versions.bzl",
         ":internal_deps.bzl",
         "//docs:all_files",
         "//zig:all_files",
