@@ -12,3 +12,14 @@ bzl_library(
     srcs = ["filetypes.bzl"],
     visibility = ["//zig:__subpackages__"],
 )
+
+# Run `scripts/all_files.py` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":filetypes.bzl",
+        ":zig_cache.bzl",
+    ],
+    visibility = ["//zig/private:__pkg__"],
+)

@@ -1,0 +1,31 @@
+load("//:bazel_versions.bzl", "SUPPORTED_BAZEL_VERSIONS")
+load(
+    "@contrib_rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "bazel_integration_tests",
+    "default_test_runner",
+    "integration_test_utils",
+)
+
+default_test_runner(
+    name = "simple_test_runner",
+    bazel_cmds = ["run //:binary"],
+)
+
+bazel_integration_tests(
+    name = "run_binary_test",
+    bazel_versions = SUPPORTED_BAZEL_VERSIONS,
+    test_runner = ":simple_test_runner",
+    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
+        "//:all_files",
+    ],
+    workspace_path = "workspace",
+)
+
+test_suite(
+    name = "all_integration_tests",
+    tags = integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
+    tests = integration_test_utils.bazel_integration_test_names(
+        "run_binary_test",
+        SUPPORTED_BAZEL_VERSIONS,
+    ),
+)

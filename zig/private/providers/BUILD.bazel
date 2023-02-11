@@ -5,3 +5,13 @@ bzl_library(
     srcs = ["zig_package_info.bzl"],
     visibility = ["//zig:__subpackages__"],
 )
+
+# Run `scripts/all_files.py` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":zig_package_info.bzl",
+    ],
+    visibility = ["//zig/private:__pkg__"],
+)

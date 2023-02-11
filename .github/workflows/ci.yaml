@@ -50,6 +50,13 @@ jobs:
         folder:
           - "."
           - "e2e/workspace"
+        target: ["//..."]
+        include:
+          - os: ubuntu-latest # TODO[AH] Support MacOS: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            folder: "."
+            # TODO[AH] Define a more general test_suite for all integration tests.
+            target: "//zig/tests/run-binary:all_integration_tests"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -88,12 +95,12 @@ jobs:
         with:
           files: "${{ matrix.folder }}/test.sh"
 
-      - name: bazel test //...
+      - name: bazel test ${{ matrix.target }}
         env:
           # Bazelisk will download bazel to here, ensure it is cached between runs.
           XDG_CACHE_HOME: ~/.cache/bazel-repo
         working-directory: ${{ matrix.folder }}
-        run: bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test //...
+        run: bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ matrix.target }}
 
       - name: ./test.sh
         # Run if there is a test.sh file in the folder
