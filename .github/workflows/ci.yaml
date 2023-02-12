@@ -85,6 +85,15 @@ jobs:
         working-directory: ${{ matrix.folder }}
         run: echo "${{ matrix.bazelversion }}" > .bazelversion
 
+      - name: Test generated files
+        if: matrix.folder == '.'
+        env:
+          # Bazelisk will download bazel to here, ensure it is cached between runs.
+          XDG_CACHE_HOME: ~/.cache/bazel-repo
+        run: |
+          bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
+          test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; exit 1; }
+
       - name: Check for test.sh
         # Checks for the existence of test.sh in the folder. Downstream steps can use
         # steps.has_test_sh.outputs.files_exists as a conditional.
