@@ -13,11 +13,13 @@ pre-commit install
 
 Otherwise later tooling on CI may yell at you about formatting/linting violations.
 
-## Updating BUILD files
+## Updating generated files
 
 Some targets are generated from sources.
-Currently this is just the `bzl_library` targets.
-Run `bazel run //:gazelle` to keep them up-to-date.
+Currently these are `bzl_library` targets and `filegroup` targets.
+Furthermore, the API documentation is generated, and certain flags need to be
+generated for integration testing purposes.
+Run `bazel run //util:update` to keep them up-to-date.
 
 ## Using this as a development dependency of other rules
 
