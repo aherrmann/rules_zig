@@ -11,6 +11,15 @@ multirun(
     ],
 )
 
+sh_binary(
+    name = "buildozer",
+    srcs = select({
+        "@platforms//os:linux": ["@com_github_bazelbuild_buildtools_buildozer_linux_amd64//file"],
+        "@platforms//os:macos": ["@com_github_bazelbuild_buildtools_buildozer_darwin_amd64//file"],
+        "@platforms//os:windows": ["@com_github_bazelbuild_buildtools_buildozer_windows_amd64//file"],
+    }),
+)
+
 gazelle_binary(
     name = "gazelle_bin",
     languages = ["@bazel_skylib//gazelle/bzl"],
