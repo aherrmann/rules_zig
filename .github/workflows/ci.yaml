@@ -26,13 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - id: bazel_from_bazelversion
-        run: echo "bazelversion=$(head -n 1 .bazelversion)" >> $GITHUB_OUTPUT
-      - id: bazel_5
-        run: echo "bazelversion=5.3.2" >> $GITHUB_OUTPUT
+      - id: versions_from_bazel_versions_bzl
+        run: echo "bazelversions=$(scripts/bazel_versions.py)" >> $GITHUB_OUTPUT
     outputs:
-      # Will look like ["<version from .bazelversion>", "5.3.2"]
-      bazelversions: ${{ toJSON(steps.*.outputs.bazelversion) }}
+      # Will look like ["<version from .bazelversion>","<version from bazel_versions.bzl>"]
+      bazelversions: ${{ steps.versions_from_bazel_versions_bzl.outputs.bazelversions }}
 
   test:
     # The type of runner that the job will run on
