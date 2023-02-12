@@ -1,0 +1,4 @@
+py_binary(
+    name = "update_filegroups",
+    srcs = ["update_filegroups.py"],
+)

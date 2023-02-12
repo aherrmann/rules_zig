@@ -13,7 +13,7 @@ import shutil
 import subprocess
 
 # Add exlusions for packages to skip here.
-PACKAGE_PATTERN =  "//... - //zig/tests/..."
+PACKAGE_PATTERN =  "//... - //util/... - //zig/tests/..."
 
 # Add extra source files to capture here.
 EXTRA_SRCS = {
@@ -21,6 +21,13 @@ EXTRA_SRCS = {
         ":WORKSPACE",
     ],
 }
+
+
+def get_workspace_root():
+    """Read the workspace root directory from the environment."""
+    if (root := os.getenv("BUILD_WORKSPACE_DIRECTORY")) is None:
+        raise RuntimeError("The workspace root was not found. Execute with `bazel run`.")
+    return root
 
 
 def query_packages(bazel):
@@ -60,7 +67,7 @@ def generate_all_files_target(buildozer, package, sources, subpackages):
     with subprocess.Popen(command, stdin=subprocess.PIPE) as proc:
         proc.stdin.write(f"delete|//{package}:all_files\n".encode())
         proc.stdin.write(f"new filegroup all_files|//{package}:__pkg__\n".encode())
-        proc.stdin.write(f"comment Run\\ `scripts/all_files.py`\\ to\\ update\\ this\\ target.|//{package}:all_files\n".encode())
+        proc.stdin.write(f"comment Execute\\ `bazel\\ run\\ //util:update_filegroups`\\ to\\ update\\ this\\ target.|//{package}:all_files\n".encode())
         if package:
             proc.stdin.write(f"add visibility //{os.path.dirname(package)}:__pkg__|//{package}:all_files\n".encode())
         else:
@@ -73,6 +80,9 @@ def generate_all_files_target(buildozer, package, sources, subpackages):
 
 
 def main():
+    workspace_root = get_workspace_root()
+    os.chdir(workspace_root)
+
     bazel = shutil.which("bazel")
     buildozer = shutil.which("buildozer")
 
