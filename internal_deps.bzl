@@ -24,6 +24,13 @@ def rules_zig_internal_deps():
         urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.29.0/bazel-gazelle-v0.29.0.tar.gz"],
     )
 
+    http_archive(
+        name = "rules_multirun",
+        sha256 = "6def9e001ee0e4c3a8b30abf7f832af36528ebd383c748a0687568b761581a80",
+        strip_prefix = "rules_multirun-0.3.2",
+        url = "https://github.com/keith/rules_multirun/archive/refs/tags/0.3.2.tar.gz",
+    )
+
     # Override bazel_skylib distribution to fetch sources instead
     # so that the gazelle extension is included
     # see https://github.com/bazelbuild/bazel-skylib/issues/250

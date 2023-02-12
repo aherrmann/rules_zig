@@ -1,4 +1,15 @@
 load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
+load("@rules_multirun//:defs.bzl", "multirun")
+
+multirun(
+    name = "update",
+    commands = [
+        ":gazelle",
+        ":update_filegroups",
+        "//docs:update-alias",
+        "@contrib_rules_bazel_integration_test//tools:update_deleted_packages",
+    ],
+)
 
 gazelle_binary(
     name = "gazelle_bin",

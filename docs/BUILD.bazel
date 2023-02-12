@@ -8,3 +8,10 @@ stardoc_with_diff_test(
 )
 
 update_docs(name = "update")
+
+# workaround: update_docs does not allow to modify visibility.
+alias(
+    name = "update-alias",
+    actual = ":update",
+    visibility = ["//util:__pkg__"],
+)
