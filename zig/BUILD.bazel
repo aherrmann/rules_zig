@@ -50,7 +50,7 @@ bzl_library(
     visibility = ["//visibility:public"],
 )
 
-# Run `scripts/all_files.py` to update this target.
+# Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
     srcs = [
