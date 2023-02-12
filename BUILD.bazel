@@ -1,15 +1,4 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
-
-gazelle_binary(
-    name = "gazelle_bin",
-    languages = ["@bazel_skylib//gazelle/bzl"],
-)
-
-gazelle(
-    name = "gazelle",
-    gazelle = "gazelle_bin",
-)
 
 bzl_library(
     name = "internal_deps",

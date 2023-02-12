@@ -1,3 +1,15 @@
+load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
+
+gazelle_binary(
+    name = "gazelle_bin",
+    languages = ["@bazel_skylib//gazelle/bzl"],
+)
+
+gazelle(
+    name = "gazelle",
+    gazelle = "gazelle_bin",
+)
+
 py_binary(
     name = "update_filegroups",
     srcs = ["update_filegroups.py"],
