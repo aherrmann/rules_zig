@@ -97,7 +97,7 @@ def main():
     parser = argparse.ArgumentParser(
             prog = "update_filegroups",
             description = "Update generate all_files filegroup targets.")
-    parser.add_argument("--buildozer", help="Runfiles path to the buildozer binary.")
+    parser.add_argument("--buildozer", required=True, type=str, help="Runfiles path to the buildozer binary.")
     args = parser.parse_args()
 
     workspace_root = get_workspace_root()
