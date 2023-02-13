@@ -33,4 +33,10 @@ gazelle(
 py_binary(
     name = "update_filegroups",
     srcs = ["update_filegroups.py"],
+    args = [
+        "--buildozer",
+        "$(rootpath :buildozer)",
+    ],
+    data = [":buildozer"],
+    deps = ["@rules_python//python/runfiles"],
 )

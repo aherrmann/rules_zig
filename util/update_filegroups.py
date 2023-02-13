@@ -8,7 +8,9 @@ import the rule set successfully.
 [it]: https://github.com/bazel-contrib/rules_bazel_integration_test#1-declare-a-filegroup-to-represent-the-parent-workspace-files
 """
 
+import argparse
 import os
+from rules_python.python.runfiles import runfiles
 import shutil
 import subprocess
 
@@ -28,6 +30,18 @@ def get_workspace_root():
     if (root := os.getenv("BUILD_WORKSPACE_DIRECTORY")) is None:
         raise RuntimeError("The workspace root was not found. Execute with `bazel run`.")
     return root
+
+
+def get_bazel():
+    """Find the Bazel binary in PATH."""
+    if (bazel := shutil.which("bazel")) is None:
+        raise RuntimeError("Could not find the bazel executable.")
+    return bazel
+
+
+def get_buildozer(path):
+    r = runfiles.Create()
+    return r.Rlocation(os.path.join("rules_zig", path))
 
 
 def query_packages(bazel):
@@ -80,11 +94,17 @@ def generate_all_files_target(buildozer, package, sources, subpackages):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+            prog = "update_filegroups",
+            description = "Update generate all_files filegroup targets.")
+    parser.add_argument("--buildozer", help="Runfiles path to the buildozer binary.")
+    args = parser.parse_args()
+
     workspace_root = get_workspace_root()
     os.chdir(workspace_root)
 
-    bazel = shutil.which("bazel")
-    buildozer = shutil.which("buildozer")
+    bazel = get_bazel()
+    buildozer = get_buildozer(args.buildozer)
 
     packages = query_packages(bazel)
     subpackages = calculate_sub_packages(packages)
