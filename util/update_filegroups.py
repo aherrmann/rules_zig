@@ -39,9 +39,16 @@ def get_bazel():
     return bazel
 
 
-def get_buildozer(path):
+def get_runfiles():
     r = runfiles.Create()
-    return r.Rlocation(os.path.join("rules_zig", path))
+    env = os.environ
+    env.update(r.EnvVars())
+    return r, env
+
+
+def get_buildozer(r, path):
+    buildozer = r.Rlocation(os.path.join("rules_zig", path))
+    return buildozer
 
 
 def query_packages(bazel):
@@ -75,10 +82,10 @@ def query_package_sources(bazel, package):
     return sources
 
 
-def generate_all_files_target(buildozer, package, sources, subpackages):
+def generate_all_files_target(env, buildozer, package, sources, subpackages):
     """Generate an all_files target for the given package."""
     command = [buildozer, "-shorten_labels", "-k", "-f", "-"]
-    with subprocess.Popen(command, stdin=subprocess.PIPE) as proc:
+    with subprocess.Popen(command, env=env, stdin=subprocess.PIPE) as proc:
         proc.stdin.write(f"delete|//{package}:all_files\n".encode())
         proc.stdin.write(f"new filegroup all_files|//{package}:__pkg__\n".encode())
         proc.stdin.write(f"comment Execute\\ `bazel\\ run\\ //util:update_filegroups`\\ to\\ update\\ this\\ target.|//{package}:all_files\n".encode())
@@ -100,18 +107,20 @@ def main():
     parser.add_argument("--buildozer", required=True, type=str, help="Runfiles path to the buildozer binary.")
     args = parser.parse_args()
 
+    runfiles, runfiles_env = get_runfiles()
+
     workspace_root = get_workspace_root()
     os.chdir(workspace_root)
 
     bazel = get_bazel()
-    buildozer = get_buildozer(args.buildozer)
+    buildozer = get_buildozer(runfiles, args.buildozer)
 
     packages = query_packages(bazel)
     subpackages = calculate_sub_packages(packages)
 
     for package in packages:
         sources = query_package_sources(bazel, package)
-        generate_all_files_target(buildozer, package, sources, subpackages)
+        generate_all_files_target(runfiles_env, buildozer, package, sources, subpackages)
 
 
 if __name__ == "__main__":
