@@ -83,7 +83,7 @@ jobs:
 
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
-        run: echo "${{ matrix.bazelversion }}" > .bazelversion
+        run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
       - name: Test generated files
         if: matrix.folder == '.'
