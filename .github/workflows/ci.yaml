@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - id: versions_from_bazel_versions_bzl
-        run: echo "bazelversions=$(scripts/bazel_versions.py)" >> $GITHUB_OUTPUT
+        run: echo "bazelversions=$(.github/workflows/bazel_versions.py)" >> $GITHUB_OUTPUT
     outputs:
       # Will look like ["<version from .bazelversion>","<version from bazel_versions.bzl>"]
       bazelversions: ${{ steps.versions_from_bazel_versions_bzl.outputs.bazelversions }}
@@ -83,7 +83,16 @@ jobs:
 
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
-        run: echo "${{ matrix.bazelversion }}" > .bazelversion
+        run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
+
+      - name: Test generated files
+        if: matrix.folder == '.'
+        env:
+          # Bazelisk will download bazel to here, ensure it is cached between runs.
+          XDG_CACHE_HOME: ~/.cache/bazel-repo
+        run: |
+          bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
+          test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; git diff >&2; exit 1; }
 
       - name: Check for test.sh
         # Checks for the existence of test.sh in the folder. Downstream steps can use

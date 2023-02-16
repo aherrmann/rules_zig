@@ -9,12 +9,9 @@ stardoc_with_diff_test(
 
 update_docs(name = "update")
 
-# Run `scripts/all_files.py` to update this target.
-filegroup(
-    name = "all_files",
-    srcs = [
-        ":BUILD.bazel",
-        ":rules.md",
-    ],
-    visibility = ["//:__pkg__"],
+# workaround: update_docs does not allow to modify visibility.
+alias(
+    name = "update-alias",
+    actual = ":update",
+    visibility = ["//util:__pkg__"],
 )

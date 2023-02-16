@@ -4,11 +4,18 @@ Users should *not* need to install these. If users see a load()
 statement from these, that's a bug in our distribution.
 """
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive")
+load(
+    "@bazel_tools//tools/build_defs/repo:http.bzl",
+    _http_archive = "http_archive",
+    _http_file = "http_file",
+)
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def http_archive(name, **kwargs):
     maybe(_http_archive, name = name, **kwargs)
+
+def http_file(name, **kwargs):
+    maybe(_http_file, name = name, **kwargs)
 
 def rules_zig_internal_deps():
     "Fetch deps needed for local development"
@@ -22,6 +29,37 @@ def rules_zig_internal_deps():
         name = "bazel_gazelle",
         sha256 = "ecba0f04f96b4960a5b250c8e8eeec42281035970aa8852dda73098274d14a1d",
         urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.29.0/bazel-gazelle-v0.29.0.tar.gz"],
+    )
+
+    http_file(
+        name = "com_github_bazelbuild_buildtools_buildozer_darwin_amd64",
+        downloaded_file_path = "buildozer",
+        executable = True,
+        sha256 = "f9eb333006a2ad3b058670976ff9312cb7c1021593d76eceb31d38854be3ef8d",
+        url = "https://github.com/bazelbuild/buildtools/releases/download/6.0.1/buildozer-darwin-amd64",
+    )
+
+    http_file(
+        name = "com_github_bazelbuild_buildtools_buildozer_linux_amd64",
+        downloaded_file_path = "buildozer",
+        executable = True,
+        sha256 = "a7ca6257f78088a795e7b6e37b78b7b76fb91de1d465d851078d0226f08b90c9",
+        url = "https://github.com/bazelbuild/buildtools/releases/download/6.0.1/buildozer-linux-amd64",
+    )
+
+    http_file(
+        name = "com_github_bazelbuild_buildtools_buildozer_windows_amd64",
+        downloaded_file_path = "buildozer.exe",
+        executable = True,
+        sha256 = "371f7bde60db3f2d7f414fdd2dcd4de28cae6c2c65a0c88a5a82b143af642fbe",
+        url = "https://github.com/bazelbuild/buildtools/releases/download/6.0.1/buildozer-windows-amd64.exe",
+    )
+
+    http_archive(
+        name = "rules_multirun",
+        sha256 = "00aad85eca054dbb5dc12178a3c83fd4bbee83d4824d9d76bfd86ab757a4c327",
+        strip_prefix = "rules_multirun-73017d503a524a9de59a5339c1db9cc4860cec2a",
+        url = "https://github.com/keith/rules_multirun/archive/73017d503a524a9de59a5339c1db9cc4860cec2a.tar.gz",
     )
 
     # Override bazel_skylib distribution to fetch sources instead
