@@ -57,9 +57,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "rules_multirun",
-        sha256 = "6def9e001ee0e4c3a8b30abf7f832af36528ebd383c748a0687568b761581a80",
-        strip_prefix = "rules_multirun-0.3.2",
-        url = "https://github.com/keith/rules_multirun/archive/refs/tags/0.3.2.tar.gz",
+        sha256 = "00aad85eca054dbb5dc12178a3c83fd4bbee83d4824d9d76bfd86ab757a4c327",
+        strip_prefix = "rules_multirun-73017d503a524a9de59a5339c1db9cc4860cec2a",
+        url = "https://github.com/keith/rules_multirun/archive/73017d503a524a9de59a5339c1db9cc4860cec2a.tar.gz",
     )
 
     # Override bazel_skylib distribution to fetch sources instead
