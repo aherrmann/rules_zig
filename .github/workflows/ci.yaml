@@ -53,8 +53,7 @@ jobs:
           - os: ubuntu-latest # TODO[AH] Support MacOS: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
             folder: "."
-            # TODO[AH] Define a more general test_suite for all integration tests.
-            target: "//zig/tests/run-binary:all_integration_tests"
+            target: "//zig/tests/integration_tests"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:

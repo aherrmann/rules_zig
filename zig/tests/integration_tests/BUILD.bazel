@@ -22,7 +22,7 @@ bazel_integration_tests(
 )
 
 test_suite(
-    name = "all_integration_tests",
+    name = "integration_tests",
     tags = integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     tests = integration_test_utils.bazel_integration_test_names(
         "run_binary_test",
