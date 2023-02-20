@@ -1,4 +1,5 @@
 load("//:bazel_versions.bzl", "SUPPORTED_BAZEL_VERSIONS")
+load("//zig:defs.bzl", "zig_test")
 load(
     "@contrib_rules_bazel_integration_test//bazel_integration_test:defs.bzl",
     "bazel_integration_tests",
@@ -9,6 +10,12 @@ load(
 default_test_runner(
     name = "simple_test_runner",
     bazel_cmds = ["run //:binary"],
+)
+
+zig_test(
+    name = "integration_tests_runner",
+    main = "integration_tests_runner.zig",
+    tags = ["manual"],
 )
 
 bazel_integration_tests(
