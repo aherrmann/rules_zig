@@ -3,13 +3,7 @@ load("//zig:defs.bzl", "zig_test")
 load(
     "@contrib_rules_bazel_integration_test//bazel_integration_test:defs.bzl",
     "bazel_integration_tests",
-    "default_test_runner",
     "integration_test_utils",
-)
-
-default_test_runner(
-    name = "simple_test_runner",
-    bazel_cmds = ["run //:binary"],
 )
 
 zig_test(
