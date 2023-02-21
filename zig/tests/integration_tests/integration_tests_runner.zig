@@ -73,3 +73,15 @@ test "dummy" {
     defer result.deinit();
     try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
 }
+
+test "zig_binary prints Hello World!" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "run", "//:binary" },
+    });
+    defer result.deinit();
+
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqualStrings("Hello World!\n", result.stdout);
+}
