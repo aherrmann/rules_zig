@@ -43,14 +43,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest] # TODO[AH] Support MacOS: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
         folder:
           - "."
           - "e2e/workspace"
         target: ["//..."]
         include:
-          - os: ubuntu-latest # TODO[AH] Support MacOS: macos-latest
+          - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            folder: "."
+            target: "//zig/tests/integration_tests"
+          - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
             folder: "."
             target: "//zig/tests/integration_tests"
