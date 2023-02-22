@@ -41,12 +41,18 @@ _ATTRS = {
 
 def _zig_repo_impl(repository_ctx):
     # TODO[AH] read URLs from https://ziglang.org/download/index.json
-    url = "https://ziglang.org/download/0.10.1/zig-linux-x86_64-0.10.1.tar.xz"
-    strip_prefix = "zig-linux-x86_64-0.10.1"
+    basename = "zig-{}-{}".format(
+        repository_ctx.attr.platform,
+        repository_ctx.attr.zig_version,
+    )
+    url = "https://ziglang.org/download/{}/{}.tar.xz".format(
+        repository_ctx.attr.zig_version,
+        basename,
+    )
     repository_ctx.download_and_extract(
         url = url,
         integrity = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform],
-        stripPrefix = strip_prefix,
+        stripPrefix = basename,
     )
 
     # TODO[AH] compiler and lib files
