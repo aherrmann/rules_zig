@@ -1,6 +1,41 @@
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_zig//zig:defs.bzl", "zig_test")
 
 zig_test(
-    name = "test",
-    main = "main.zig",
+    name = "succeeds",
+    main = "succeeding-test.zig",
+)
+
+genrule(
+    name = "success_result",
+    testonly = True,
+    outs = ["success_result.actual"],
+    cmd = "$(execpath :succeeds); echo $$? > $(OUTS)",
+    tools = [":succeeds"],
+)
+
+diff_test(
+    name = "success_result_test",
+    file1 = ":success_result.expected",
+    file2 = ":success_result.actual",
+)
+
+zig_test(
+    name = "fails",
+    main = "failing-test.zig",
+    tags = ["manual"],
+)
+
+genrule(
+    name = "failure_result",
+    testonly = True,
+    outs = ["failure_result.actual"],
+    cmd = "set +e; $(execpath :fails); echo $$? > $(OUTS)",
+    tools = [":fails"],
+)
+
+diff_test(
+    name = "failure_result_test",
+    file1 = ":failure_result.expected",
+    file2 = ":failure_result.actual",
 )
