@@ -75,3 +75,26 @@ test "zig_binary prints Hello World!" {
     try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
     try std.testing.expectEqualStrings("Hello World!\n", result.stdout);
 }
+
+test "succeeding zig_test passes" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "test", "//:test-succeeds" },
+    });
+    defer result.deinit();
+
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+}
+
+test "failing zig_test fails" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "test", "//:test-fails" },
+    });
+    defer result.deinit();
+
+    // See https://bazel.build/run/scripts for Bazel exit codes.
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 3 }, result.term);
+}

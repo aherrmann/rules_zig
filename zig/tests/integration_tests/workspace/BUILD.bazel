@@ -1,6 +1,16 @@
-load("@rules_zig//zig:defs.bzl", "zig_binary")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
 
 zig_binary(
     name = "binary",
     main = "main.zig",
+)
+
+zig_test(
+    name = "test-succeeds",
+    main = "test-succeeds.zig",
+)
+
+zig_test(
+    name = "test-fails",
+    main = "test-fails.zig",
 )
