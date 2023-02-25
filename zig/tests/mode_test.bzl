@@ -24,7 +24,7 @@ def _define_settings_mode_test(mode, option):
         settings = analysistest.target_under_test(env)[ZigSettingsInfo]
         asserts.equals(env, mode, settings.mode)
 
-        mode_option = _assert_find_unique_option(env, "-O", settings.flags)
+        mode_option = _assert_find_unique_option(env, "-O", settings.args)
         asserts.equals(env, option, mode_option)
 
         return analysistest.end(env)

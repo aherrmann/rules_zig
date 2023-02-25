@@ -13,7 +13,7 @@ ATTRS = {
     ),
 }
 
-MODE_FLAGS = {
+MODE_ARGS = {
     "debug": ["-O", "Debug"],
     "release_safe": ["-O", "ReleaseSafe"],
     "release_small": ["-O", "ReleaseSmall"],
@@ -21,14 +21,14 @@ MODE_FLAGS = {
 }
 
 def _settings_impl(ctx):
-    flags = []
+    args = []
 
     mode = ctx.attr.mode[BuildSettingInfo].value
-    flags.extend(MODE_FLAGS[mode])
+    args.extend(MODE_ARGS[mode])
 
     settings_info = ZigSettingsInfo(
         mode = mode,
-        flags = flags,
+        args = args,
     )
 
     settings_json = ctx.actions.declare_file(ctx.label.name + ".json")

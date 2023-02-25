@@ -4,7 +4,7 @@ ZigSettingsInfo = provider(
     doc = "Collection of all active Zig build settings.",
     fields = {
         "mode": "The Zig build mode.",
-        "flags": "The collected compiler flags for all active settings.",
+        "args": "The collected compiler arguments for all active settings.",
     },
 )
 
@@ -15,4 +15,4 @@ def zig_settings(*, settings, args):
       settings: ZigSettingsInfo, The active Zig build settings.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
-    args.add_all(settings.flags)
+    args.add_all(settings.args)
