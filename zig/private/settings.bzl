@@ -1,6 +1,7 @@
 """Implementation of the settings rule."""
 
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
 
 DOC = """\
 """
@@ -18,14 +19,6 @@ MODE_FLAGS = {
     "release_small": ["-O", "ReleaseSmall"],
     "release_fast": ["-O", "ReleaseFast"],
 }
-
-ZigSettingsInfo = provider(
-    doc = "Collection of all active Zig build settings.",
-    fields = {
-        "mode": "The Zig build mode.",
-        "flags": "The collected compiler flags for all active settings.",
-    },
-)
 
 def _settings_impl(ctx):
     flags = []

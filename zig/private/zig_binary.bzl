@@ -7,6 +7,11 @@ load(
     "ZigPackageInfo",
     "zig_package_dependencies",
 )
+load(
+    "//zig/private/providers:zig_settings_info.bzl",
+    "ZigSettingsInfo",
+    "zig_settings",
+)
 
 DOC = """\
 """
@@ -26,6 +31,11 @@ ATTRS = {
         doc = "Packages or libraries required to build the target.",
         mandatory = False,
         providers = [ZigPackageInfo],
+    ),
+    "_settings": attr.label(
+        default = "//zig/settings",
+        doc = "Zig build settings.",
+        providers = [ZigSettingsInfo],
     ),
 }
 
@@ -59,6 +69,11 @@ def _zig_binary_impl(ctx):
         actions = ctx.actions,
         name = ctx.label.name,
         outputs = outputs,
+        args = args,
+    )
+
+    zig_settings(
+        settings = ctx.attr._settings[ZigSettingsInfo],
         args = args,
     )
 
