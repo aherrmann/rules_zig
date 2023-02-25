@@ -39,11 +39,45 @@ _settings_mode_release_safe_test = _define_settings_mode_test("release_safe", "R
 _settings_mode_release_small_test = _define_settings_mode_test("release_small", "ReleaseSmall")
 _settings_mode_release_fast_test = _define_settings_mode_test("release_fast", "ReleaseFast")
 
+def _assert_find_action(env, mnemonic):
+    actions = analysistest.target_actions(env)
+    for action in actions:
+        if action.mnemonic == mnemonic:
+            return action
+    asserts.true(env, False, "Expected an action with mnemonic {}.".format(mnemonic))
+    return None
+
+def _define_build_mode_test(mnemonic, mode, option):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+
+        action = _assert_find_action(env, mnemonic)
+        mode_option = _assert_find_unique_option(env, "-O", action.argv)
+        asserts.equals(env, option, mode_option)
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {str(Label("@rules_zig//zig/settings:mode")): mode},
+    )
+
+_build_mode_debug_test = _define_build_mode_test("ZigBuildExe", "debug", "Debug")
+_build_mode_release_safe_test = _define_build_mode_test("ZigBuildExe", "release_safe", "ReleaseSafe")
+_build_mode_release_small_test = _define_build_mode_test("ZigBuildExe", "release_small", "ReleaseSmall")
+_build_mode_release_fast_test = _define_build_mode_test("ZigBuildExe", "release_fast", "ReleaseFast")
+
 def mode_test_suite(name):
     unittest.suite(
         name,
+        # Test Zig build mode on the settings target
         partial.make(_settings_mode_debug_test, target_under_test = "//zig/settings"),
         partial.make(_settings_mode_release_safe_test, target_under_test = "//zig/settings"),
         partial.make(_settings_mode_release_small_test, target_under_test = "//zig/settings"),
         partial.make(_settings_mode_release_fast_test, target_under_test = "//zig/settings"),
+        # Test Zig build mode on a binary target
+        partial.make(_build_mode_debug_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_mode_release_safe_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_mode_release_small_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_mode_release_fast_test, target_under_test = "//zig/tests/simple-binary:binary"),
     )
