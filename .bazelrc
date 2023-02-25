@@ -2,6 +2,8 @@
 # Take care to document any settings that you expect users to apply.
 # Settings that apply only to CI are in .github/workflows/ci.bazelrc
 
+import %workspace%/.bazelrc.flags
+
 # Deleted packages for integration tests.
 # To update these lines, execute
 # `bazel run @contrib_rules_bazel_integration_test//tools:update_deleted_packages`

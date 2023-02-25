@@ -1,0 +1,34 @@
+config_setting(
+    name = "debug",
+    flag_values = {
+        "//zig/settings:mode": "debug",
+    },
+)
+
+config_setting(
+    name = "release_safe",
+    flag_values = {
+        "//zig/settings:mode": "release_safe",
+    },
+)
+
+config_setting(
+    name = "release_small",
+    flag_values = {
+        "//zig/settings:mode": "release_small",
+    },
+)
+
+config_setting(
+    name = "release_fast",
+    flag_values = {
+        "//zig/settings:mode": "release_fast",
+    },
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig/config:__pkg__"],
+)
