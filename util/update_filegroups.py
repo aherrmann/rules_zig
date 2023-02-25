@@ -15,7 +15,7 @@ import shutil
 import subprocess
 
 # Add exlusions for packages to skip here.
-PACKAGE_PATTERN =  "//... - //docs/... - //util/... - //zig/tests/..."
+PACKAGE_PATTERN =  "//...:* - //docs/...:* - //util/...:* - //zig/tests/...:*"
 
 # Add extra source files to capture here.
 EXTRA_SRCS = {
