@@ -62,10 +62,15 @@ def _define_build_mode_test(mnemonic, mode, option):
         config_settings = {str(Label("@rules_zig//zig/settings:mode")): mode},
     )
 
-_build_mode_debug_test = _define_build_mode_test("ZigBuildExe", "debug", "Debug")
-_build_mode_release_safe_test = _define_build_mode_test("ZigBuildExe", "release_safe", "ReleaseSafe")
-_build_mode_release_small_test = _define_build_mode_test("ZigBuildExe", "release_small", "ReleaseSmall")
-_build_mode_release_fast_test = _define_build_mode_test("ZigBuildExe", "release_fast", "ReleaseFast")
+_build_exe_mode_debug_test = _define_build_mode_test("ZigBuildExe", "debug", "Debug")
+_build_exe_mode_release_safe_test = _define_build_mode_test("ZigBuildExe", "release_safe", "ReleaseSafe")
+_build_exe_mode_release_small_test = _define_build_mode_test("ZigBuildExe", "release_small", "ReleaseSmall")
+_build_exe_mode_release_fast_test = _define_build_mode_test("ZigBuildExe", "release_fast", "ReleaseFast")
+
+_build_lib_mode_debug_test = _define_build_mode_test("ZigBuildLib", "debug", "Debug")
+_build_lib_mode_release_safe_test = _define_build_mode_test("ZigBuildLib", "release_safe", "ReleaseSafe")
+_build_lib_mode_release_small_test = _define_build_mode_test("ZigBuildLib", "release_small", "ReleaseSmall")
+_build_lib_mode_release_fast_test = _define_build_mode_test("ZigBuildLib", "release_fast", "ReleaseFast")
 
 def mode_test_suite(name):
     unittest.suite(
@@ -76,8 +81,13 @@ def mode_test_suite(name):
         partial.make(_settings_mode_release_small_test, target_under_test = "//zig/settings"),
         partial.make(_settings_mode_release_fast_test, target_under_test = "//zig/settings"),
         # Test Zig build mode on a binary target
-        partial.make(_build_mode_debug_test, target_under_test = "//zig/tests/simple-binary:binary"),
-        partial.make(_build_mode_release_safe_test, target_under_test = "//zig/tests/simple-binary:binary"),
-        partial.make(_build_mode_release_small_test, target_under_test = "//zig/tests/simple-binary:binary"),
-        partial.make(_build_mode_release_fast_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_exe_mode_debug_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_exe_mode_release_safe_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_exe_mode_release_small_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_exe_mode_release_fast_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        # Test Zig build mode on a library target
+        partial.make(_build_lib_mode_debug_test, target_under_test = "//zig/tests/simple-library:library"),
+        partial.make(_build_lib_mode_release_safe_test, target_under_test = "//zig/tests/simple-library:library"),
+        partial.make(_build_lib_mode_release_small_test, target_under_test = "//zig/tests/simple-library:library"),
+        partial.make(_build_lib_mode_release_fast_test, target_under_test = "//zig/tests/simple-library:library"),
     )
