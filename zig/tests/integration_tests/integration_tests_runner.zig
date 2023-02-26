@@ -98,3 +98,63 @@ test "failing zig_test fails" {
     // See https://bazel.build/run/scripts for Bazel exit codes.
     try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 3 }, result.term);
 }
+
+test "target build mode defaults to Debug" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "run", "//:print_build_mode" },
+    });
+    defer result.deinit();
+
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqualStrings("Debug", result.stdout);
+}
+
+test "exec build mode defaults to Debug" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:exec_build_mode" },
+    });
+    defer result.deinit();
+
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
+    defer std.testing.allocator.free(build_mode);
+    try std.testing.expectEqualStrings("Debug", build_mode);
+}
+
+test "target build mode can be set on the command line" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "run", "//:print_build_mode", "--@rules_zig//zig/settings:mode=release_small" },
+    });
+    defer result.deinit();
+
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqualStrings("ReleaseSmall", result.stdout);
+}
+
+test "exec build mode can be set on the command line" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:exec_build_mode", "--@rules_zig//zig/settings:mode=release_small" },
+    });
+    defer result.deinit();
+
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
+    defer std.testing.allocator.free(build_mode);
+    try std.testing.expectEqualStrings("ReleaseSmall", build_mode);
+}

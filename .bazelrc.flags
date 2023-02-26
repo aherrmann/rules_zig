@@ -1,0 +1,6 @@
+# Defines aliases for rules_zig build settings flags,
+# see https://bazel.build/extending/config#using-build-setting-aliases
+# Copy this file into your project and import it into your `.bazelrc` to enable
+# the same aliases.
+
+build --flag_alias=zig_mode=@rules_zig//zig/settings:mode

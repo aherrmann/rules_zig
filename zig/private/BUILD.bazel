@@ -1,6 +1,30 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 bzl_library(
+    name = "zig_package",
+    srcs = ["zig_package.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        "//zig/private/common:filetypes",
+        "//zig/private/providers:zig_package_info",
+    ],
+)
+
+bzl_library(
+    name = "zig_test",
+    # Gazelle removes the srcs attribute for some reason.
+    srcs = ["zig_test.bzl"],  # keep
+    visibility = ["//zig:__subpackages__"],
+)
+
+bzl_library(
+    name = "settings",
+    srcs = ["settings.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["@bazel_skylib//rules:common_settings"],
+)
+
+bzl_library(
     name = "zig_binary",
     srcs = ["zig_binary.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -8,16 +32,7 @@ bzl_library(
         "//zig/private/common:filetypes",
         "//zig/private/common:zig_cache",
         "//zig/private/providers:zig_package_info",
-    ],
-)
-
-bzl_library(
-    name = "zig_package",
-    srcs = ["zig_package.bzl"],
-    visibility = ["//zig:__subpackages__"],
-    deps = [
-        "//zig/private/common:filetypes",
-        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_settings_info",
     ],
 )
 
@@ -29,18 +44,7 @@ bzl_library(
         "//zig/private/common:filetypes",
         "//zig/private/common:zig_cache",
         "//zig/private/providers:zig_package_info",
-    ],
-)
-
-bzl_library(
-    name = "zig_test",
-    # Gazelle removes the srcs attribute for some reason.
-    srcs = ["zig_test.bzl"],  # keep
-    visibility = ["//zig:__subpackages__"],
-    deps = [
-        "//zig/private/common:filetypes",
-        "//zig/private/common:zig_cache",
-        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_settings_info",
     ],
 )
 
@@ -68,6 +72,7 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         ":resolved_toolchain.bzl",
+        ":settings.bzl",
         ":toolchains_repo.bzl",
         ":versions.bzl",
         ":zig_binary.bzl",

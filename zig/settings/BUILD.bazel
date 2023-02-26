@@ -1,0 +1,26 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("//zig/private:settings.bzl", "settings")
+
+settings(
+    name = "settings",
+    mode = ":mode",
+    visibility = ["//visibility:public"],
+)
+
+string_flag(
+    name = "mode",
+    build_setting_default = "debug",
+    values = [
+        "debug",
+        "release_safe",
+        "release_small",
+        "release_fast",
+    ],
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig:__pkg__"],
+)

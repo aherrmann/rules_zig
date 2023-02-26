@@ -1,0 +1,9 @@
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        "//zig/config/mode:all_files",
+    ],
+    visibility = ["//zig:__pkg__"],
+)
