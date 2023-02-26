@@ -20,6 +20,8 @@ MODE_ARGS = {
     "release_fast": ["-O", "ReleaseFast"],
 }
 
+MODE_VALUES = ["debug", "release_safe", "release_small", "release_fast"]
+
 def _settings_impl(ctx):
     args = []
 
