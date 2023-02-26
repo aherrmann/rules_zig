@@ -9,6 +9,7 @@ load(
     "zig_library",
     "zig_test",
 )
+load(":defs.bzl", "run")
 
 zig_library(
     name = "library",
@@ -70,18 +71,20 @@ zig_configure_binary(
     mode = "release_safe",
 )
 
-genrule(
+# NOTE using genrule instead of run fails with Bazel version 5.3.2.
+#   It seems that the configuration transition is not handled correctly by
+#   genrule in Bazel version 5.3.2.
+
+run(
     name = "binary_debug_output",
-    outs = ["binary_debug_output.actual"],
-    cmd = "$(execpath :binary_debug) > $(OUTS)",
-    tools = [":binary_debug"],
+    out = "binary_debug_output.actual",
+    tool = ":binary_debug",
 )
 
-genrule(
+run(
     name = "binary_release_safe_output",
-    outs = ["binary_release_safe_output.actual"],
-    cmd = "$(execpath :binary_release_safe) > $(OUTS)",
-    tools = [":binary_release_safe"],
+    out = "binary_release_safe_output.actual",
+    tool = ":binary_release_safe",
 )
 
 diff_test(
