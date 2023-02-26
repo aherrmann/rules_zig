@@ -1,0 +1,124 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_configure",
+    "zig_configure_binary",
+    "zig_configure_test",
+    "zig_library",
+    "zig_test",
+)
+load(":defs.bzl", "run")
+
+zig_library(
+    name = "library",
+    main = "library.zig",
+    tags = ["manual"],
+)
+
+zig_configure(
+    name = "library_debug",
+    actual = ":library",
+    mode = "debug",
+)
+
+zig_configure(
+    name = "library_release_safe",
+    actual = ":library",
+    mode = "release_safe",
+)
+
+genrule(
+    name = "library_debug_symbol",
+    srcs = [":library_debug"],
+    outs = ["library_debug_symbol.txt"],
+    cmd = "$(NM) -j --defined-only $(SRCS) | grep Debug > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+genrule(
+    name = "library_release_safe_symbol",
+    srcs = [":library_release_safe"],
+    outs = ["library_release_safe_symbol.txt"],
+    cmd = "$(NM) -j --defined-only $(SRCS) | grep ReleaseSafe > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+build_test(
+    name = "library_test",
+    targets = [
+        ":library_debug_symbol",
+        ":library_release_safe_symbol",
+    ],
+)
+
+zig_binary(
+    name = "binary",
+    main = "binary.zig",
+    tags = ["manual"],
+)
+
+zig_configure_binary(
+    name = "binary_debug",
+    actual = ":binary",
+    mode = "debug",
+)
+
+zig_configure_binary(
+    name = "binary_release_safe",
+    actual = ":binary",
+    mode = "release_safe",
+)
+
+# NOTE using genrule instead of run fails with Bazel version 5.3.2.
+#   It seems that the configuration transition is not handled correctly by
+#   genrule in Bazel version 5.3.2.
+
+run(
+    name = "binary_debug_output",
+    out = "binary_debug_output.actual",
+    tool = ":binary_debug",
+)
+
+run(
+    name = "binary_release_safe_output",
+    out = "binary_release_safe_output.actual",
+    tool = ":binary_release_safe",
+)
+
+diff_test(
+    name = "binary_debug_output_test",
+    file1 = ":binary_debug_output.expected",
+    file2 = ":binary_debug_output.actual",
+)
+
+diff_test(
+    name = "binary_release_safe_output_test",
+    file1 = ":binary_release_safe_output.expected",
+    file2 = ":binary_release_safe_output.actual",
+)
+
+zig_test(
+    name = "_test_debug",
+    main = "test_debug.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "test_debug",
+    actual = "_test_debug",
+    mode = "debug",
+)
+
+zig_test(
+    name = "_test_release_safe",
+    main = "test_release_safe.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "test_release_safe",
+    actual = "_test_release_safe",
+    mode = "release_safe",
+)
