@@ -81,8 +81,10 @@ jobs:
           path: |
             ~/.cache/bazel
             ~/.cache/bazel-repo
-          key: bazel-cache-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', 'WORKSPACE') }}
-          restore-keys: bazel-cache-
+          key: bazel-cache-${{ matrix.os }}-${{ matrix.bazelversion }}-${{ matrix.folder }}-${{ matrix.target }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE') }}
+          restore-keys: |
+            bazel-cache-${{ matrix.os }}-${{ matrix.bazelversion }}-${{ matrix.folder }}-${{ matrix.target }}
+            bazel-cache-
 
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
