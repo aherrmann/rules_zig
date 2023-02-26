@@ -89,7 +89,7 @@ jobs:
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
       - name: Test generated files
-        if: matrix.folder == '.'
+        if: matrix.folder == '.' && matrix.target == '//...'
         env:
           # Bazelisk will download bazel to here, ensure it is cached between runs.
           XDG_CACHE_HOME: ~/.cache/bazel-repo
