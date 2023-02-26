@@ -4,6 +4,11 @@ load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
 
+# TODO[AH] Canonicalize this label (`str(Label(...))`) for `bzlmod` support.
+# Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
+# strip the requried `@` prefix.
+_SETTINGS_MODE = "@//zig/settings:mode"
+
 def _assert_find_unique_option(env, name, args):
     index = -1
     for i, arg in enumerate(args):
@@ -31,7 +36,7 @@ def _define_settings_mode_test(mode, option):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {str(Label("@rules_zig//zig/settings:mode")): mode},
+        config_settings = {_SETTINGS_MODE: mode},
     )
 
 _settings_mode_debug_test = _define_settings_mode_test("debug", "Debug")
@@ -59,7 +64,7 @@ def _define_build_mode_test(mnemonic, mode, option):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {str(Label("@rules_zig//zig/settings:mode")): mode},
+        config_settings = {_SETTINGS_MODE: mode},
     )
 
 _build_exe_mode_debug_test = _define_build_mode_test("ZigBuildExe", "debug", "Debug")
