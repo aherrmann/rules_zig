@@ -14,3 +14,15 @@ zig_test(
     name = "test-fails",
     main = "test-fails.zig",
 )
+
+zig_binary(
+    name = "print_build_mode",
+    main = "print_build_mode.zig",
+)
+
+genrule(
+    name = "exec_build_mode",
+    outs = ["exec_build_mode.out"],
+    cmd = "$(execpath :print_build_mode) > $(OUTS)",
+    tools = [":print_build_mode"],
+)
