@@ -1,0 +1,124 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_configure",
+    "zig_configure_binary",
+    "zig_configure_test",
+    "zig_library",
+    "zig_test",
+)
+load(":defs.bzl", "run")
+
+zig_library(
+    name = "library",
+    main = "library.zig",
+    tags = ["manual"],
+)
+
+zig_configure(
+    name = "library_single",
+    actual = ":library",
+    threaded = "single",
+)
+
+zig_configure(
+    name = "library_multi",
+    actual = ":library",
+    threaded = "multi",
+)
+
+genrule(
+    name = "library_single_symbol",
+    srcs = [":library_single"],
+    outs = ["library_single_symbol.txt"],
+    cmd = "$(NM) -j --defined-only $(SRCS) | grep single_threaded > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+genrule(
+    name = "library_multi_symbol",
+    srcs = [":library_multi"],
+    outs = ["library_multi_symbol.txt"],
+    cmd = "$(NM) -j --defined-only $(SRCS) | grep multi_threaded > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+build_test(
+    name = "library_test",
+    targets = [
+        ":library_single_symbol",
+        ":library_multi_symbol",
+    ],
+)
+
+zig_binary(
+    name = "binary",
+    main = "binary.zig",
+    tags = ["manual"],
+)
+
+zig_configure_binary(
+    name = "binary_single",
+    actual = ":binary",
+    threaded = "single",
+)
+
+zig_configure_binary(
+    name = "binary_multi",
+    actual = ":binary",
+    threaded = "multi",
+)
+
+# NOTE using genrule instead of run fails with Bazel version 5.3.2.
+#   It seems that the configuration transition is not handled correctly by
+#   genrule in Bazel version 5.3.2.
+
+run(
+    name = "binary_single_output",
+    out = "binary_single_output.actual",
+    tool = ":binary_single",
+)
+
+run(
+    name = "binary_multi_output",
+    out = "binary_multi_output.actual",
+    tool = ":binary_multi",
+)
+
+diff_test(
+    name = "binary_single_output_test",
+    file1 = ":binary_single_output.expected",
+    file2 = ":binary_single_output.actual",
+)
+
+diff_test(
+    name = "binary_multi_output_test",
+    file1 = ":binary_multi_output.expected",
+    file2 = ":binary_multi_output.actual",
+)
+
+zig_test(
+    name = "_test_single",
+    main = "test_single.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "test_single",
+    actual = "_test_single",
+    threaded = "single",
+)
+
+zig_test(
+    name = "_test_multi",
+    main = "test_multi.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "test_multi",
+    actual = "_test_multi",
+    threaded = "multi",
+)

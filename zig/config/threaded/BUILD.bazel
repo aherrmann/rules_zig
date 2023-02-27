@@ -1,0 +1,20 @@
+config_setting(
+    name = "multi",
+    flag_values = {
+        "//zig/settings:threaded": "multi",
+    },
+)
+
+config_setting(
+    name = "single",
+    flag_values = {
+        "//zig/settings:threaded": "single",
+    },
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig/config:__pkg__"],
+)

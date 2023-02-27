@@ -4,3 +4,4 @@
 # the same aliases.
 
 build --flag_alias=zig_mode=@rules_zig//zig/settings:mode
+build --flag_alias=zig_threaded=@rules_zig//zig/settings:threaded
