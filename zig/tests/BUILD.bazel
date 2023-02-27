@@ -1,6 +1,7 @@
 load(":mode_test.bzl", "mode_test_suite")
 load(":package_info_test.bzl", "package_info_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
+load(":threaded_test.bzl", "threaded_test_suite")
 load(":versions_test.bzl", "versions_test_suite")
 
 mode_test_suite(name = "mode_test")
@@ -8,5 +9,7 @@ mode_test_suite(name = "mode_test")
 package_info_test_suite(name = "package_info_test")
 
 rules_test_suite(name = "rules_test")
+
+threaded_test_suite(name = "threaded_test")
 
 versions_test_suite(name = "versions_test")

@@ -2,6 +2,43 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 
+def _is_flag_set(flag, args):
+    """Check whether the given flag is set.
+
+    Args:
+      flag: String, The name of the flag, including any `--` prefix.
+      args: sequence of String, The list of arguments to search in.
+
+    Returns:
+      True if the flag is set, False otherwise.
+    """
+    for arg in args:
+        if arg == flag:
+            return True
+    return False
+
+def assert_flag_set(env, flag, args):
+    """Assert that the given flag is set.
+
+    Args:
+      env: The Skylib unittest environment object.
+      flag: String, The name of the flag, including any `--` prefix.
+      args: sequence of String, The list of arguments to search in.
+    """
+    is_set = _is_flag_set(flag, args)
+    asserts.true(env, is_set, "The flag {} should have been set.".format(flag))
+
+def assert_flag_unset(env, flag, args):
+    """Assert that the given flag is not set.
+
+    Args:
+      env: The Skylib unittest environment object.
+      flag: String, The name of the flag, including any `--` prefix.
+      args: sequence of String, The list of arguments to search in.
+    """
+    is_set = _is_flag_set(flag, args)
+    asserts.false(env, is_set, "The flag {} should not have been set.".format(flag))
+
 def assert_find_unique_option(env, name, args):
     """Assert that the given option is set and unique and return its value.
 
