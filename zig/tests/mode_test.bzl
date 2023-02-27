@@ -3,24 +3,12 @@
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
+load(":util.bzl", "assert_find_unique_option")
 
 # TODO[AH] Canonicalize this label (`str(Label(...))`) for `bzlmod` support.
 # Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
 # strip the requried `@` prefix.
 _SETTINGS_MODE = "@//zig/settings:mode"
-
-def _assert_find_unique_option(env, name, args):
-    index = -1
-    for i, arg in enumerate(args):
-        if arg == name:
-            asserts.equals(env, -1, index, "The option {} should be unique.".format(name))
-            index = i
-    asserts.true(env, index + 1 <= len(args), "The option {} should have an argument.".format(name))
-    asserts.false(env, index == -1, "The option {} should be set.".format(name))
-    if index != -1:
-        return args[index + 1]
-    else:
-        return None
 
 def _define_settings_mode_test(mode, option):
     def _test_impl(ctx):
@@ -29,7 +17,7 @@ def _define_settings_mode_test(mode, option):
         settings = analysistest.target_under_test(env)[ZigSettingsInfo]
         asserts.equals(env, mode, settings.mode)
 
-        mode_option = _assert_find_unique_option(env, "-O", settings.args)
+        mode_option = assert_find_unique_option(env, "-O", settings.args)
         asserts.equals(env, option, mode_option)
 
         return analysistest.end(env)
@@ -57,7 +45,7 @@ def _define_build_mode_test(mnemonic, mode, option):
         env = analysistest.begin(ctx)
 
         action = _assert_find_action(env, mnemonic)
-        mode_option = _assert_find_unique_option(env, "-O", action.argv)
+        mode_option = assert_find_unique_option(env, "-O", action.argv)
         asserts.equals(env, option, mode_option)
 
         return analysistest.end(env)
