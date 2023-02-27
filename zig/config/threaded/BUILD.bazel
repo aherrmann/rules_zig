@@ -11,3 +11,10 @@ config_setting(
         "//zig/settings:threaded": "single",
     },
 )
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig/config:__pkg__"],
+)

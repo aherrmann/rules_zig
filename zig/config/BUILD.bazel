@@ -4,6 +4,7 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         "//zig/config/mode:all_files",
+        "//zig/config/threaded:all_files",
     ],
     visibility = ["//zig:__pkg__"],
 )
