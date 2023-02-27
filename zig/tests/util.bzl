@@ -1,6 +1,6 @@
 """Utilities for unit and analysis tests."""
 
-load("@bazel_skylib//lib:unittest.bzl", "asserts")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 
 def assert_find_unique_option(env, name, args):
     """Assert that the given option is set and unique and return its value.
@@ -24,3 +24,23 @@ def assert_find_unique_option(env, name, args):
         return args[index + 1]
     else:
         return None
+
+def assert_find_action(env, mnemonic):
+    """Assert that the given action mnemonic exists and return the first instance.
+
+    Args:
+      env: The Skylib unittest environment object.
+      mnemonic: String, The action mnemonic to look for.
+
+    Returns:
+      The action object or `None` if not found.
+    """
+    actions = analysistest.target_actions(env)
+
+    for action in actions:
+        if action.mnemonic == mnemonic:
+            return action
+
+    asserts.true(env, False, "Expected an action with mnemonic {}.".format(mnemonic))
+
+    return None

@@ -3,7 +3,11 @@
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
-load(":util.bzl", "assert_find_unique_option")
+load(
+    ":util.bzl",
+    "assert_find_action",
+    "assert_find_unique_option",
+)
 
 # TODO[AH] Canonicalize this label (`str(Label(...))`) for `bzlmod` support.
 # Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
@@ -32,19 +36,11 @@ _settings_mode_release_safe_test = _define_settings_mode_test("release_safe", "R
 _settings_mode_release_small_test = _define_settings_mode_test("release_small", "ReleaseSmall")
 _settings_mode_release_fast_test = _define_settings_mode_test("release_fast", "ReleaseFast")
 
-def _assert_find_action(env, mnemonic):
-    actions = analysistest.target_actions(env)
-    for action in actions:
-        if action.mnemonic == mnemonic:
-            return action
-    asserts.true(env, False, "Expected an action with mnemonic {}.".format(mnemonic))
-    return None
-
 def _define_build_mode_test(mnemonic, mode, option):
     def _test_impl(ctx):
         env = analysistest.begin(ctx)
 
-        action = _assert_find_action(env, mnemonic)
+        action = assert_find_action(env, mnemonic)
         mode_option = assert_find_unique_option(env, "-O", action.argv)
         asserts.equals(env, option, mode_option)
 
