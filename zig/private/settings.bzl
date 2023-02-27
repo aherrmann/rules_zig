@@ -11,6 +11,10 @@ ATTRS = {
         doc = "The build mode setting.",
         mandatory = True,
     ),
+    "threaded": attr.label(
+        doc = "The Zig multi- or single-threaded setting.",
+        mandatory = True,
+    ),
 }
 
 MODE_ARGS = {
@@ -22,14 +26,25 @@ MODE_ARGS = {
 
 MODE_VALUES = ["debug", "release_safe", "release_small", "release_fast"]
 
+THREADED_ARGS = {
+    "multi": ["-fno-single-threaded"],
+    "single": ["-fsingle-threaded"],
+}
+
+THREADED_VALUES = ["multi", "single"]
+
 def _settings_impl(ctx):
     args = []
 
     mode = ctx.attr.mode[BuildSettingInfo].value
     args.extend(MODE_ARGS[mode])
 
+    threaded = ctx.attr.threaded[BuildSettingInfo].value
+    args.extend(THREADED_ARGS[threaded])
+
     settings_info = ZigSettingsInfo(
         mode = mode,
+        threaded = threaded,
         args = args,
     )
 

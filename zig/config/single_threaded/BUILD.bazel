@@ -1,0 +1,13 @@
+config_setting(
+    name = "multi_threaded",
+    flag_values = {
+        "//zig/settings:threaded": "multi",
+    },
+)
+
+config_setting(
+    name = "single_threaded",
+    flag_values = {
+        "//zig/settings:threaded": "single",
+    },
+)
