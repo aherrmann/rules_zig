@@ -1,21 +1,29 @@
 """Implementation of the zig_configure rule."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("//zig/private:settings.bzl", "MODE_VALUES")
+load("//zig/private:settings.bzl", "MODE_VALUES", "THREADED_VALUES")
 
 DOC = """\
 """
 
 def _zig_transition_impl(settings, attr):
-    result = {}
+    result = dict(settings)
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
+    if attr.threaded:
+        result["//zig/settings:threaded"] = attr.threaded
     return result
 
 _zig_transition = transition(
     implementation = _zig_transition_impl,
-    inputs = [],
-    outputs = ["//zig/settings:mode"],
+    inputs = [
+        "//zig/settings:mode",
+        "//zig/settings:threaded",
+    ],
+    outputs = [
+        "//zig/settings:mode",
+        "//zig/settings:threaded",
+    ],
 )
 
 def _make_attrs(*, executable, test):
@@ -30,6 +38,11 @@ def _make_attrs(*, executable, test):
             doc = "The build mode setting",
             mandatory = False,
             values = MODE_VALUES,
+        ),
+        "threaded": attr.string(
+            doc = "The threaded setting",
+            mandatory = False,
+            values = THREADED_VALUES,
         ),
         "_whitelist_function_transition": attr.label(
             default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
