@@ -1,8 +1,11 @@
+load(":config_test.bzl", "config_test_suite")
 load(":mode_test.bzl", "mode_test_suite")
 load(":package_info_test.bzl", "package_info_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
 load(":threaded_test.bzl", "threaded_test_suite")
 load(":versions_test.bzl", "versions_test_suite")
+
+config_test_suite(name = "config_test")
 
 mode_test_suite(name = "mode_test")
 

@@ -17,12 +17,14 @@ string_flag(
     name = "mode",
     build_setting_default = "debug",
     values = MODE_VALUES,
+    visibility = ["//zig/config/mode:__pkg__"],
 )
 
 string_flag(
     name = "threaded",
     build_setting_default = "multi",
     values = THREADED_VALUES,
+    visibility = ["//zig/config/threaded:__pkg__"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.
