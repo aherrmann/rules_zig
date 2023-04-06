@@ -13,12 +13,19 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
 )
 
+bzl_library(
+    name = "linker_script",
+    srcs = ["linker_script.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
         ":filetypes.bzl",
+        ":linker_script.bzl",
         ":zig_cache.bzl",
     ],
     visibility = ["//zig/private:__pkg__"],

@@ -30,18 +30,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:filetypes",
-        "//zig/private/common:zig_cache",
-        "//zig/private/providers:zig_package_info",
-        "//zig/private/providers:zig_settings_info",
-    ],
-)
-
-bzl_library(
-    name = "zig_library",
-    srcs = ["zig_library.bzl"],
-    visibility = ["//zig:__subpackages__"],
-    deps = [
-        "//zig/private/common:filetypes",
+        "//zig/private/common:linker_script",
         "//zig/private/common:zig_cache",
         "//zig/private/providers:zig_package_info",
         "//zig/private/providers:zig_settings_info",
@@ -55,6 +44,19 @@ bzl_library(
     deps = [
         ":settings",
         "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "zig_library",
+    srcs = ["zig_library.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        "//zig/private/common:filetypes",
+        "//zig/private/common:linker_script",
+        "//zig/private/common:zig_cache",
+        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_settings_info",
     ],
 )
 
