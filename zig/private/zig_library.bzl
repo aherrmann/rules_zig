@@ -1,6 +1,7 @@
 """Implementation of the zig_library rule."""
 
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
+load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load(
     "//zig/private/providers:zig_package_info.bzl",
@@ -31,6 +32,11 @@ ATTRS = {
         doc = "Packages or libraries required to build the target.",
         mandatory = False,
         providers = [ZigPackageInfo],
+    ),
+    "linker_script": attr.label(
+        doc = "Custom linker script for the target.",
+        allow_single_file = True,
+        mandatory = False,
     ),
     "_settings": attr.label(
         default = "//zig/settings",
@@ -63,6 +69,12 @@ def _zig_library_impl(ctx):
     zig_package_dependencies(
         deps = ctx.attr.deps,
         inputs = transitive_inputs,
+        args = args,
+    )
+
+    zig_linker_script(
+        linker_script = ctx.file.linker_script,
+        inputs = direct_inputs,
         args = args,
     )
 
