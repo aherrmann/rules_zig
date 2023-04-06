@@ -1,0 +1,41 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
+
+zig_binary(
+    name = "binary",
+    linker_script = "custom.ld",
+    main = "bin.zig",
+)
+
+genrule(
+    name = "bin_output",
+    outs = ["bin_output.actual"],
+    cmd = "$(execpath :binary) > $(OUTS)",
+    tools = [":binary"],
+)
+
+diff_test(
+    name = "bin_output_test",
+    file1 = ":bin_output.expected",
+    file2 = ":bin_output.actual",
+)
+
+zig_library(
+    name = "library",
+    linker_script = "custom.ld",
+    main = "lib.zig",
+)
+
+build_test(
+    name = "library_build_test",
+    targets = [
+        ":library",
+    ],
+)
+
+zig_test(
+    name = "test",
+    linker_script = "custom.ld",
+    main = "test.zig",
+)
