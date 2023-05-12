@@ -1,0 +1,9 @@
+# This is the Zig target toolchain type. It is used internall within rules_zig
+# to construct the correct set of compiler flags for the current target
+# platform and build configurations. Zig rule authors should not depend on this
+# toolchain directly, but instead depend on the //zig/settings target. Note,
+# the execution platform is handled separately via //zig:toolchain_type.
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
