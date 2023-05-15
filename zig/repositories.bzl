@@ -100,3 +100,5 @@ def zig_register_toolchains(name, **kwargs):
         name = name + "_toolchains",
         user_repository_name = name,
     )
+
+    native.register_toolchains("@rules_zig//zig/target:all")
