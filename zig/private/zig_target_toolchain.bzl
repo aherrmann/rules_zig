@@ -1,5 +1,7 @@
 """Implementation of the zig_target_toolchain rule."""
 
+load("//zig/private/providers:zig_target_info.bzl", "ZigTargetInfo")
+
 DOC = """\
 """
 
@@ -28,7 +30,7 @@ def _zig_target_toolchain(ctx):
         "ZIG_TARGET": target,
     })
     default = DefaultInfo(
-        files = depset(target_json),
+        files = depset([target_json]),
     )
     toolchain_info = platform_common.ToolchainInfo(
         zigtargetinfo = target_info,
