@@ -1,6 +1,9 @@
 """This module implements the language-specific toolchain rule.
 """
 
+# TODO[AH] Move ZigInfo into a dedicated providers module.
+# TODO[AH] Move toolchain implementation into private module.
+
 ZigInfo = provider(
     doc = "Information about how to invoke the tool executable.",
     fields = {
