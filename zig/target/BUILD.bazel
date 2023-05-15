@@ -1,4 +1,5 @@
 load("//zig:toolchain.bzl", "zig_target_toolchain")
+load("//zig/private:resolved_target_toolchain.bzl", "resolved_target_toolchain")
 
 # This is the Zig target toolchain type. It is used internall within rules_zig
 # to construct the correct set of compiler flags for the current target
@@ -7,6 +8,14 @@ load("//zig:toolchain.bzl", "zig_target_toolchain")
 # the execution platform is handled separately via //zig:toolchain_type.
 toolchain_type(
     name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+resolved_target_toolchain(
+    name = "resolved_toolchain",
+    # Marked manual so that `bazel test //...` passes
+    # even if no toolchain is registered.
+    tags = ["manual"],
     visibility = ["//visibility:public"],
 )
 
