@@ -25,6 +25,23 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_configure",
+    srcs = ["zig_configure.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        ":settings",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "zig_target_toolchain",
+    srcs = ["zig_target_toolchain.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["//zig/private/providers:zig_target_info"],
+)
+
+bzl_library(
     name = "zig_binary",
     srcs = ["zig_binary.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -34,16 +51,7 @@ bzl_library(
         "//zig/private/common:zig_cache",
         "//zig/private/providers:zig_package_info",
         "//zig/private/providers:zig_settings_info",
-    ],
-)
-
-bzl_library(
-    name = "zig_configure",
-    srcs = ["zig_configure.bzl"],
-    visibility = ["//zig:__subpackages__"],
-    deps = [
-        ":settings",
-        "@bazel_skylib//lib:paths",
+        "//zig/private/providers:zig_target_info",
     ],
 )
 
@@ -57,7 +65,14 @@ bzl_library(
         "//zig/private/common:zig_cache",
         "//zig/private/providers:zig_package_info",
         "//zig/private/providers:zig_settings_info",
+        "//zig/private/providers:zig_target_info",
     ],
+)
+
+bzl_library(
+    name = "resolved_target_toolchain",
+    srcs = ["resolved_target_toolchain.bzl"],
+    visibility = ["//zig:__subpackages__"],
 )
 
 bzl_library(
@@ -83,6 +98,7 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":resolved_target_toolchain.bzl",
         ":resolved_toolchain.bzl",
         ":settings.bzl",
         ":toolchains_repo.bzl",
@@ -91,6 +107,7 @@ filegroup(
         ":zig_configure.bzl",
         ":zig_library.bzl",
         ":zig_package.bzl",
+        ":zig_target_toolchain.bzl",
         ":zig_test.bzl",
         "//zig/private/common:all_files",
         "//zig/private/providers:all_files",

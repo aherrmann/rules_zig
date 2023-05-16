@@ -53,3 +53,10 @@ toolchain(
     toolchain = ":aarch64-linux",
     toolchain_type = ":toolchain_type",
 )
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig:__pkg__"],
+)
