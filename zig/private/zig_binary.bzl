@@ -13,6 +13,10 @@ load(
     "ZigSettingsInfo",
     "zig_settings",
 )
+load(
+    "//zig/private/providers:zig_target_info.bzl",
+    "zig_target_platform",
+)
 
 DOC = """\
 """
@@ -45,8 +49,14 @@ ATTRS = {
     ),
 }
 
+TOOLCHAINS = [
+    "//zig:toolchain_type",
+    "//zig/target:toolchain_type",
+]
+
 def _zig_binary_impl(ctx):
     ziginfo = ctx.toolchains["//zig:toolchain_type"].ziginfo
+    zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
     outputs = []
 
@@ -89,6 +99,11 @@ def _zig_binary_impl(ctx):
         args = args,
     )
 
+    zig_target_platform(
+        target = zigtargetinfo,
+        args = args,
+    )
+
     ctx.actions.run(
         outputs = outputs,
         inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
@@ -113,5 +128,5 @@ zig_binary = rule(
     attrs = ATTRS,
     doc = DOC,
     executable = True,
-    toolchains = ["//zig:toolchain_type"],
+    toolchains = TOOLCHAINS,
 )
