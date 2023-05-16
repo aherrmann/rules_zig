@@ -3,6 +3,7 @@ load(":config_test.bzl", "config_test_suite")
 load(":mode_test.bzl", "mode_test_suite")
 load(":package_info_test.bzl", "package_info_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
+load(":target_platform_test.bzl", "target_platform_test_suite")
 load(":threaded_test.bzl", "threaded_test_suite")
 load(":versions_test.bzl", "versions_test_suite")
 
@@ -13,6 +14,8 @@ mode_test_suite(name = "mode_test")
 package_info_test_suite(name = "package_info_test")
 
 rules_test_suite(name = "rules_test")
+
+target_platform_test_suite(name = "target_platform_test")
 
 threaded_test_suite(name = "threaded_test")
 
