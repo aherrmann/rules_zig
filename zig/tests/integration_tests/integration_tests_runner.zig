@@ -15,11 +15,11 @@ const BitContext = struct {
 
     pub fn init() !BitContext {
         const workspace_path = std.os.getenv(BIT_WORKSPACE_DIR) orelse {
-            std.log.err("Required environment variable not fond: {s}", .{BIT_WORKSPACE_DIR});
+            std.log.err("Required environment variable not found: {s}", .{BIT_WORKSPACE_DIR});
             return error.EnvironmentVariableNotFound;
         };
         const bazel_path = std.os.getenv(BIT_BAZEL_BINARY) orelse {
-            std.log.err("Required environment variable not fond: {s}", .{BIT_BAZEL_BINARY});
+            std.log.err("Required environment variable not found: {s}", .{BIT_BAZEL_BINARY});
             return error.EnvironmentVariableNotFound;
         };
         return BitContext{
