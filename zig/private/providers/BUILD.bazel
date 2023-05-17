@@ -12,6 +12,12 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
 )
 
+bzl_library(
+    name = "zig_target_info",
+    srcs = ["zig_target_info.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
@@ -19,6 +25,7 @@ filegroup(
         ":BUILD.bazel",
         ":zig_package_info.bzl",
         ":zig_settings_info.bzl",
+        ":zig_target_info.bzl",
     ],
     visibility = ["//zig/private:__pkg__"],
 )

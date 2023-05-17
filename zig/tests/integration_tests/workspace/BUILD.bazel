@@ -1,5 +1,15 @@
 load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
 
+platform(
+    name = "aarch64-linux",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
+# TODO[AH] Test another operating system
+
 zig_binary(
     name = "binary",
     main = "main.zig",

@@ -15,11 +15,11 @@ const BitContext = struct {
 
     pub fn init() !BitContext {
         const workspace_path = std.os.getenv(BIT_WORKSPACE_DIR) orelse {
-            std.log.err("Required environment variable not fond: {s}", .{BIT_WORKSPACE_DIR});
+            std.log.err("Required environment variable not found: {s}", .{BIT_WORKSPACE_DIR});
             return error.EnvironmentVariableNotFound;
         };
         const bazel_path = std.os.getenv(BIT_BAZEL_BINARY) orelse {
-            std.log.err("Required environment variable not fond: {s}", .{BIT_BAZEL_BINARY});
+            std.log.err("Required environment variable not found: {s}", .{BIT_BAZEL_BINARY});
             return error.EnvironmentVariableNotFound;
         };
         return BitContext{
@@ -29,6 +29,7 @@ const BitContext = struct {
     }
 
     pub const BazelResult = struct {
+        success: bool,
         term: std.ChildProcess.Term,
         stdout: []u8,
         stderr: []u8,
@@ -43,6 +44,7 @@ const BitContext = struct {
         self: BitContext,
         args: struct {
             argv: []const []const u8,
+            print_on_error: bool = true,
         },
     ) !BazelResult {
         var argv = try std.testing.allocator.alloc([]const u8, args.argv.len + 1);
@@ -56,7 +58,15 @@ const BitContext = struct {
             .argv = argv,
             .cwd = self.workspace_path,
         });
+        const success = switch (result.term) {
+            .Exited => |code| code == 0,
+            else => false,
+        };
+        if (args.print_on_error and !success) {
+            std.debug.print("\n{s}\n{s}\n", .{ result.stdout, result.stderr });
+        }
         return BazelResult{
+            .success = success,
             .term = result.term,
             .stdout = result.stdout,
             .stderr = result.stderr,
@@ -72,7 +82,7 @@ test "zig_binary prints Hello World!" {
     });
     defer result.deinit();
 
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expect(result.success);
     try std.testing.expectEqualStrings("Hello World!\n", result.stdout);
 }
 
@@ -84,7 +94,7 @@ test "succeeding zig_test passes" {
     });
     defer result.deinit();
 
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expect(result.success);
 }
 
 test "failing zig_test fails" {
@@ -92,6 +102,7 @@ test "failing zig_test fails" {
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "test", "//:test-fails" },
+        .print_on_error = false,
     });
     defer result.deinit();
 
@@ -107,7 +118,7 @@ test "target build mode defaults to Debug" {
     });
     defer result.deinit();
 
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expect(result.success);
     try std.testing.expectEqualStrings("Debug", result.stdout);
 }
 
@@ -119,7 +130,7 @@ test "exec build mode defaults to Debug" {
     });
     defer result.deinit();
 
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expect(result.success);
 
     var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
     defer workspace.close();
@@ -137,7 +148,7 @@ test "target build mode can be set on the command line" {
     });
     defer result.deinit();
 
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expect(result.success);
     try std.testing.expectEqualStrings("ReleaseSmall", result.stdout);
 }
 
@@ -149,7 +160,7 @@ test "exec build mode can be set on the command line" {
     });
     defer result.deinit();
 
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expect(result.success);
 
     var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
     defer workspace.close();
@@ -157,4 +168,24 @@ test "exec build mode can be set on the command line" {
     const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
     defer std.testing.allocator.free(build_mode);
     try std.testing.expectEqualStrings("ReleaseSmall", build_mode);
+}
+
+test "can compile to target platform aarch64-linux" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:binary", "--platforms=:aarch64-linux" },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    const file = try workspace.openFile("bazel-bin/binary", .{});
+    defer file.close();
+
+    const elf_header = try std.elf.Header.read(file);
+    try std.testing.expectEqual(std.elf.EM.AARCH64, elf_header.machine);
 }

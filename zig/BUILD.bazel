@@ -4,9 +4,10 @@ load("//zig/private:resolved_toolchain.bzl", "resolved_toolchain")
 # For stardoc to reference the files
 exports_files(["defs.bzl"])
 
-# This is the target rule authors should put in their "toolchains"
-# attribute in order to get a runtime for the correct platform.
-# See https://docs.bazel.build/versions/main/toolchains.html#writing-rules-that-use-toolchains
+# This is the Zig compiler toolchain type. Zig rule authors should use this
+# target in the `toolchains` parameter in order to access the appropriate Zig
+# compiler for the current execution platform. Note, the target platform is
+# handled separately via //zig/target:toolchain_type.
 toolchain_type(
     name = "toolchain_type",
     visibility = ["//visibility:public"],
@@ -49,6 +50,7 @@ bzl_library(
     name = "toolchain",
     srcs = ["toolchain.bzl"],
     visibility = ["//visibility:public"],
+    deps = ["//zig/private:zig_target_toolchain"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.
@@ -62,6 +64,7 @@ filegroup(
         "//zig/config:all_files",
         "//zig/private:all_files",
         "//zig/settings:all_files",
+        "//zig/target:all_files",
     ],
     visibility = ["//:__pkg__"],
 )

@@ -1,6 +1,14 @@
 """This module implements the language-specific toolchain rule.
 """
 
+load(
+    "//zig/private:zig_target_toolchain.bzl",
+    _zig_target_toolchain = "zig_target_toolchain",
+)
+
+# TODO[AH] Move ZigInfo into a dedicated providers module.
+# TODO[AH] Move toolchain implementation into private module.
+
 ZigInfo = provider(
     doc = "Information about how to invoke the tool executable.",
     fields = {
@@ -76,3 +84,5 @@ zig_toolchain = rule(
 For usage see https://docs.bazel.build/versions/main/toolchains.html#defining-toolchains.
 """,
 )
+
+zig_target_toolchain = _zig_target_toolchain
