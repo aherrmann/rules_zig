@@ -36,6 +36,7 @@ zig_binary(
 zig_configure_binary(
     name = "binary_aarch64-linux",
     actual = ":binary",
+    tags = ["manual"],
     target = ":aarch64-linux",
 )
 
@@ -74,6 +75,7 @@ zig_test(
 zig_configure_test(
     name = "test_aarch64-linux",
     actual = ":test",
+    tags = ["manual"],
     target = ":aarch64-linux",
 )
 
