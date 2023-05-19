@@ -8,6 +8,8 @@ DOC = """\
 
 def _zig_transition_impl(settings, attr):
     result = dict(settings)
+    if attr.target:
+        result["//command_line_option:platforms"] = str(attr.target)
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
     if attr.threaded:
@@ -17,10 +19,12 @@ def _zig_transition_impl(settings, attr):
 _zig_transition = transition(
     implementation = _zig_transition_impl,
     inputs = [
+        "//command_line_option:platforms",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
     outputs = [
+        "//command_line_option:platforms",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
@@ -33,6 +37,10 @@ def _make_attrs(*, executable, test):
             cfg = _zig_transition,
             executable = executable,
             mandatory = True,
+        ),
+        "target": attr.label(
+            doc = "The target platform",
+            mandatory = False,
         ),
         "mode": attr.string(
             doc = "The build mode setting",

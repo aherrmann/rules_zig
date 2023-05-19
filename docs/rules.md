@@ -29,7 +29,7 @@ zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps<
 ## zig_configure
 
 <pre>
-zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-actual">actual</a>, <a href="#zig_configure-mode">mode</a>, <a href="#zig_configure-threaded">threaded</a>)
+zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-actual">actual</a>, <a href="#zig_configure-mode">mode</a>, <a href="#zig_configure-target">target</a>, <a href="#zig_configure-threaded">threaded</a>)
 </pre>
 
 
@@ -42,6 +42,7 @@ zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-ac
 | <a id="zig_configure-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_configure-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure-mode"></a>mode |  The build mode setting   | String | optional | <code>""</code> |
+| <a id="zig_configure-target"></a>target |  The target platform   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="zig_configure-threaded"></a>threaded |  The threaded setting   | String | optional | <code>""</code> |
 
 
@@ -50,7 +51,7 @@ zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-ac
 ## zig_configure_binary
 
 <pre>
-zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zig_configure_binary-actual">actual</a>, <a href="#zig_configure_binary-mode">mode</a>, <a href="#zig_configure_binary-threaded">threaded</a>)
+zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zig_configure_binary-actual">actual</a>, <a href="#zig_configure_binary-mode">mode</a>, <a href="#zig_configure_binary-target">target</a>, <a href="#zig_configure_binary-threaded">threaded</a>)
 </pre>
 
 
@@ -63,6 +64,7 @@ zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zi
 | <a id="zig_configure_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_configure_binary-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure_binary-mode"></a>mode |  The build mode setting   | String | optional | <code>""</code> |
+| <a id="zig_configure_binary-target"></a>target |  The target platform   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="zig_configure_binary-threaded"></a>threaded |  The threaded setting   | String | optional | <code>""</code> |
 
 
@@ -71,7 +73,7 @@ zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zi
 ## zig_configure_test
 
 <pre>
-zig_configure_test(<a href="#zig_configure_test-name">name</a>, <a href="#zig_configure_test-actual">actual</a>, <a href="#zig_configure_test-mode">mode</a>, <a href="#zig_configure_test-threaded">threaded</a>)
+zig_configure_test(<a href="#zig_configure_test-name">name</a>, <a href="#zig_configure_test-actual">actual</a>, <a href="#zig_configure_test-mode">mode</a>, <a href="#zig_configure_test-target">target</a>, <a href="#zig_configure_test-threaded">threaded</a>)
 </pre>
 
 
@@ -84,6 +86,7 @@ zig_configure_test(<a href="#zig_configure_test-name">name</a>, <a href="#zig_co
 | <a id="zig_configure_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_configure_test-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure_test-mode"></a>mode |  The build mode setting   | String | optional | <code>""</code> |
+| <a id="zig_configure_test-target"></a>target |  The target platform   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="zig_configure_test-threaded"></a>threaded |  The threaded setting   | String | optional | <code>""</code> |
 
 
