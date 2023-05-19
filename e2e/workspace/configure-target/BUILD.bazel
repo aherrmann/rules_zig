@@ -4,6 +4,8 @@ load(
     "@rules_zig//zig:defs.bzl",
     "zig_binary",
     "zig_configure_binary",
+    "zig_configure_test",
+    "zig_test",
 )
 
 platform(
@@ -13,6 +15,14 @@ platform(
         "@platforms//cpu:aarch64",
     ],
 )
+
+zig_binary(
+    name = "read_elf_arch",
+    main = "read_elf_arch.zig",
+)
+
+# ----------------------------------------------------------
+# zig_configure_binary
 
 zig_binary(
     name = "binary",
@@ -33,11 +43,6 @@ build_test(
     ],
 )
 
-zig_binary(
-    name = "read_elf_arch",
-    main = "read_elf_arch.zig",
-)
-
 genrule(
     name = "binary_aarch64-linux_arch",
     srcs = [":binary_aarch64-linux"],
@@ -50,6 +55,45 @@ diff_test(
     name = "binary_aarch64-linux_arch_test",
     file1 = ":binary_aarch64-linux_arch.expected",
     file2 = ":binary_aarch64-linux_arch.actual",
+)
+
+# TODO[AH] Test another operating system
+
+# ----------------------------------------------------------
+# zig_configure_test
+
+zig_test(
+    name = "test",
+    main = "main.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "test_aarch64-linux",
+    actual = ":test",
+    target = ":aarch64-linux",
+)
+
+build_test(
+    name = "test_aarch64-linux_build_test",
+    targets = [
+        ":test_aarch64-linux",
+    ],
+)
+
+genrule(
+    name = "test_aarch64-linux_arch",
+    testonly = True,
+    srcs = [":test_aarch64-linux"],
+    outs = ["test_aarch64-linux_arch.actual"],
+    cmd = "$(execpath :read_elf_arch) $(SRCS) > $(OUTS)",
+    tools = [":read_elf_arch"],
+)
+
+diff_test(
+    name = "test_aarch64-linux_arch_test",
+    file1 = ":test_aarch64-linux_arch.expected",
+    file2 = ":test_aarch64-linux_arch.actual",
 )
 
 # TODO[AH] Test another operating system
