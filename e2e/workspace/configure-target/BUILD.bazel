@@ -21,6 +21,9 @@ zig_binary(
     main = "read_elf_arch.zig",
 )
 
+# TODO[AH] Test target transition on zig_library.
+#   Open question: how to extract the target platform from .a file?
+
 # ----------------------------------------------------------
 # zig_configure_binary
 
