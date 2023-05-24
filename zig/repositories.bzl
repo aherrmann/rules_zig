@@ -1,16 +1,16 @@
-"""Declare runtime dependencies
+"""Declare rules_zig dependencies and toolchains.
 
-These are needed for local dev, and users must install them as well.
+These are needed for local development, and users must install them as well.
 See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 """
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", _http_archive = "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", __http_archive = "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//zig/private:toolchains_repo.bzl", "PLATFORMS", "toolchains_repo")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
-def http_archive(name, **kwargs):
-    maybe(_http_archive, name = name, **kwargs)
+def _http_archive(name, **kwargs):
+    maybe(__http_archive, name = name, **kwargs)
 
 # WARNING: any changes in this function may be BREAKING CHANGES for users
 # because we'll fetch a dependency which may be different from one that
@@ -20,8 +20,10 @@ def http_archive(name, **kwargs):
 # and released only in semver majors.
 # This is all fixed by bzlmod, so we just tolerate it for now.
 def rules_zig_dependencies():
+    """Register dependencies required by rules_zig."""
+
     # The minimal version of bazel_skylib we require
-    http_archive(
+    _http_archive(
         name = "bazel_skylib",
         sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
         urls = [
@@ -33,7 +35,7 @@ def rules_zig_dependencies():
 ########
 # Remaining content of the file is only used to support toolchains.
 ########
-_DOC = "Fetch external tools needed for zig toolchain"
+_DOC = "Fetch and install a Zig toolchain."
 _ATTRS = {
     "zig_version": attr.string(mandatory = True, values = TOOL_VERSIONS.keys()),
     "platform": attr.string(mandatory = True, values = PLATFORMS.keys()),
@@ -83,10 +85,12 @@ def zig_register_toolchains(name, **kwargs):
     - TODO: create a convenience repository for the host platform like "zig_host"
     - create a repository exposing toolchains for each platform like "zig_platforms"
     - register a toolchain pointing at each platform
+
     Users can avoid this macro and do these steps themselves, if they want more control.
+
     Args:
         name: base name for all created repos, like "zig1_14"
-        **kwargs: passed to each node_repositories call
+        **kwargs: passed to each zig_repositories call
     """
     for platform in PLATFORMS.keys():
         zig_repositories(

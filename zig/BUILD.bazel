@@ -5,6 +5,7 @@ load("//zig/private:resolved_toolchain.bzl", "resolved_toolchain")
 exports_files([
     "defs.bzl",
     "toolchain.bzl",
+    "repositories.bzl",
 ])
 
 # This is the Zig compiler toolchain type. Zig rule authors should use this
