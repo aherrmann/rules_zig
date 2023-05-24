@@ -19,6 +19,26 @@ load(
 )
 
 DOC = """\
+Builds a Zig library.
+
+The target can be built using `bazel build`, corresponding to `zig build-lib`.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_library")
+
+zig_library(
+    name = "my-library",
+    main = "main.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":my-package",  # to support `@import("my-package")`.
+    ],
+)
+```
 """
 
 ATTRS = {

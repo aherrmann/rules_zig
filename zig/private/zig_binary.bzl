@@ -19,6 +19,27 @@ load(
 )
 
 DOC = """\
+Builds a Zig binary.
+
+The target can be built using `bazel build`, corresponding to `zig build-exe`,
+and executed using `bazel run`, corresponding to `zig run`.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+
+zig_binary(
+    name = "my-binary",
+    main = "main.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":my-package",  # to support `@import("my-package")`.
+    ],
+)
+```
 """
 
 ATTRS = {

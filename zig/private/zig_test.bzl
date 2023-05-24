@@ -19,6 +19,26 @@ load(
 )
 
 DOC = """\
+Builds a Zig test.
+
+The target can be executed using `bazel test`, corresponding to `zig test`.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_test")
+
+zig_test(
+    name = "my-test",
+    main = "test.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":my-package",  # to support `@import("my-package")`.
+    ],
+)
+```
 """
 
 ATTRS = {

@@ -4,6 +4,98 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//zig/private:settings.bzl", "MODE_VALUES", "THREADED_VALUES")
 
 DOC = """\
+Transitions a target and its dependencies to a different configuration.
+
+Settings like the build mode, e.g. `ReleaseSafe`, or the target platform,
+can be set on the command-line on demand,
+e.g. using `--@rules_zig//zig/settings:mode=release_safe`.
+
+However, you may wish to always build a given target
+in a particular configuration,
+or you may wish to build a given target in multiple configurations
+in a single build, e.g. to generate a multi-platform release bundle.
+
+Use this rule to that end.
+
+You can read more about Bazel configurations and transitions
+[here][bazel-config].
+
+[bazel-config]: https://bazel.build/extending/config
+"""
+
+BINARY_EXAMPLE = """\
+
+**EXAMPLE**
+
+```bzl
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_configure_binary",
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    tags = ["manual"],  # optional, exclude from `bazel build //...`.
+)
+
+zig_configure_binary(
+    name = "binary_debug",
+    actual = ":binary",
+    mode = "debug",
+)
+```
+"""
+
+LIB_EXAMPLE = """\
+
+**EXAMPLE**
+
+```bzl
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_configure",
+)
+
+zig_library(
+    name = "library",
+    main = "library.zig",
+    tags = ["manual"],  # optional, exclude from `bazel build //...`.
+)
+
+zig_configure(
+    name = "library_debug",
+    actual = ":library",
+    mode = "debug",
+)
+```
+"""
+
+TEST_EXAMPLE = """\
+
+**EXAMPLE**
+
+```bzl
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_test",
+    "zig_configure_test",
+)
+
+zig_test(
+    name = "test",
+    main = "test.zig",
+    tags = ["manual"],  # optional, exclude from `bazel build //...`.
+)
+
+zig_configure_test(
+    name = "test_debug",
+    actual = ":test",
+    mode = "debug",
+)
+```
 """
 
 def _zig_transition_impl(settings, attr):
@@ -39,16 +131,16 @@ def _make_attrs(*, executable, test):
             mandatory = True,
         ),
         "target": attr.label(
-            doc = "The target platform",
+            doc = "The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.",
             mandatory = False,
         ),
         "mode": attr.string(
-            doc = "The build mode setting",
+            doc = "The build mode setting, corresponds to the `-O` Zig compiler flag.",
             mandatory = False,
             values = MODE_VALUES,
         ),
         "threaded": attr.string(
-            doc = "The threaded setting",
+            doc = "The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.",
             mandatory = False,
             values = THREADED_VALUES,
         ),
@@ -113,10 +205,16 @@ def _make_zig_configure_rule(*, executable, test):
 
         return providers
 
+    example = LIB_EXAMPLE
+    if executable:
+        example = BINARY_EXAMPLE
+    if test:
+        example = TEST_EXAMPLE
+
     return rule(
         _zig_configure_impl,
         attrs = _make_attrs(executable = executable, test = test),
-        doc = DOC,
+        doc = DOC + example,
         executable = executable,
         test = test,
     )

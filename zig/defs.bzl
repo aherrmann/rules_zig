@@ -1,4 +1,4 @@
-"Public API re-exports"
+"Rules to build and run Zig code."
 
 load("//zig/private:zig_binary.bzl", _zig_binary = "zig_binary")
 load("//zig/private:zig_library.bzl", _zig_library = "zig_library")
