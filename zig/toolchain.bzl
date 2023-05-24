@@ -79,9 +79,29 @@ zig_toolchain = rule(
             mandatory = False,
         ),
     },
-    doc = """Defines a zig compiler toolchain.
+    doc = """\
+Defines a Zig compiler toolchain.
 
-For usage see https://docs.bazel.build/versions/main/toolchains.html#defining-toolchains.
+The Zig compiler toolchain, defined by the `zig_toolchain` rule,
+has builtin cross-compilation support.
+Meaning, most Zig toolchains can target any platform supported by Zig
+independent of the execution platform.
+
+Therefore, there is no need to couple the execution platform
+with the target platform, at least not by default.
+
+This rule configures a Zig compiler toolchain
+and the corresponding Bazel execution platform constraints
+can be declared using the builtin `toolchain` rule.
+
+You will rarely need to invoke this rule directly.
+Instead, use `zig_register_toolchains`
+provided by `@rules_zig//zig:repositories.bzl`.
+
+Use the target `@rules_zig//zig:resolved_toolchain`
+to access the resolved toolchain for the current execution platform.
+
+See https://bazel.build/extending/toolchains#defining-toolchains.
 """,
 )
 
