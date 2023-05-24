@@ -75,7 +75,7 @@ TOOLCHAINS = [
 ]
 
 def _zig_library_impl(ctx):
-    ziginfo = ctx.toolchains["//zig:toolchain_type"].ziginfo
+    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
     outputs = []
@@ -128,8 +128,8 @@ def _zig_library_impl(ctx):
     ctx.actions.run(
         outputs = outputs,
         inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
-        executable = ziginfo.target_tool_path,
-        tools = ziginfo.tool_files,
+        executable = zigtoolchaininfo.target_tool_path,
+        tools = zigtoolchaininfo.tool_files,
         arguments = ["build-lib", args],
         mnemonic = "ZigBuildLib",
         progress_message = "Building %{input} as Zig library %{output}",

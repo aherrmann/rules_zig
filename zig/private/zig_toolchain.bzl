@@ -68,7 +68,7 @@ def _zig_toolchain_impl(ctx):
         files = depset(tool_files),
         runfiles = ctx.runfiles(files = tool_files),
     )
-    ziginfo = ZigToolchainInfo(
+    zigtoolchaininfo = ZigToolchainInfo(
         target_tool_path = target_tool_path,
         tool_files = tool_files,
     )
@@ -76,7 +76,7 @@ def _zig_toolchain_impl(ctx):
     # Export all the providers inside our ToolchainInfo
     # so the resolved_toolchain rule can grab and re-export them.
     toolchain_info = platform_common.ToolchainInfo(
-        ziginfo = ziginfo,
+        zigtoolchaininfo = zigtoolchaininfo,
         template_variables = template_variables,
         default = default,
     )
