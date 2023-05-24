@@ -1,5 +1,15 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+# For stardoc to reference the files
+exports_files(
+    [
+        "settings.bzl",
+        "resolved_target_toolchain.bzl",
+        "resolved_toolchain.bzl",
+    ],
+    visibility = ["//docs/private:__pkg__"],
+)
+
 bzl_library(
     name = "zig_package",
     srcs = ["zig_package.bzl"],
@@ -15,13 +25,6 @@ bzl_library(
     # Gazelle removes the srcs attribute for some reason.
     srcs = ["zig_test.bzl"],  # keep
     visibility = ["//zig:__subpackages__"],
-)
-
-bzl_library(
-    name = "settings",
-    srcs = ["settings.bzl"],
-    visibility = ["//zig:__subpackages__"],
-    deps = ["@bazel_skylib//rules:common_settings"],
 )
 
 bzl_library(
@@ -77,15 +80,34 @@ bzl_library(
 )
 
 bzl_library(
+    name = "settings",
+    srcs = ["settings.bzl"],
+    visibility = [
+        "//docs/private:__pkg__",  # keep
+        "//zig:__subpackages__",
+    ],
+    deps = [
+        "//zig/private/providers:zig_settings_info",
+        "@bazel_skylib//rules:common_settings",
+    ],
+)
+
+bzl_library(
     name = "resolved_target_toolchain",
     srcs = ["resolved_target_toolchain.bzl"],
-    visibility = ["//zig:__subpackages__"],
+    visibility = [
+        "//docs/private:__pkg__",  # keep
+        "//zig:__subpackages__",
+    ],
 )
 
 bzl_library(
     name = "resolved_toolchain",
     srcs = ["resolved_toolchain.bzl"],
-    visibility = ["//zig:__subpackages__"],
+    visibility = [
+        "//docs/private:__pkg__",  # keep
+        "//zig:__subpackages__",
+    ],
 )
 
 bzl_library(

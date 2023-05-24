@@ -7,6 +7,7 @@ multirun(
         ":gazelle",
         ":update_filegroups",
         "//docs:update-alias",
+        "//docs/private:update-alias",
         "@contrib_rules_bazel_integration_test//tools:update_deleted_packages",
     ],
 )

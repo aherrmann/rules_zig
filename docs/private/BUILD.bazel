@@ -1,0 +1,27 @@
+# This load statement must be in the docs/ package rather than anything users depend on
+# so that the dependency on stardoc doesn't leak to them.
+load("@aspect_bazel_lib//lib:docs.bzl", "stardoc_with_diff_test", "update_docs")
+
+stardoc_with_diff_test(
+    name = "settings",
+    bzl_library_target = "//zig/private:settings",
+)
+
+stardoc_with_diff_test(
+    name = "resolved_target_toolchain",
+    bzl_library_target = "//zig/private:resolved_target_toolchain",
+)
+
+stardoc_with_diff_test(
+    name = "resolved_toolchain",
+    bzl_library_target = "//zig/private:resolved_toolchain",
+)
+
+update_docs(name = "update")
+
+# workaround: update_docs does not allow to modify visibility.
+alias(
+    name = "update-alias",
+    actual = ":update",
+    visibility = ["//util:__pkg__"],
+)
