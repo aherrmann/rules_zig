@@ -4,6 +4,14 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
 
 DOC = """\
+Collection of all Zig build settings.
+
+This rule is only intended for internal use.
+It collects the values of all relevant build settings,
+such as `@rules_zig//zig/settings:mode`.
+
+You can build the settings target to obtain a JSON file
+capturing all configured Zig build settings.
 """
 
 ATTRS = {
