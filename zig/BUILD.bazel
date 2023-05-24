@@ -2,7 +2,10 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//zig/private:resolved_toolchain.bzl", "resolved_toolchain")
 
 # For stardoc to reference the files
-exports_files(["defs.bzl"])
+exports_files([
+    "defs.bzl",
+    "toolchain.bzl",
+])
 
 # This is the Zig compiler toolchain type. Zig rule authors should use this
 # target in the `toolchains` parameter in order to access the appropriate Zig
@@ -50,7 +53,10 @@ bzl_library(
     name = "toolchain",
     srcs = ["toolchain.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["//zig/private:zig_target_toolchain"],
+    deps = [
+        "//zig/private:zig_target_toolchain",
+        "//zig/private:zig_toolchain",
+    ],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

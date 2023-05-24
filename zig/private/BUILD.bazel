@@ -70,6 +70,13 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_toolchain",
+    srcs = ["zig_toolchain.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["//zig/private/providers:zig_toolchain_info"],
+)
+
+bzl_library(
     name = "resolved_target_toolchain",
     srcs = ["resolved_target_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -91,13 +98,6 @@ bzl_library(
     name = "versions",
     srcs = ["versions.bzl"],
     visibility = ["//zig:__subpackages__"],
-)
-
-bzl_library(
-    name = "zig_toolchain",
-    srcs = ["zig_toolchain.bzl"],
-    visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_toolchain_info"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

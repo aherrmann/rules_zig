@@ -7,6 +7,11 @@ stardoc_with_diff_test(
     bzl_library_target = "//zig:defs",
 )
 
+stardoc_with_diff_test(
+    name = "toolchains",
+    bzl_library_target = "//zig:toolchain",
+)
+
 update_docs(name = "update")
 
 # workaround: update_docs does not allow to modify visibility.

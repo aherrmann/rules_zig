@@ -1,5 +1,4 @@
-"""This module implements the language-specific toolchain rule.
-"""
+"Rules to declare Zig toolchains."
 
 load(
     "//zig/private:zig_toolchain.bzl",
