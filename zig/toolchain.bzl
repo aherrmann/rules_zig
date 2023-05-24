@@ -3,7 +3,6 @@
 
 load(
     "//zig/private:zig_toolchain.bzl",
-    _ZigInfo = "ZigInfo",
     _zig_toolchain = "zig_toolchain",
 )
 load(
@@ -11,6 +10,5 @@ load(
     _zig_target_toolchain = "zig_target_toolchain",
 )
 
-ZigInfo = _ZigInfo
 zig_toolchain = _zig_toolchain
 zig_target_toolchain = _zig_target_toolchain

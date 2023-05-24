@@ -1,16 +1,6 @@
 """Implementation of the zig_toolchain rule."""
 
-# TODO[AH] Move ZigInfo into a dedicated providers module.
-
-ZigInfo = provider(
-    doc = "Information about how to invoke the tool executable.",
-    fields = {
-        "target_tool_path": "Path to the tool executable for the target platform.",
-        "tool_files": """Files required in runfiles to make the tool executable available.
-
-May be empty if the target_tool_path points to a locally installed tool binary.""",
-    },
-)
+load("//zig/private/providers:zig_toolchain_info.bzl", "ZigToolchainInfo")
 
 DOC = """\
 Defines a Zig compiler toolchain.
@@ -78,7 +68,7 @@ def _zig_toolchain_impl(ctx):
         files = depset(tool_files),
         runfiles = ctx.runfiles(files = tool_files),
     )
-    ziginfo = ZigInfo(
+    ziginfo = ZigToolchainInfo(
         target_tool_path = target_tool_path,
         tool_files = tool_files,
     )
