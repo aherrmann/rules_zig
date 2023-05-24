@@ -93,6 +93,12 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
 )
 
+bzl_library(
+    name = "zig_toolchain",
+    srcs = ["zig_toolchain.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
@@ -109,6 +115,7 @@ filegroup(
         ":zig_package.bzl",
         ":zig_target_toolchain.bzl",
         ":zig_test.bzl",
+        ":zig_toolchain.bzl",
         "//zig/private/common:all_files",
         "//zig/private/providers:all_files",
     ],
