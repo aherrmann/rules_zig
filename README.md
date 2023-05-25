@@ -18,6 +18,37 @@ is still missing.
 
 [planned-functionality]: https://github.com/aherrmann/rules_zig/issues/1
 
+## Motivation
+
+Why would you use Bazel to build Zig code,
+when Zig comes with its own perfectly fine [build system][zig-build]?
+
+These Bazel rules are not meant as competition to the Zig build system.
+If your project fits well within the scope of Zig's build system,
+in particular, it only uses Zig code and perhaps C/C++ code,
+then Zig's build system will probably work very well for your use-case.
+
+Bazel is useful for polyglot, monorepo projects,
+especially if they are very large.
+If your project involves multiple programming languages
+and if some of them are not supported by Zig's build system,
+or if your project involves complex code-generation steps
+or requires a lot of [custom build steps][zig-build-command-step],
+then Bazel may be a good choice.
+If your project is already a Bazel project
+and you want to add Zig code to it
+then this rule set is for you.
+
+Bazel has builtin support for [cross-compilation][bazel-platforms]
+and [build configuration][bazel-configurations],
+meaning it can support Zig's cross-compilation
+and build configuration features well.
+
+[zig-build]: https://ziglang.org/documentation/master/#Zig-Build-System
+[zig-build-command-step]: https://ikrima.dev/dev-notes/zig/zig-build/#run-commands-as-build-steps
+[bazel-platforms]: https://bazel.build/extending/platforms
+[bazel-configurations]: https://bazel.build/extending/config
+
 ## Installation
 
 Add the following to your WORKSPACE file to install rules_zig:
