@@ -1,6 +1,13 @@
 """Defines providers for the zig_package rule."""
 
 DOC = """\
+Information about a Zig package.
+
+A Zig package is a collection of Zig sources
+with a main file that serves as an entry point.
+
+Zig packages are not pre-compiled,
+instead the Zig compiler performs whole program compilation.
 """
 
 FIELDS = {

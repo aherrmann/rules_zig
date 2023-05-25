@@ -1,12 +1,18 @@
 """Defines providers for the settings rule."""
 
+DOC = """\
+Collection of all active Zig build settings.
+"""
+
+FIELDS = {
+    "mode": "The Zig build mode.",
+    "threaded": "The Zig multi- or single-threaded setting.",
+    "args": "The collected compiler arguments for all active settings.",
+}
+
 ZigSettingsInfo = provider(
-    doc = "Collection of all active Zig build settings.",
-    fields = {
-        "mode": "The Zig build mode.",
-        "threaded": "The Zig multi- or single-threaded setting.",
-        "args": "The collected compiler arguments for all active settings.",
-    },
+    doc = DOC,
+    fields = FIELDS,
 )
 
 def zig_settings(*, settings, args):
