@@ -4,6 +4,31 @@ load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
 
 DOC = """\
+Defines a Zig package.
+
+A Zig package is a collection of Zig sources with a main source file
+that defines the package's entry point.
+
+This rule does not perform compilation by itself.
+Instead, packages are compiled at the use-site.
+Zig performs whole program compilation.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_package")
+
+zig_package(
+    name = "my-package",
+    main = "main.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":other-package",  # to support `@import("other-package")`.
+    ],
+)
+```
 """
 
 ATTRS = {

@@ -19,6 +19,26 @@ load(
 )
 
 DOC = """\
+Builds a Zig test.
+
+The target can be executed using `bazel test`, corresponding to `zig test`.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_test")
+
+zig_test(
+    name = "my-test",
+    main = "test.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":my-package",  # to support `@import("my-package")`.
+    ],
+)
+```
 """
 
 ATTRS = {
@@ -55,7 +75,7 @@ TOOLCHAINS = [
 ]
 
 def _zig_test_impl(ctx):
-    ziginfo = ctx.toolchains["//zig:toolchain_type"].ziginfo
+    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
     outputs = []
@@ -107,8 +127,8 @@ def _zig_test_impl(ctx):
     ctx.actions.run(
         outputs = outputs,
         inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
-        executable = ziginfo.target_tool_path,
-        tools = ziginfo.tool_files,
+        executable = zigtoolchaininfo.target_tool_path,
+        tools = zigtoolchaininfo.tool_files,
         arguments = ["test", "--test-no-exec", args],
         mnemonic = "ZigBuildTest",
         progress_message = "Building %{input} as Zig test %{output}",

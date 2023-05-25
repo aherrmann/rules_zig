@@ -1,11 +1,17 @@
 """Defines providers for the target toolchain rule."""
 
+DOC = """\
+Defines the compiler configuration for a target platform.
+"""
+
+FIELDS = {
+    "target": "The Zig target platform",
+    "args": "The collected compiler arguments for the target platform",
+}
+
 ZigTargetInfo = provider(
-    doc = "Defines the compiler configuration for a target platform.",
-    fields = {
-        "target": "The Zig target platform",
-        "args": "The collected compiler arguments for the target platform",
-    },
+    doc = DOC,
+    fields = FIELDS,
 )
 
 def zig_target_platform(*, target, args):

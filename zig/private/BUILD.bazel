@@ -70,6 +70,13 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_toolchain",
+    srcs = ["zig_toolchain.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["//zig/private/providers:zig_toolchain_info"],
+)
+
+bzl_library(
     name = "resolved_target_toolchain",
     srcs = ["resolved_target_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -109,6 +116,7 @@ filegroup(
         ":zig_package.bzl",
         ":zig_target_toolchain.bzl",
         ":zig_test.bzl",
+        ":zig_toolchain.bzl",
         "//zig/private/common:all_files",
         "//zig/private/providers:all_files",
     ],
