@@ -8,6 +8,9 @@ on:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: write
+
 jobs:
   tests:
     uses: ./.github/workflows/ci.yaml
