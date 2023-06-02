@@ -1,5 +1,11 @@
 # How to Contribute
 
+## Committing
+
+Follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
+in pull-request titles and descriptions. These messages will be picked up by
+the release automation when generating the changelog.
+
 ## Formatting
 
 Starlark files should be formatted by buildifier.
