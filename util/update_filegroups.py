@@ -10,7 +10,7 @@ import the rule set successfully.
 
 import argparse
 import os
-from rules_python.python.runfiles import runfiles
+import python.runfiles.runfiles as runfiles
 import shutil
 import subprocess
 
