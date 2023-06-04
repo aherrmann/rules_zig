@@ -26,7 +26,9 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":MODULE.bazel",
         ":WORKSPACE",
+        ":WORKSPACE.bzlmod",
         ":bazel_versions.bzl",
         ":internal_deps.bzl",
         "//zig:all_files",

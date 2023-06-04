@@ -31,30 +31,6 @@ def rules_zig_internal_deps():
         urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz"],
     )
 
-    http_file(
-        name = "com_github_bazelbuild_buildtools_buildozer_darwin_amd64",
-        downloaded_file_path = "buildozer",
-        executable = True,
-        sha256 = "f9eb333006a2ad3b058670976ff9312cb7c1021593d76eceb31d38854be3ef8d",
-        url = "https://github.com/bazelbuild/buildtools/releases/download/6.0.1/buildozer-darwin-amd64",
-    )
-
-    http_file(
-        name = "com_github_bazelbuild_buildtools_buildozer_linux_amd64",
-        downloaded_file_path = "buildozer",
-        executable = True,
-        sha256 = "a7ca6257f78088a795e7b6e37b78b7b76fb91de1d465d851078d0226f08b90c9",
-        url = "https://github.com/bazelbuild/buildtools/releases/download/6.0.1/buildozer-linux-amd64",
-    )
-
-    http_file(
-        name = "com_github_bazelbuild_buildtools_buildozer_windows_amd64",
-        downloaded_file_path = "buildozer.exe",
-        executable = True,
-        sha256 = "371f7bde60db3f2d7f414fdd2dcd4de28cae6c2c65a0c88a5a82b143af642fbe",
-        url = "https://github.com/bazelbuild/buildtools/releases/download/6.0.1/buildozer-windows-amd64.exe",
-    )
-
     http_archive(
         name = "rules_multirun",
         sha256 = "00aad85eca054dbb5dc12178a3c83fd4bbee83d4824d9d76bfd86ab757a4c327",
@@ -76,9 +52,20 @@ def rules_zig_internal_deps():
     # see https://github.com/bazelbuild/bazel-skylib/issues/250
     http_archive(
         name = "bazel_skylib",
-        sha256 = "3b620033ca48fcd6f5ef2ac85e0f6ec5639605fa2f627968490e52fc91a9932f",
-        strip_prefix = "bazel-skylib-1.3.0",
-        urls = ["https://github.com/bazelbuild/bazel-skylib/archive/refs/tags/1.3.0.tar.gz"],
+        sha256 = "66ffd9315665bfaafc96b52278f57c7e2dd09f5ede279ea6d39b2be471e7e3aa",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-1.4.2.tar.gz",
+        ],
+    )
+
+    http_archive(
+        name = "bazel_skylib_gazelle_plugin",
+        sha256 = "3327005dbc9e49cc39602fb46572525984f7119a9c6ffe5ed69fbe23db7c1560",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-gazelle-plugin-1.4.2.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.2/bazel-skylib-gazelle-plugin-1.4.2.tar.gz",
+        ],
     )
 
     http_archive(
@@ -89,13 +76,15 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "0aed9a6e7612b2968b5aa1ac0f801f5ec956ec2c04810da2c1445cac34938596",
-        strip_prefix = "bazel-lib-1.29.0",
-        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.29.0.tar.gz",
+        sha256 = "e3151d87910f69cf1fc88755392d7c878034a69d6499b287bcfc00b1cf9bb415",
+        strip_prefix = "bazel-lib-1.32.1",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v1.32.1/bazel-lib-v1.32.1.tar.gz",
     )
 
     http_archive(
-        name = "contrib_rules_bazel_integration_test",
-        sha256 = "6da8278ae7c78df6c7c222102c05e5807a3e5e65297f2a75968c899f7937750a",
-        url = "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.10.3/rules_bazel_integration_test.v0.10.3.tar.gz",
+        name = "rules_bazel_integration_test",
+        sha256 = "bfba659b9e29fc4cbeb2410e20f0270c54da3886bbe69aa8b0378701dca06a8d",
+        urls = [
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.14.1/rules_bazel_integration_test.v0.14.1.tar.gz",
+        ],
     )

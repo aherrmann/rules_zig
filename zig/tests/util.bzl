@@ -81,3 +81,23 @@ def assert_find_action(env, mnemonic):
     asserts.true(env, False, "Expected an action with mnemonic {}.".format(mnemonic))
 
     return None
+
+def canonical_label(label_str):
+    """Canonicalize a given label.
+
+    Applies `str(Label(...))` to the given label to convert it to canonical form.
+    If the input had a leading `@//` and the result does not start with `@`,
+    then this retains the `@//` prefix for Bazel 5.3.2 compatibility.
+
+    Args:
+      label_str: String, The label to canonicalize.
+
+    Returns:
+      String, The canonicalized label.
+    """
+    result = str(Label(label_str))
+
+    if label_str.startswith("@//") and not result.startswith("@"):
+        result = "@" + result
+
+    return result

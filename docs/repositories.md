@@ -44,7 +44,7 @@ Register dependencies required by rules_zig.
 ## zig_register_toolchains
 
 <pre>
-zig_register_toolchains(<a href="#zig_register_toolchains-name">name</a>, <a href="#zig_register_toolchains-kwargs">kwargs</a>)
+zig_register_toolchains(<a href="#zig_register_toolchains-name">name</a>, <a href="#zig_register_toolchains-register">register</a>, <a href="#zig_register_toolchains-kwargs">kwargs</a>)
 </pre>
 
 Convenience macro for users which does typical setup.
@@ -64,6 +64,7 @@ Users can avoid this macro and do these steps themselves, if they want more cont
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="zig_register_toolchains-name"></a>name |  base name for all created repos, like "zig1_14"   |  none |
+| <a id="zig_register_toolchains-register"></a>register |  whether to call through to native.register_toolchains. Should be True for WORKSPACE users, but False when used under bzlmod extension.   |  <code>True</code> |
 | <a id="zig_register_toolchains-kwargs"></a>kwargs |  passed to each zig_repositories call   |  none |
 
 

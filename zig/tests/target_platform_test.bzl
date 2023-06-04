@@ -7,15 +7,13 @@ load(
     ":util.bzl",
     "assert_find_action",
     "assert_find_unique_option",
+    "canonical_label",
 )
 
 _TARGET_PLATFORM = "//command_line_option:platforms"
 
-# TODO[AH] Canonicalize these labels (`str(Label(...))`) for `bzlmod` support.
-# Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
-# strip the requried `@` prefix.
-_PLATFORM_X86_64_LINUX = "@//zig/tests/platforms:x86_64-linux"
-_PLATFORM_AARCH64_LINUX = "@//zig/tests/platforms:aarch64-linux"
+_PLATFORM_X86_64_LINUX = canonical_label("@//zig/tests/platforms:x86_64-linux")
+_PLATFORM_AARCH64_LINUX = canonical_label("@//zig/tests/platforms:aarch64-linux")
 
 def _define_target_platform_test(target, option):
     def _test_impl(ctx):

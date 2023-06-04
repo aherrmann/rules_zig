@@ -26,23 +26,14 @@ multirun(
         ":gazelle",
         ":update_filegroups",
         "//docs:update-alias",
-        "@contrib_rules_bazel_integration_test//tools:update_deleted_packages",
+        "@rules_bazel_integration_test//tools:update_deleted_packages",
         ":buildifier.fix",
     ],
 )
 
-alias(
-    name = "buildozer",
-    actual = select({
-        "@platforms//os:linux": "@com_github_bazelbuild_buildtools_buildozer_linux_amd64//file",
-        "@platforms//os:macos": "@com_github_bazelbuild_buildtools_buildozer_darwin_amd64//file",
-        "@platforms//os:windows": "@com_github_bazelbuild_buildtools_buildozer_windows_amd64//file",
-    }),
-)
-
 gazelle_binary(
     name = "gazelle_bin",
-    languages = ["@bazel_skylib//gazelle/bzl"],
+    languages = ["@bazel_skylib_gazelle_plugin//bzl"],
 )
 
 gazelle(
@@ -55,8 +46,11 @@ py_binary(
     srcs = ["update_filegroups.py"],
     args = [
         "--buildozer",
-        "$(rootpath :buildozer)",
-    ],
-    data = [":buildozer"],
+        "$(rootpath @buildifier_prebuilt//:buildozer)",
+    ] + select({
+        "@aspect_bazel_lib//lib:bzlmod": ["--enable_bzlmod"],
+        "//conditions:default": [],
+    }),
+    data = ["@buildifier_prebuilt//:buildozer"],
     deps = ["@rules_python//python/runfiles"],
 )
