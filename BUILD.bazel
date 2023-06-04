@@ -26,6 +26,7 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":MODULE.bazel",
         ":WORKSPACE",
         ":WORKSPACE.bzlmod",
         ":bazel_versions.bzl",

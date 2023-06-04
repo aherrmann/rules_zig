@@ -13,8 +13,19 @@ zig_test(
 )
 
 bazel_integration_tests(
-    name = "run_binary_test",
+    name = "workspace_test",
     bazel_versions = bazel_binaries.versions.all,
+    test_runner = ":integration_tests_runner",
+    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
+        "//:all_files",
+    ],
+    workspace_path = "workspace",
+)
+
+bazel_integration_tests(
+    name = "bzlmod_test",
+    bazel_versions = bazel_binaries.versions.all,
+    env = {"BZLMOD_ENABLED": "true"},
     test_runner = ":integration_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
@@ -26,7 +37,10 @@ test_suite(
     name = "integration_tests",
     tags = integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     tests = integration_test_utils.bazel_integration_test_names(
-        "run_binary_test",
+        "workspace_test",
         bazel_binaries.versions.all,
-    ),
+    ) + [integration_test_utils.bazel_integration_test_name(
+        "bzlmod_test",
+        bazel_binaries.versions.current,
+    )],
 )
