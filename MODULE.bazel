@@ -11,4 +11,5 @@ zig = use_extension("//zig:extensions.bzl", "zig")
 zig.toolchain(zig_version = "0.10.1")
 use_repo(zig, "zig_toolchains")
 
+register_toolchains("@rules_zig//zig/target:all")
 register_toolchains("@zig_toolchains//:all")
