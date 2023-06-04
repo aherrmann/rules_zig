@@ -63,12 +63,20 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":repositories"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
         ":defs.bzl",
+        ":extensions.bzl",
         ":repositories.bzl",
         ":toolchain.bzl",
         "//zig/config:all_files",
