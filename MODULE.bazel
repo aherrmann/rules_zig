@@ -1,0 +1,14 @@
+module(
+    name = "rules_zig",
+    version = "0.0.0",
+    compatibility_level = 1,
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.3.0")
+bazel_dep(name = "platforms", version = "0.0.5")
+
+zig = use_extension("//zig:extensions.bzl", "zig")
+zig.toolchain(zig_version = "1.14.2")
+use_repo(zig, "zig_toolchains")
+
+register_toolchains("@zig_toolchains//:all")
