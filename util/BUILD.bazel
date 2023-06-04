@@ -1,6 +1,14 @@
 load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
-load("@buildifier_prebuilt//:rules.bzl", "buildifier_test")
+load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
 load("@rules_multirun//:defs.bzl", "multirun")
+
+buildifier(
+    name = "buildifier.fix",
+    diff_command = "diff",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "fix",
+    mode = "fix",
+)
 
 buildifier_test(
     name = "buildifier.check",
@@ -19,6 +27,7 @@ multirun(
         ":update_filegroups",
         "//docs:update-alias",
         "@contrib_rules_bazel_integration_test//tools:update_deleted_packages",
+        ":buildifier.fix",
     ],
 )
 
