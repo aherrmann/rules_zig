@@ -109,4 +109,5 @@ def zig_register_toolchains(*, name, register = True, **kwargs):
         user_repository_name = name,
     )
 
-    native.register_toolchains("@rules_zig//zig/target:all")
+    if register:
+        native.register_toolchains("@rules_zig//zig/target:all")

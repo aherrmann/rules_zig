@@ -21,8 +21,7 @@ zig_toolchain = tag_class(attrs = {
 Base name for generated repositories, allowing more than one Zig toolchain to be registered.
 Overriding the default is only permitted in the root module.
 """, default = _DEFAULT_NAME),
-    # TODO[AH]: Support user selected toolchain version (#72).
-    # "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
+    "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
 })
 
 def _toolchain_extension(module_ctx):
