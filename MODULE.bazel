@@ -15,6 +15,13 @@ register_toolchains("@rules_zig//zig/target:all")
 
 register_toolchains("@zig_toolchains//:all")
 
+bazel_dep(name = "gazelle", version = "0.29.0", dev_dependency = True, repo_name = "bazel_gazelle")
+bazel_dep(
+    name = "buildifier_prebuilt",
+    version = "6.1.0",
+    dev_dependency = True,
+)
+bazel_dep(name = "rules_multirun", version = "0.6.0", dev_dependency = True)
 bazel_dep(
     name = "rules_bazel_integration_test",
     version = "0.14.1",
