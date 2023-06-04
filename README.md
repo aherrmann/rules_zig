@@ -51,6 +51,22 @@ and build configuration features well.
 
 ## Installation
 
+### Using Bzlmod with Bazel >=6
+
+Add the following to your MODULE.bazel file to install rules_zig:
+
+```bzl
+bazel_dep(name = "rules_zig")
+archive_override(
+    module_name = "rules_zig",
+    integrity = "sha256-$SHA256",
+    strip_prefix = "rules_zig-$COMMIT",
+    urls = ["https://github.com/aherrmann/rules_zig/archive/$COMMIT.tar.gz"],
+)
+```
+
+### Using WORKSPACE
+
 Add the following to your WORKSPACE file to install rules_zig:
 
 ```bzl
