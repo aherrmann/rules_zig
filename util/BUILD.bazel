@@ -26,7 +26,7 @@ multirun(
         ":gazelle",
         ":update_filegroups",
         "//docs:update-alias",
-        "@contrib_rules_bazel_integration_test//tools:update_deleted_packages",
+        "@rules_bazel_integration_test//tools:update_deleted_packages",
         ":buildifier.fix",
     ],
 )
