@@ -12,4 +12,29 @@ zig.toolchain(zig_version = "0.10.1")
 use_repo(zig, "zig_toolchains")
 
 register_toolchains("@rules_zig//zig/target:all")
+
 register_toolchains("@zig_toolchains//:all")
+
+bazel_dep(
+    name = "rules_bazel_integration_test",
+    version = "0.14.1",
+    dev_dependency = True,
+)
+
+bazel_binaries = use_extension(
+    "@rules_bazel_integration_test//:extensions.bzl",
+    "bazel_binaries",
+    dev_dependency = True,
+)
+bazel_binaries.download(version_file = "//:.bazelversion")
+bazel_binaries.download(version = "5.3.2")
+use_repo(
+    bazel_binaries,
+    "bazel_binaries",
+    # TODO[AH] Should be implicit through bazel_binaries.
+    "build_bazel_bazel_.bazelversion",
+    "build_bazel_bazel_5_3_2",
+)
+
+# TODO[AH] Should be an implicit transitive dependency through rules_bazel_integration_test.
+bazel_dep(name = "cgrindel_bazel_starlib", version = "0.16.0", dev_dependency = True)

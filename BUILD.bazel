@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(
-    ["WORKSPACE"],
+    ["WORKSPACE.bazel"],
     visibility = ["//util:__pkg__"],
 )
 
@@ -26,7 +26,8 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
-        ":WORKSPACE",
+        ":WORKSPACE.bazel",
+        ":WORKSPACE.bzlmod",
         ":bazel_versions.bzl",
         ":internal_deps.bzl",
         "//zig:all_files",

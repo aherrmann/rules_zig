@@ -1,7 +1,7 @@
-load("//:bazel_versions.bzl", "SUPPORTED_BAZEL_VERSIONS")
 load("//zig:defs.bzl", "zig_test")
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
 load(
-    "@contrib_rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
     "bazel_integration_tests",
     "integration_test_utils",
 )
@@ -14,7 +14,7 @@ zig_test(
 
 bazel_integration_tests(
     name = "run_binary_test",
-    bazel_versions = SUPPORTED_BAZEL_VERSIONS,
+    bazel_versions = bazel_binaries.versions.all,
     test_runner = ":integration_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
@@ -27,6 +27,6 @@ test_suite(
     tags = integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     tests = integration_test_utils.bazel_integration_test_names(
         "run_binary_test",
-        SUPPORTED_BAZEL_VERSIONS,
+        bazel_binaries.versions.all,
     ),
 )
