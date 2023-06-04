@@ -1,13 +1,15 @@
 load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
+load("@buildifier_prebuilt//:rules.bzl", "buildifier_test")
 load("@rules_multirun//:defs.bzl", "multirun")
 
-buildifier(
+buildifier_test(
     name = "buildifier.check",
     diff_command = "diff",
     exclude_patterns = ["./.git/*"],
     lint_mode = "warn",
     mode = "diff",
+    no_sandbox = True,
+    workspace = "//:WORKSPACE",
 )
 
 multirun(

@@ -61,7 +61,6 @@ def _zig_package_impl(ctx):
     default = DefaultInfo(
     )
 
-    description = (ctx.label.name, ctx.file.main)
     srcs = [ctx.file.main] + ctx.files.srcs
     flags = ["--pkg-begin", ctx.label.name, ctx.file.main.path]
     all_srcs = []
