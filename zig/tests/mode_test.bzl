@@ -7,12 +7,10 @@ load(
     ":util.bzl",
     "assert_find_action",
     "assert_find_unique_option",
+    "canonical_label",
 )
 
-# TODO[AH] Canonicalize this label (`str(Label(...))`) for `bzlmod` support.
-# Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
-# strip the requried `@` prefix.
-_SETTINGS_MODE = "@//zig/settings:mode"
+_SETTINGS_MODE = canonical_label("@//zig/settings:mode")
 
 def _define_settings_mode_test(mode, option):
     def _test_impl(ctx):

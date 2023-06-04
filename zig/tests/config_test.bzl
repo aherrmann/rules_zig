@@ -2,6 +2,7 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load(":util.bzl", "canonical_label")
 
 _ValueInfo = provider(
     doc = "Returns the value attribute of a value rule.",
@@ -32,11 +33,8 @@ def _define_config_settings_test(*, flag, value):
         config_settings = {flag: value},
     )
 
-# TODO[AH] Canonicalize this label (`str(Label(...))`) for `bzlmod` support.
-# Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
-# strip the requried `@` prefix.
-_SETTINGS_MODE = "@//zig/settings:mode"
-_SETTINGS_THREADED = "@//zig/settings:threaded"
+_SETTINGS_MODE = canonical_label("@//zig/settings:mode")
+_SETTINGS_THREADED = canonical_label("@//zig/settings:threaded")
 
 _mode_debug_test = _define_config_settings_test(flag = _SETTINGS_MODE, value = "debug")
 _mode_release_safe_test = _define_config_settings_test(flag = _SETTINGS_MODE, value = "release_safe")

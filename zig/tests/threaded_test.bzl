@@ -8,12 +8,10 @@ load(
     "assert_find_action",
     "assert_flag_set",
     "assert_flag_unset",
+    "canonical_label",
 )
 
-# TODO[AH] Canonicalize this label (`str(Label(...))`) for `bzlmod` support.
-# Note, that canonicalization is not compatible with Bazel 5.3.2, where it will
-# strip the requried `@` prefix.
-_SETTINGS_THREADED = "@//zig/settings:threaded"
+_SETTINGS_THREADED = canonical_label("@//zig/settings:threaded")
 
 def _define_settings_threaded_test(threaded, flag_set, flag_not_set):
     def _test_impl(ctx):
