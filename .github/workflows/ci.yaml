@@ -56,6 +56,12 @@ jobs:
         include:
           - os: ubuntu-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: false
+            folder: "."
+            target: "//zig/tests/integration_tests"
+          - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: true
             folder: "."
             target: "//zig/tests/integration_tests"
         exclude:
