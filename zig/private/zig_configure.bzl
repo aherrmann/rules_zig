@@ -122,7 +122,7 @@ _zig_transition = transition(
     ],
 )
 
-def _make_attrs(*, executable, test):
+def _make_attrs(*, executable):
     return {
         "actual": attr.label(
             doc = "The target to transition.",
@@ -154,11 +154,9 @@ _FORWARD_PROVIDERS = [
 
 def _make_zig_configure_rule(*, executable, test):
     _executable = executable
-    _test = test
 
     def _zig_configure_impl(ctx):
         executable = _executable
-        test = _test
 
         if type(ctx.attr.actual) == "list":
             if len(ctx.attr.actual) == 1:
@@ -213,7 +211,7 @@ def _make_zig_configure_rule(*, executable, test):
 
     return rule(
         _zig_configure_impl,
-        attrs = _make_attrs(executable = executable, test = test),
+        attrs = _make_attrs(executable = executable),
         doc = DOC + example,
         executable = executable,
         test = test,

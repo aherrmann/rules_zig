@@ -23,6 +23,15 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
+# For buildifier linting
+load("@buildifier_prebuilt//:deps.bzl", "buildifier_prebuilt_deps")
+
+buildifier_prebuilt_deps()
+
+load("@buildifier_prebuilt//:defs.bzl", "buildifier_prebuilt_register_toolchains")
+
+buildifier_prebuilt_register_toolchains()
+
 # For running integration tests
 load("@contrib_rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
 

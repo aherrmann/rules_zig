@@ -27,8 +27,8 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "ecba0f04f96b4960a5b250c8e8eeec42281035970aa8852dda73098274d14a1d",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.29.0/bazel-gazelle-v0.29.0.tar.gz"],
+        sha256 = "727f3e4edd96ea20c29e8c2ca9e8d2af724d8c7778e7923a854b2c80952bc405",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.30.0/bazel-gazelle-v0.30.0.tar.gz"],
     )
 
     http_file(
@@ -62,6 +62,15 @@ def rules_zig_internal_deps():
         url = "https://github.com/keith/rules_multirun/archive/73017d503a524a9de59a5339c1db9cc4860cec2a.tar.gz",
     )
 
+    http_archive(
+        name = "buildifier_prebuilt",
+        sha256 = "e46c16180bc49487bfd0f1ffa7345364718c57334fa0b5b67cb5f27eba10f309",
+        strip_prefix = "buildifier-prebuilt-6.1.0",
+        urls = [
+            "http://github.com/keith/buildifier-prebuilt/archive/6.1.0.tar.gz",
+        ],
+    )
+
     # Override bazel_skylib distribution to fetch sources instead
     # so that the gazelle extension is included
     # see https://github.com/bazelbuild/bazel-skylib/issues/250
@@ -80,9 +89,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "ae56efc54ce3025ea908900e0d061423310b15e4676ae1359105583a2944665c",
-        strip_prefix = "bazel-lib-1.19.1",
-        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.19.1.tar.gz",
+        sha256 = "0aed9a6e7612b2968b5aa1ac0f801f5ec956ec2c04810da2c1445cac34938596",
+        strip_prefix = "bazel-lib-1.29.0",
+        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.29.0.tar.gz",
     )
 
     http_archive(
