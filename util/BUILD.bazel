@@ -46,8 +46,8 @@ py_binary(
     srcs = ["update_filegroups.py"],
     args = [
         "--buildozer",
-        "$(rootpath @buildifier_prebuilt//:buildifier)",
+        "$(rootpath @buildifier_prebuilt//:buildozer)",
     ],
-    data = ["@buildifier_prebuilt//:buildifier"],
+    data = ["@buildifier_prebuilt//:buildozer"],
     deps = ["@rules_python//python/runfiles"],
 )
