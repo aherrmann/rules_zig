@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
         bzlmodEnabled: [true, false]
         folder:
@@ -60,6 +60,11 @@ jobs:
             folder: "."
             target: "//zig/tests/integration_tests"
           - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: true
+            folder: "."
+            target: "//zig/tests/integration_tests"
+          - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
             bzlmodEnabled: true
             folder: "."
