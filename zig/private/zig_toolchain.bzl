@@ -1,5 +1,6 @@
 """Implementation of the zig_toolchain rule."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//zig/private/providers:zig_toolchain_info.bzl", "ZigToolchainInfo")
 
 DOC = """\
@@ -37,6 +38,15 @@ ATTRS = {
         doc = "Path to an existing Zig executable for the target platform.",
         mandatory = False,
     ),
+    "zig_lib": attr.label_list(
+        doc = "Files of a hermetically downloaded Zig library for the target platform.",
+        mandatory = False,
+        allow_files = True,
+    ),
+    "zig_lib_path": attr.string(
+        doc = "Absolute path to an existing Zig library for the target platform or a the path to a hermetically downloaded Zig library relative to the Zig executable.",
+        mandatory = False,
+    ),
 }
 
 # Avoid using non-normalized paths (workspace/../other_workspace/path)
@@ -52,12 +62,26 @@ def _zig_toolchain_impl(ctx):
     if not ctx.attr.zig_exe and not ctx.attr.zig_exe_path:
         fail("Must set one of zig_exe or zig_exe_path.")
 
+    if ctx.attr.zig_exe and not ctx.attr.zig_lib:
+        fail("Must set zig_lib if zig_exe is set.")
+    if not ctx.attr.zig_exe and ctx.attr.zig_lib:
+        fail("Can only set zig_lib if zig_exe is set.")
+
+    if not ctx.attr.zig_lib_path:
+        fail("Must set one of zig_lib or zig_lib_path.")
+    if ctx.attr.zig_lib and paths.is_absolute(ctx.attr.zig_lib_path):
+        fail("zig_lib_path must be relative if zig_lib is set.")
+    elif not ctx.attr.zig_lib and not paths.is_absolute(ctx.attr.zig_lib_path):
+        fail("zig_lib_path must be absolute if zig_lib is not set.")
+
     zig_files = []
     zig_exe_path = ctx.attr.zig_exe_path
+    zig_lib_path = ctx.attr.zig_lib_path
 
     if ctx.attr.zig_exe:
-        zig_files = ctx.attr.zig_exe.files.to_list()
+        zig_files = ctx.attr.zig_exe.files.to_list() + ctx.files.zig_lib
         zig_exe_path = _to_manifest_path(ctx, zig_files[0])
+        zig_lib_path = paths.join(paths.dirname(zig_exe_path), ctx.attr.zig_lib_path)
 
     # Make the $(tool_BIN) variable available in places like genrules.
     # See https://docs.bazel.build/versions/main/be/make-variables.html#custom_variables
@@ -70,6 +94,7 @@ def _zig_toolchain_impl(ctx):
     )
     zigtoolchaininfo = ZigToolchainInfo(
         zig_exe_path = zig_exe_path,
+        zig_lib_path = zig_lib_path,
         zig_files = zig_files,
     )
 

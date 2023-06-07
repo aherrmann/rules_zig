@@ -65,7 +65,7 @@ toolchain(
 ## zig_toolchain
 
 <pre>
-zig_toolchain(<a href="#zig_toolchain-name">name</a>, <a href="#zig_toolchain-zig_exe">zig_exe</a>, <a href="#zig_toolchain-zig_exe_path">zig_exe_path</a>)
+zig_toolchain(<a href="#zig_toolchain-name">name</a>, <a href="#zig_toolchain-zig_exe">zig_exe</a>, <a href="#zig_toolchain-zig_exe_path">zig_exe_path</a>, <a href="#zig_toolchain-zig_lib">zig_lib</a>, <a href="#zig_toolchain-zig_lib_path">zig_lib_path</a>)
 </pre>
 
 Defines a Zig compiler toolchain.
@@ -100,5 +100,7 @@ See https://bazel.build/extending/toolchains#defining-toolchains.
 | <a id="zig_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_toolchain-zig_exe"></a>zig_exe |  A hermetically downloaded Zig executable for the target platform.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="zig_toolchain-zig_exe_path"></a>zig_exe_path |  Path to an existing Zig executable for the target platform.   | String | optional | <code>""</code> |
+| <a id="zig_toolchain-zig_lib"></a>zig_lib |  Files of a hermetically downloaded Zig library for the target platform.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="zig_toolchain-zig_lib_path"></a>zig_lib_path |  Absolute path to an existing Zig library for the target platform or a the path to a hermetically downloaded Zig library relative to the Zig executable.   | String | optional | <code>""</code> |
 
 

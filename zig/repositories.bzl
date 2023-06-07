@@ -66,6 +66,8 @@ zig_toolchain(
         "@bazel_tools//src/conditions:host_windows": "zig.exe",
         "//conditions:default": "zig",
     }),
+    zig_lib = glob(["lib/**"]),
+    zig_lib_path = "lib",
 )
 """
 
