@@ -3,6 +3,7 @@
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
+load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
@@ -105,6 +106,11 @@ def _zig_library_impl(ctx):
     zig_linker_script(
         linker_script = ctx.file.linker_script,
         inputs = direct_inputs,
+        args = args,
+    )
+
+    zig_lib_dir(
+        zigtoolchaininfo = zigtoolchaininfo,
         args = args,
     )
 

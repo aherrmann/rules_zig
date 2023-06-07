@@ -8,6 +8,13 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_lib_dir",
+    srcs = ["zig_lib_dir.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["@bazel_skylib//lib:paths"],
+)
+
+bzl_library(
     name = "filetypes",
     srcs = ["filetypes.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -27,6 +34,7 @@ filegroup(
         ":filetypes.bzl",
         ":linker_script.bzl",
         ":zig_cache.bzl",
+        ":zig_lib_dir.bzl",
     ],
     visibility = ["//zig/private:__pkg__"],
 )
