@@ -204,3 +204,32 @@ test "can compile to target platform aarch64-linux" {
     const elf_header = try std.elf.Header.read(file);
     try std.testing.expectEqual(std.elf.EM.AARCH64, elf_header.machine);
 }
+
+test "zig_binary result should not contain the output base path" {
+    const ctx = try BitContext.init();
+
+    const info_result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "info", "output_base" },
+    });
+    defer info_result.deinit();
+
+    const output_base = std.mem.trim(u8, info_result.stdout, " \n");
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:binary", "--@rules_zig//zig/settings:mode=debug" },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    const file = try workspace.openFile("bazel-bin/binary", .{});
+    defer file.close();
+
+    const file_content = try file.readToEndAlloc(std.testing.allocator, 1_000_000);
+    defer std.testing.allocator.free(file_content);
+
+    try std.testing.expectEqual(@as(?usize, null), std.mem.indexOf(u8, file_content, output_base));
+}
