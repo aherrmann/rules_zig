@@ -28,13 +28,13 @@ See https://bazel.build/extending/toolchains#defining-toolchains.
 """
 
 ATTRS = {
-    "target_tool": attr.label(
-        doc = "A hermetically downloaded executable target for the target platform.",
+    "zig_exe": attr.label(
+        doc = "A hermetically downloaded Zig executable for the target platform.",
         mandatory = False,
         allow_single_file = True,
     ),
-    "target_tool_path": attr.string(
-        doc = "Path to an existing executable for the target platform.",
+    "zig_exe_path": attr.string(
+        doc = "Path to an existing Zig executable for the target platform.",
         mandatory = False,
     ),
 }
@@ -47,30 +47,30 @@ def _to_manifest_path(ctx, file):
         return ctx.workspace_name + "/" + file.short_path
 
 def _zig_toolchain_impl(ctx):
-    if ctx.attr.target_tool and ctx.attr.target_tool_path:
-        fail("Can only set one of target_tool or target_tool_path but both were set.")
-    if not ctx.attr.target_tool and not ctx.attr.target_tool_path:
-        fail("Must set one of target_tool or target_tool_path.")
+    if ctx.attr.zig_exe and ctx.attr.zig_exe_path:
+        fail("Can only set one of zig_exe or zig_exe_path but both were set.")
+    if not ctx.attr.zig_exe and not ctx.attr.zig_exe_path:
+        fail("Must set one of zig_exe or zig_exe_path.")
 
-    tool_files = []
-    target_tool_path = ctx.attr.target_tool_path
+    zig_files = []
+    zig_exe_path = ctx.attr.zig_exe_path
 
-    if ctx.attr.target_tool:
-        tool_files = ctx.attr.target_tool.files.to_list()
-        target_tool_path = _to_manifest_path(ctx, tool_files[0])
+    if ctx.attr.zig_exe:
+        zig_files = ctx.attr.zig_exe.files.to_list()
+        zig_exe_path = _to_manifest_path(ctx, zig_files[0])
 
     # Make the $(tool_BIN) variable available in places like genrules.
     # See https://docs.bazel.build/versions/main/be/make-variables.html#custom_variables
     template_variables = platform_common.TemplateVariableInfo({
-        "ZIG_BIN": target_tool_path,
+        "ZIG_BIN": zig_exe_path,
     })
     default = DefaultInfo(
-        files = depset(tool_files),
-        runfiles = ctx.runfiles(files = tool_files),
+        files = depset(zig_files),
+        runfiles = ctx.runfiles(files = zig_files),
     )
     zigtoolchaininfo = ZigToolchainInfo(
-        target_tool_path = target_tool_path,
-        tool_files = tool_files,
+        zig_exe_path = zig_exe_path,
+        zig_files = zig_files,
     )
 
     # Export all the providers inside our ToolchainInfo
