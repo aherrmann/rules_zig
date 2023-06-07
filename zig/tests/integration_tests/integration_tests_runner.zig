@@ -67,7 +67,6 @@ const BitContext = struct {
         if (self.bzlmod_enabled and !args.omit_bzlmod_flag) {
             argv[argc - 1] = "--enable_bzlmod";
         }
-        std.debug.print("\n{s}\n", .{argv});
         const result = try std.ChildProcess.exec(.{
             .allocator = std.testing.allocator,
             .argv = argv,
