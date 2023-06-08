@@ -256,5 +256,10 @@ test "zig_binary result should not contain the output base path" {
     try strings_proc.spawn();
     _ = try strings_proc.wait();
 
-    try std.testing.expectEqual(@as(?usize, null), std.mem.indexOf(u8, file_content, output_base));
+    if (std.mem.indexOf(u8, file_content, output_base)) |start| {
+        var end = start;
+        while (std.ascii.isPrint(file_content[end])) : (end += 1) {}
+        std.debug.print("\nFound output_base in binary at {}-{}: {s}\n", .{ start, end, file_content[start..end] });
+        return error.TestExpectNotFound;
+    }
 }
