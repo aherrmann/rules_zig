@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 /// Location of the Bazel workspace directory under test.
@@ -67,7 +68,6 @@ const BitContext = struct {
         if (self.bzlmod_enabled and !args.omit_bzlmod_flag) {
             argv[argc - 1] = "--enable_bzlmod";
         }
-        std.debug.print("\n{s}\n", .{argv});
         const result = try std.ChildProcess.exec(.{
             .allocator = std.testing.allocator,
             .argv = argv,
@@ -203,4 +203,44 @@ test "can compile to target platform aarch64-linux" {
 
     const elf_header = try std.elf.Header.read(file);
     try std.testing.expectEqual(std.elf.EM.AARCH64, elf_header.machine);
+}
+
+test "zig_binary result should not contain the output base path" {
+    if (builtin.os.tag == .macos) {
+        // TODO[AH] Avoid output base path on MacOS.
+        //   See https://github.com/aherrmann/rules_zig/issues/79
+        return error.SkipZigTest;
+    }
+
+    const ctx = try BitContext.init();
+
+    const info_result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "info", "output_base" },
+    });
+    defer info_result.deinit();
+
+    const output_base = std.mem.trim(u8, info_result.stdout, " \n");
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:binary", "--@rules_zig//zig/settings:mode=debug" },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    const file = try workspace.openFile("bazel-bin/binary", .{});
+    defer file.close();
+
+    const file_content = try file.readToEndAlloc(std.testing.allocator, 1_000_000);
+    defer std.testing.allocator.free(file_content);
+
+    if (std.mem.indexOf(u8, file_content, output_base)) |start| {
+        var end = start;
+        while (std.ascii.isPrint(file_content[end])) : (end += 1) {}
+        std.debug.print("\nFound output_base in binary at {}-{}: {s}\n", .{ start, end, file_content[start..end] });
+        return error.TestExpectNotFound;
+    }
 }

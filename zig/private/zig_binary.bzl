@@ -3,6 +3,7 @@
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
+load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
@@ -108,6 +109,11 @@ def _zig_binary_impl(ctx):
         args = args,
     )
 
+    zig_lib_dir(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = args,
+    )
+
     zig_cache_output(
         actions = ctx.actions,
         name = ctx.label.name,
@@ -128,8 +134,8 @@ def _zig_binary_impl(ctx):
     ctx.actions.run(
         outputs = outputs,
         inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
-        executable = zigtoolchaininfo.target_tool_path,
-        tools = zigtoolchaininfo.tool_files,
+        executable = zigtoolchaininfo.zig_exe_path,
+        tools = zigtoolchaininfo.zig_files,
         arguments = ["build-exe", args],
         mnemonic = "ZigBuildExe",
         progress_message = "Building %{input} as Zig binary %{output}",

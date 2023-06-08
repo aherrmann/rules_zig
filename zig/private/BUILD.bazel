@@ -35,13 +35,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "zig_target_toolchain",
-    srcs = ["zig_target_toolchain.bzl"],
-    visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_target_info"],
-)
-
-bzl_library(
     name = "zig_binary",
     srcs = ["zig_binary.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -49,6 +42,7 @@ bzl_library(
         "//zig/private/common:filetypes",
         "//zig/private/common:linker_script",
         "//zig/private/common:zig_cache",
+        "//zig/private/common:zig_lib_dir",
         "//zig/private/providers:zig_package_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
@@ -63,6 +57,7 @@ bzl_library(
         "//zig/private/common:filetypes",
         "//zig/private/common:linker_script",
         "//zig/private/common:zig_cache",
+        "//zig/private/common:zig_lib_dir",
         "//zig/private/providers:zig_package_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
@@ -73,7 +68,17 @@ bzl_library(
     name = "zig_toolchain",
     srcs = ["zig_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_toolchain_info"],
+    deps = [
+        "//zig/private/providers:zig_toolchain_info",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
+    name = "zig_target_toolchain",
+    srcs = ["zig_target_toolchain.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["//zig/private/providers:zig_target_info"],
 )
 
 bzl_library(
