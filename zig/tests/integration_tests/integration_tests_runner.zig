@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 /// Location of the Bazel workspace directory under test.
@@ -205,6 +206,12 @@ test "can compile to target platform aarch64-linux" {
 }
 
 test "zig_binary result should not contain the output base path" {
+    if (builtin.os.tag == .macos) {
+        // TODO[AH] Avoid output base path on MacOS.
+        //   See https://github.com/aherrmann/rules_zig/issues/79
+        return error.SkipZigTest;
+    }
+
     const ctx = try BitContext.init();
 
     const info_result = try ctx.exec_bazel(.{
