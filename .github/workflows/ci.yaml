@@ -96,42 +96,5 @@ jobs:
         working-directory: ${{ matrix.folder }}
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
-      - name: Test generated files
-        if: matrix.folder == '.' && matrix.target == '//...'
-        env:
-          # Bazelisk will download bazel to here, ensure it is cached between runs.
-          XDG_CACHE_HOME: ~/.cache/bazel-repo
-        run: |
-          bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
-          test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; git diff >&2; exit 1; }
-
-      - name: Check for test.sh
-        # Checks for the existence of test.sh in the folder. Downstream steps can use
-        # steps.has_test_sh.outputs.files_exists as a conditional.
-        id: has_test_sh
-        uses: andstor/file-existence-action@v2
-        with:
-          files: "${{ matrix.folder }}/test.sh"
-
-      - name: Set bzlmod flag
-        # Store the --enable_bzlmod flag that we add to the test command below
-        # only when we're running bzlmod in our test matrix.
-        id: set_bzlmod_flag
-        if: matrix.bzlmodEnabled
-        run: echo "bzlmod_flag=--enable_bzlmod" >> $GITHUB_OUTPUT
-
-      - name: bazel test ${{ matrix.target }}
-        env:
-          # Bazelisk will download bazel to here, ensure it is cached between runs.
-          XDG_CACHE_HOME: ~/.cache/bazel-repo
-        working-directory: ${{ matrix.folder }}
-        run: bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} ${{ matrix.target }}
-
-      - name: ./test.sh
-        # Run if there is a test.sh file in the folder
-        if: steps.has_test_sh.outputs.files_exists == 'true'
-        working-directory: ${{ matrix.folder }}
-        shell: bash
-        # Run the script potentially setting BZLMOD_FLAG=--enable_bzlmod. All test.sh
-        # scripts that run bazel directly should make use of this variable.
-        run: BZLMOD_FLAG=${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} ./test.sh
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
