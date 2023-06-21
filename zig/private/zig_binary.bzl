@@ -5,6 +5,7 @@ load(
     "ZIG_C_SOURCE_EXTENSIONS",
     "ZIG_SOURCE_EXTENSIONS",
 )
+load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -110,9 +111,12 @@ def _zig_binary_impl(ctx):
     direct_inputs.extend(ctx.files.srcs)
     args.add(ctx.file.main)
 
-    direct_inputs.extend(ctx.files.csrcs)
-    args.add_all("-cflags", ctx.attr.copts, terminate_with = "--")
-    args.add_all(ctx.files.csrcs)
+    zig_csrcs(
+        copts = ctx.attr.copts,
+        csrcs = ctx.files.csrcs,
+        inputs = direct_inputs,
+        args = args,
+    )
 
     zig_package_dependencies(
         deps = ctx.attr.deps,
