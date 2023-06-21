@@ -1,6 +1,10 @@
 """Implementation of the zig_library rule."""
 
-load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
+load(
+    "//zig/private/common:filetypes.bzl",
+    "ZIG_C_SOURCE_EXTENSIONS",
+    "ZIG_SOURCE_EXTENSIONS",
+)
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -53,6 +57,15 @@ ATTRS = {
         doc = "Other source files required to build the target.",
         mandatory = False,
     ),
+    "csrcs": attr.label_list(
+        allow_files = ZIG_C_SOURCE_EXTENSIONS,
+        doc = "C source files required to build the target.",
+        mandatory = False,
+    ),
+    "copts": attr.string_list(
+        doc = "C compiler flags required to build the C sources of the target.",
+        mandatory = False,
+    ),
     "deps": attr.label_list(
         doc = "Packages or libraries required to build the target.",
         mandatory = False,
@@ -96,6 +109,10 @@ def _zig_library_impl(ctx):
     direct_inputs.append(ctx.file.main)
     direct_inputs.extend(ctx.files.srcs)
     args.add(ctx.file.main)
+
+    direct_inputs.extend(ctx.files.csrcs)
+    args.add_all("-cflags", ctx.attr.copts, terminate_with = "--")
+    args.add_all(ctx.files.csrcs)
 
     zig_package_dependencies(
         deps = ctx.attr.deps,
