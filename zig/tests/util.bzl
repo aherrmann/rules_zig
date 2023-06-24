@@ -1,6 +1,6 @@
 """Utilities for unit and analysis tests."""
 
-load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 
 def _is_flag_set(flag, args):
     """Check whether the given flag is set.
@@ -61,6 +61,40 @@ def assert_find_unique_option(env, name, args):
         return args[index + 1]
     else:
         return None
+
+def assert_find_unique_surrounded_arguments(env, start, end, args):
+    """Find a sequence of arguments surrounded by a start and end marker.
+
+    Assert that such a sequence exists and that there is no further occurence
+    of the start marker afterwards.
+    Return the sequence of surrounded arguments excluding the markers.
+
+    Args:
+      env: The Skylib unittest environment object.
+      start: String, The start marker, including any `--` prefix.
+      end: String, The end marker, including any `--` prefix.
+      args: sequence of String, The list of arguments to search in.
+
+    Returns:
+      The sequence of surrounded arguments.
+    """
+    start_offset = -1
+    end_offset = -1
+
+    for i, arg in enumerate(args):
+        if start_offset == -1:
+            if arg == start:
+                start_offset = i
+        elif start_offset != -1 and end_offset == -1:
+            if arg == end:
+                end_offset = i
+        elif arg == start:
+            unittest.fail(env, "Secondary start marker '{}' encountered.".format(start))
+
+    asserts.true(env, start_offset != -1, "Start marker '{}' expected but not found.".format(start))
+    asserts.true(env, end_offset != -1, "End marker '{}' expected but not found.".format(end))
+
+    return args[start_offset + 1:end_offset]
 
 def assert_find_action(env, mnemonic):
     """Assert that the given action mnemonic exists and return the first instance.

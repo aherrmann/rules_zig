@@ -1,0 +1,33 @@
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+
+exports_files(
+    [
+        "symbol_a.c",
+        "symbol_b.c",
+    ],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_binary(
+    name = "with-copts",
+    copts = [
+        "-DNUMBER_A=1",
+        "-DNUMBER_B=2",
+    ],
+    csrcs = [
+        "symbol_a.c",
+        "symbol_b.c",
+    ],
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_binary(
+    name = "without-copts",
+    csrcs = [
+        "symbol_a.c",
+        "symbol_b.c",
+    ],
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)

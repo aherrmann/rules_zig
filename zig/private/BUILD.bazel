@@ -39,6 +39,7 @@ bzl_library(
     srcs = ["zig_binary.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        "//zig/private/common:csrcs",
         "//zig/private/common:filetypes",
         "//zig/private/common:linker_script",
         "//zig/private/common:zig_cache",
@@ -54,6 +55,7 @@ bzl_library(
     srcs = ["zig_library.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        "//zig/private/common:csrcs",
         "//zig/private/common:filetypes",
         "//zig/private/common:linker_script",
         "//zig/private/common:zig_cache",
