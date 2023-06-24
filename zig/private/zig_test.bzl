@@ -153,7 +153,7 @@ def _zig_test_impl(ctx):
 
     ctx.actions.run(
         outputs = outputs,
-        inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
+        inputs = depset(direct = direct_inputs, transitive = transitive_inputs, order = "preorder"),
         executable = zigtoolchaininfo.zig_exe_path,
         tools = zigtoolchaininfo.zig_files,
         arguments = ["test", "--test-no-exec", args],

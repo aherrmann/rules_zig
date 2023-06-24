@@ -80,6 +80,46 @@ def _test_multiple_sources_binary(name):
     )
     return [":" + name]
 
+def _package_binary_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+
+    executable = default.files_to_run.executable
+    main = ctx.file.main
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildExe"
+    ]
+    asserts.equals(env, 1, len(build), "zig_binary should generate one ZigBuildExe action.")
+    build = build[0]
+
+    # The position in the action input and output matters for the progress_message.
+    asserts.equals(env, main, build.inputs.to_list()[0], "the main source should be the first input.")
+    asserts.equals(env, executable, build.outputs.to_list()[0], "the binary should be the first output.")
+
+    return analysistest.end(env)
+
+_package_binary_test = analysistest.make(
+    _package_binary_test_impl,
+    attrs = {
+        "main": attr.label(
+            allow_single_file = True,
+            mandatory = True,
+        ),
+    },
+)
+
+def _test_package_binary(name):
+    _package_binary_test(
+        name = name,
+        target_under_test = "//zig/tests/package-binary:binary",
+        main = "//zig/tests/package-binary:main.zig",
+    )
+    return [":" + name]
+
 def _c_sources_binary_test_impl(ctx):
     env = analysistest.begin(ctx)
 
@@ -152,6 +192,7 @@ def rules_test_suite(name):
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
+    tests += _test_package_binary(name = "package_binary_test")
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
     native.test_suite(
         name = name,
