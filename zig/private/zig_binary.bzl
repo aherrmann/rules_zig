@@ -154,7 +154,7 @@ def _zig_binary_impl(ctx):
 
     ctx.actions.run(
         outputs = outputs,
-        inputs = depset(direct = direct_inputs, transitive = transitive_inputs),
+        inputs = depset(direct = direct_inputs, transitive = transitive_inputs, order = "preorder"),
         executable = zigtoolchaininfo.zig_exe_path,
         tools = zigtoolchaininfo.zig_files,
         arguments = ["build-exe", args],
