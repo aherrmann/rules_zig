@@ -1,0 +1,19 @@
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_package")
+
+exports_files(
+    ["main.zig"],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_package(
+    name = "data",
+    main = "data.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    deps = [":data"],
+)
