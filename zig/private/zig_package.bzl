@@ -39,7 +39,12 @@ ATTRS = {
     ),
     "srcs": attr.label_list(
         allow_files = ZIG_SOURCE_EXTENSIONS,
-        doc = "Other source files required when building the package.",
+        doc = "Other Zig source files required when building the package, e.g. files imported using `@import`.",
+        mandatory = False,
+    ),
+    "extra_srcs": attr.label_list(
+        allow_files = True,
+        doc = "Other files required when building the package, e.g. files embedded using `@embedFile`.",
         mandatory = False,
     ),
     "deps": attr.label_list(
@@ -61,7 +66,7 @@ def _zig_package_impl(ctx):
     default = DefaultInfo(
     )
 
-    srcs = [ctx.file.main] + ctx.files.srcs
+    srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs
     flags = ["--pkg-begin", ctx.label.name, ctx.file.main.path]
     all_srcs = []
 
