@@ -56,7 +56,12 @@ ATTRS = {
     ),
     "srcs": attr.label_list(
         allow_files = ZIG_SOURCE_EXTENSIONS,
-        doc = "Other source files required to build the target.",
+        doc = "Other Zig source files required to build the target, e.g. files imported using `@import`.",
+        mandatory = False,
+    ),
+    "extra_srcs": attr.label_list(
+        allow_files = True,
+        doc = "Other files required to build the target, e.g. files embedded using `@embedFile`.",
         mandatory = False,
     ),
     "csrcs": attr.label_list(
@@ -109,6 +114,7 @@ def _zig_binary_impl(ctx):
 
     direct_inputs.append(ctx.file.main)
     direct_inputs.extend(ctx.files.srcs)
+    direct_inputs.extend(ctx.files.extra_srcs)
     args.add(ctx.file.main)
 
     zig_csrcs(
