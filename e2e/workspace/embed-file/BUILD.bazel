@@ -1,0 +1,43 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
+
+zig_binary(
+    name = "binary",
+    extra_srcs = ["message.txt"],
+    main = "main.zig",
+)
+
+zig_library(
+    name = "library",
+    extra_srcs = ["message.txt"],
+    main = "main.zig",
+)
+
+zig_test(
+    name = "test",
+    extra_srcs = ["message.txt"],
+    main = "main.zig",
+)
+
+build_test(
+    name = "build",
+    targets = [
+        ":binary",
+        ":library",
+        ":test",
+    ],
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :binary) > $(OUTS)",
+    tools = [":binary"],
+)
+
+diff_test(
+    name = "output_test",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)
