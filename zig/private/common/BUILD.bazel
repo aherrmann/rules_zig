@@ -15,6 +15,22 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_build",
+    srcs = ["zig_build.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        ":csrcs",
+        ":filetypes",
+        ":linker_script",
+        ":zig_cache",
+        ":zig_lib_dir",
+        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_settings_info",
+        "//zig/private/providers:zig_target_info",
+    ],
+)
+
+bzl_library(
     name = "csrcs",
     srcs = ["csrcs.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -40,6 +56,7 @@ filegroup(
         ":csrcs.bzl",
         ":filetypes.bzl",
         ":linker_script.bzl",
+        ":zig_build.bzl",
         ":zig_cache.bzl",
         ":zig_lib_dir.bzl",
     ],
