@@ -1,5 +1,6 @@
 """Implementation of the zig_package rule."""
 
+load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
 
@@ -60,10 +61,31 @@ granularity of your Zig packages.
         mandatory = False,
         providers = [ZigPackageInfo],
     ),
+    "data": attr.label_list(
+        allow_files = True,
+        doc = "Files required by the package during runtime.",
+        mandatory = False,
+    ),
 }
 
 def _zig_package_impl(ctx):
+    transitive_data = []
+    transitive_runfiles = []
+
+    zig_collect_data(
+        data = ctx.attr.data,
+        deps = ctx.attr.deps,
+        transitive_data = transitive_data,
+        transitive_runfiles = transitive_runfiles,
+    )
+
     default = DefaultInfo(
+        runfiles = zig_create_runfiles(
+            ctx_runfiles = ctx.runfiles,
+            direct_data = [],
+            transitive_data = transitive_data,
+            transitive_runfiles = transitive_runfiles,
+        ),
     )
 
     srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs

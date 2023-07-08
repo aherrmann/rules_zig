@@ -6,6 +6,7 @@ load(
     "ZIG_SOURCE_EXTENSIONS",
 )
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
+load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -59,6 +60,11 @@ ATTRS = {
         allow_single_file = True,
         mandatory = False,
     ),
+    "data": attr.label_list(
+        allow_files = True,
+        doc = "Files required by the target during runtime.",
+        mandatory = False,
+    ),
     "_settings": attr.label(
         default = "//zig/settings",
         doc = "Zig build settings.",
@@ -84,14 +90,23 @@ def zig_build_impl(ctx, *, kind):
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
-    default_executable = None
-    default_files = None
-    default_runfiles = None
+    executable = None
+    files = None
+    direct_data = []
+    transitive_data = []
+    transitive_runfiles = []
 
     outputs = []
 
     direct_inputs = []
     transitive_inputs = []
+
+    zig_collect_data(
+        data = ctx.attr.data,
+        deps = ctx.attr.deps,
+        transitive_data = transitive_data,
+        transitive_runfiles = transitive_runfiles,
+    )
 
     args = ctx.actions.args()
     args.use_param_file("@%s")
@@ -102,9 +117,9 @@ def zig_build_impl(ctx, *, kind):
         outputs.append(output)
         args.add(output, format = "-femit-bin=%s")
 
-        default_executable = output
-        default_files = depset([output])
-        default_runfiles = ctx.runfiles(files = [output])
+        executable = output
+        files = depset([output])
+        direct_data.append(output)
     elif kind == "zig_library":
         # TODO[AH] Set `.lib` extension on Windows.
         static = ctx.actions.declare_file(ctx.label.name + ".a")
@@ -112,7 +127,7 @@ def zig_build_impl(ctx, *, kind):
         args.add(static, format = "-femit-bin=%s")
         # TODO[AH] Support dynamic library output.
 
-        default_files = depset([static])
+        files = depset([static])
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
@@ -195,9 +210,14 @@ def zig_build_impl(ctx, *, kind):
     )
 
     default = DefaultInfo(
-        executable = default_executable,
-        files = default_files,
-        runfiles = default_runfiles,
+        executable = executable,
+        files = files,
+        runfiles = zig_create_runfiles(
+            ctx_runfiles = ctx.runfiles,
+            direct_data = [],
+            transitive_data = transitive_data,
+            transitive_runfiles = transitive_runfiles,
+        ),
     )
 
     return [default]
