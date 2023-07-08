@@ -7,13 +7,25 @@ zig_test(
 )
 
 zig_package(
-    name = "package",
+    name = "direct-package",
     data = ["data.txt"],
-    main = "package.zig",
+    main = "direct-package.zig",
 )
 
 zig_test(
-    name = "package-data",
-    main = "package-data.zig",
-    deps = [":package"],
+    name = "direct-package-data",
+    main = "direct-package-data.zig",
+    deps = [":direct-package"],
+)
+
+zig_package(
+    name = "indirect-package",
+    main = "indirect-package.zig",
+    deps = [":direct-package"],
+)
+
+zig_test(
+    name = "indirect-package-data",
+    main = "indirect-package-data.zig",
+    deps = [":indirect-package"],
 )
