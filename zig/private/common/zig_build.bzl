@@ -104,6 +104,9 @@ def zig_build_impl(ctx, *, kind):
         transitive_data.append(data[DefaultInfo].files)
         transitive_runfiles.append(data[DefaultInfo].default_runfiles)
 
+    for dep in ctx.attr.deps:
+        transitive_runfiles.append(dep[DefaultInfo].default_runfiles)
+
     args = ctx.actions.args()
     args.use_param_file("@%s")
 
