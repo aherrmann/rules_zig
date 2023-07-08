@@ -75,6 +75,9 @@ def _zig_package_impl(ctx):
         transitive_data.append(data[DefaultInfo].files)
         transitive_runfiles.append(data[DefaultInfo].default_runfiles)
 
+    for dep in ctx.attr.deps:
+        transitive_runfiles.append(dep[DefaultInfo].default_runfiles)
+
     runfiles = ctx.runfiles(
         transitive_files = depset(transitive = transitive_data),
     ).merge_all(transitive_runfiles)
