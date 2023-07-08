@@ -15,6 +15,9 @@ bzl_library(
     # Gazelle removes the srcs attribute for some reason.
     srcs = ["zig_test.bzl"],  # keep
     visibility = ["//zig:__subpackages__"],
+    deps = [
+        "//zig/private/common:zig_build",
+    ],
 )
 
 bzl_library(
@@ -39,14 +42,7 @@ bzl_library(
     srcs = ["zig_binary.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
-        "//zig/private/common:csrcs",
-        "//zig/private/common:filetypes",
-        "//zig/private/common:linker_script",
-        "//zig/private/common:zig_cache",
-        "//zig/private/common:zig_lib_dir",
-        "//zig/private/providers:zig_package_info",
-        "//zig/private/providers:zig_settings_info",
-        "//zig/private/providers:zig_target_info",
+        "//zig/private/common:zig_build",
     ],
 )
 
@@ -55,14 +51,7 @@ bzl_library(
     srcs = ["zig_library.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
-        "//zig/private/common:csrcs",
-        "//zig/private/common:filetypes",
-        "//zig/private/common:linker_script",
-        "//zig/private/common:zig_cache",
-        "//zig/private/common:zig_lib_dir",
-        "//zig/private/providers:zig_package_info",
-        "//zig/private/providers:zig_settings_info",
-        "//zig/private/providers:zig_target_info",
+        "//zig/private/common:zig_build",
     ],
 )
 
