@@ -5,6 +5,7 @@ bzl_library(
     srcs = ["zig_package.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        "//zig/private/common:data",
         "//zig/private/common:filetypes",
         "//zig/private/providers:zig_package_info",
     ],

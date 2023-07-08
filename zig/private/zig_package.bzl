@@ -1,5 +1,6 @@
 """Implementation of the zig_package rule."""
 
+load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
 
@@ -71,19 +72,20 @@ def _zig_package_impl(ctx):
     transitive_data = []
     transitive_runfiles = []
 
-    for data in ctx.attr.data:
-        transitive_data.append(data[DefaultInfo].files)
-        transitive_runfiles.append(data[DefaultInfo].default_runfiles)
-
-    for dep in ctx.attr.deps:
-        transitive_runfiles.append(dep[DefaultInfo].default_runfiles)
-
-    runfiles = ctx.runfiles(
-        transitive_files = depset(transitive = transitive_data),
-    ).merge_all(transitive_runfiles)
+    zig_collect_data(
+        data = ctx.attr.data,
+        deps = ctx.attr.deps,
+        transitive_data = transitive_data,
+        transitive_runfiles = transitive_runfiles,
+    )
 
     default = DefaultInfo(
-        runfiles = runfiles,
+        runfiles = zig_create_runfiles(
+            ctx_runfiles = ctx.runfiles,
+            direct_data = [],
+            transitive_data = transitive_data,
+            transitive_runfiles = transitive_runfiles,
+        ),
     )
 
     srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs

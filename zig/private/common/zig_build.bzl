@@ -6,6 +6,7 @@ load(
     "ZIG_SOURCE_EXTENSIONS",
 )
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
+load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -100,12 +101,12 @@ def zig_build_impl(ctx, *, kind):
     direct_inputs = []
     transitive_inputs = []
 
-    for data in ctx.attr.data:
-        transitive_data.append(data[DefaultInfo].files)
-        transitive_runfiles.append(data[DefaultInfo].default_runfiles)
-
-    for dep in ctx.attr.deps:
-        transitive_runfiles.append(dep[DefaultInfo].default_runfiles)
+    zig_collect_data(
+        data = ctx.attr.data,
+        deps = ctx.attr.deps,
+        transitive_data = transitive_data,
+        transitive_runfiles = transitive_runfiles,
+    )
 
     args = ctx.actions.args()
     args.use_param_file("@%s")
@@ -208,15 +209,15 @@ def zig_build_impl(ctx, *, kind):
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
     )
 
-    runfiles = ctx.runfiles(
-        files = direct_data,
-        transitive_files = depset(transitive = transitive_data),
-    ).merge_all(transitive_runfiles)
-
     default = DefaultInfo(
         executable = executable,
         files = files,
-        runfiles = runfiles,
+        runfiles = zig_create_runfiles(
+            ctx_runfiles = ctx.runfiles,
+            direct_data = [],
+            transitive_data = transitive_data,
+            transitive_runfiles = transitive_runfiles,
+        ),
     )
 
     return [default]
