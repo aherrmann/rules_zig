@@ -1,0 +1,7 @@
+load("@rules_zig//zig:defs.bzl", "zig_test")
+
+zig_test(
+    name = "direct-data",
+    data = ["data.txt"],
+    main = "main.zig",
+)
