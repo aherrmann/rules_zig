@@ -60,10 +60,27 @@ granularity of your Zig packages.
         mandatory = False,
         providers = [ZigPackageInfo],
     ),
+    "data": attr.label_list(
+        allow_files = True,
+        doc = "Files required by the package during runtime.",
+        mandatory = False,
+    ),
 }
 
 def _zig_package_impl(ctx):
+    transitive_data = []
+    transitive_runfiles = []
+
+    for data in ctx.attr.data:
+        transitive_data.append(data[DefaultInfo].files)
+        transitive_runfiles.append(data[DefaultInfo].default_runfiles)
+
+    runfiles = ctx.runfiles(
+        transitive_files = depset(transitive = transitive_data),
+    ).merge_all(transitive_runfiles)
+
     default = DefaultInfo(
+        runfiles = runfiles,
     )
 
     srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs
