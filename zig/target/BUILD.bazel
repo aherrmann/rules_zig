@@ -55,6 +55,21 @@ toolchain(
 )
 
 zig_target_toolchain(
+    name = "ppc-linux",
+    target = "powerpc-linux",
+)
+
+toolchain(
+    name = "ppc-linux_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc",
+    ],
+    toolchain = ":ppc-linux",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
     name = "aarch64-linux",
     target = "aarch64-linux",
 )
