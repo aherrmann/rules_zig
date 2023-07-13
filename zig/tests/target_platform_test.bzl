@@ -2,6 +2,7 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//zig/private/providers:zig_target_info.bzl", "ZigTargetInfo")
 load(
     ":util.bzl",
@@ -14,6 +15,7 @@ _TARGET_PLATFORM = "//command_line_option:platforms"
 
 _PLATFORM_X86_64_LINUX = canonical_label("@//zig/tests/platforms:x86_64-linux")
 _PLATFORM_AARCH64_LINUX = canonical_label("@//zig/tests/platforms:aarch64-linux")
+_PLATFORM_X86_64_WINDOWS = canonical_label("@//zig/tests/platforms:x86_64-windows")
 
 def _define_target_platform_test(target, option):
     def _test_impl(ctx):
@@ -34,7 +36,7 @@ def _define_target_platform_test(target, option):
 
 _target_platform_x86_64_linux_test = _define_target_platform_test(_PLATFORM_X86_64_LINUX, "x86_64-linux")
 _target_platform_aarch64_linux_test = _define_target_platform_test(_PLATFORM_AARCH64_LINUX, "aarch64-linux")
-# TODO[AH] Test another operating system as well
+_target_platform_x86_64_windows_test = _define_target_platform_test(_PLATFORM_X86_64_WINDOWS, "x86_64-windows")
 
 def _define_build_target_platform_test(mnemonic, target, option):
     def _test_impl(ctx):
@@ -53,15 +55,43 @@ def _define_build_target_platform_test(mnemonic, target, option):
 
 _build_exe_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_LINUX, "x86_64-linux")
 _build_exe_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-# TODO[AH] Test another operating system as well
+_build_exe_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
 
 _build_lib_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_LINUX, "x86_64-linux")
 _build_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-# TODO[AH] Test another operating system as well
+_build_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
 
 _build_test_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_LINUX, "x86_64-linux")
 _build_test_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-# TODO[AH] Test another operating system as well
+_build_test_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+
+def _define_file_extension_test(target, extension):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+        target = analysistest.target_under_test(env)
+
+        files = target.files.to_list()
+        asserts.true(env, len(files) > 0, "Expected at least one output.")
+
+        out_base, out_ext = paths.split_extension(paths.basename(files[0].path))
+        asserts.equals(env, target.label.name, out_base, "Expected output based to match target name.")
+        asserts.equals(env, extension, out_ext, "Output extension mismatch.")
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {_TARGET_PLATFORM: target},
+    )
+
+_exe_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
+_exe_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".exe")
+
+_lib_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, ".a")
+_lib_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".lib")
+
+_test_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
+_test_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".exe")
 
 def target_platform_test_suite(name):
     unittest.suite(
@@ -69,17 +99,23 @@ def target_platform_test_suite(name):
         # Test Zig target platform on the resolved toolchain target
         partial.make(_target_platform_x86_64_linux_test, target_under_test = "//zig/target:resolved_toolchain"),
         partial.make(_target_platform_aarch64_linux_test, target_under_test = "//zig/target:resolved_toolchain"),
-        # TODO[AH] Test another operating system as well
+        partial.make(_target_platform_x86_64_windows_test, target_under_test = "//zig/target:resolved_toolchain"),
         # Test Zig target plaform on a binary target
         partial.make(_build_exe_target_platform_x86_64_linux_test, target_under_test = "//zig/tests/simple-binary:binary"),
         partial.make(_build_exe_target_platform_aarch64_linux_test, target_under_test = "//zig/tests/simple-binary:binary"),
-        # TODO[AH] Test another operating system as well
+        partial.make(_build_exe_target_platform_x86_64_windows_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_exe_file_extension_x86_64_linux_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_exe_file_extension_x86_64_windows_test, target_under_test = "//zig/tests/simple-binary:binary"),
         # Test Zig target plaform on a library target
         partial.make(_build_lib_target_platform_x86_64_linux_test, target_under_test = "//zig/tests/simple-library:library"),
         partial.make(_build_lib_target_platform_aarch64_linux_test, target_under_test = "//zig/tests/simple-library:library"),
-        # TODO[AH] Test another operating system as well
+        partial.make(_build_lib_target_platform_x86_64_windows_test, target_under_test = "//zig/tests/simple-library:library"),
+        partial.make(_lib_file_extension_x86_64_linux_test, target_under_test = "//zig/tests/simple-library:library"),
+        partial.make(_lib_file_extension_x86_64_windows_test, target_under_test = "//zig/tests/simple-library:library"),
         # Test Zig target plaform on a test target
         partial.make(_build_test_target_platform_x86_64_linux_test, target_under_test = "//zig/tests/simple-test:test"),
         partial.make(_build_test_target_platform_aarch64_linux_test, target_under_test = "//zig/tests/simple-test:test"),
-        # TODO[AH] Test another operating system as well
+        partial.make(_build_test_target_platform_x86_64_windows_test, target_under_test = "//zig/tests/simple-test:test"),
+        partial.make(_test_file_extension_x86_64_linux_test, target_under_test = "//zig/tests/simple-test:test"),
+        partial.make(_test_file_extension_x86_64_windows_test, target_under_test = "//zig/tests/simple-test:test"),
     )

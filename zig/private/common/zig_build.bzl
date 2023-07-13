@@ -112,8 +112,8 @@ def zig_build_impl(ctx, *, kind):
     args.use_param_file("@%s")
 
     if kind == "zig_binary" or kind == "zig_test":
-        # TODO[AH] Append `.exe` extension on Windows.
-        output = ctx.actions.declare_file(ctx.label.name)
+        extension = ".exe" if zigtargetinfo.triple.os == "windows" else ""
+        output = ctx.actions.declare_file(ctx.label.name + extension)
         outputs.append(output)
         args.add(output, format = "-femit-bin=%s")
 
@@ -121,8 +121,8 @@ def zig_build_impl(ctx, *, kind):
         files = depset([output])
         direct_data.append(output)
     elif kind == "zig_library":
-        # TODO[AH] Set `.lib` extension on Windows.
-        static = ctx.actions.declare_file(ctx.label.name + ".a")
+        extension = ".lib" if zigtargetinfo.triple.os == "windows" else ".a"
+        static = ctx.actions.declare_file(ctx.label.name + extension)
         outputs.append(static)
         args.add(static, format = "-femit-bin=%s")
         # TODO[AH] Support dynamic library output.

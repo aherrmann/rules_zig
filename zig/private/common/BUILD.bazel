@@ -25,6 +25,7 @@ bzl_library(
         ":linker_script",
         ":zig_cache",
         ":zig_lib_dir",
+        ":zig_target_triple",
         "//zig/private/providers:zig_package_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
@@ -55,6 +56,12 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
 )
 
+bzl_library(
+    name = "zig_target_triple",
+    srcs = ["zig_target_triple.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
@@ -67,6 +74,7 @@ filegroup(
         ":zig_build.bzl",
         ":zig_cache.bzl",
         ":zig_lib_dir.bzl",
+        ":zig_target_triple.bzl",
     ],
     visibility = ["//zig/private:__pkg__"],
 )
