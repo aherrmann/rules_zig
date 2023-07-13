@@ -1,5 +1,6 @@
 """Implementation of the zig_target_toolchain rule."""
 
+load("//zig/private/common:zig_target_triple.bzl", "triple")
 load("//zig/private/providers:zig_target_info.bzl", "ZigTargetInfo")
 
 DOC = """\
@@ -59,6 +60,7 @@ def _zig_target_toolchain(ctx):
 
     target_info = ZigTargetInfo(
         target = target,
+        triple = triple.from_string(target),
         args = args,
     )
 

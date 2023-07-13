@@ -6,6 +6,7 @@ Defines the compiler configuration for a target platform.
 
 FIELDS = {
     "target": "The Zig target platform",
+    "triple": "The components of the Zig target platform triple",
     "args": "The collected compiler arguments for the target platform",
 }
 
