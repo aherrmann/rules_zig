@@ -16,9 +16,22 @@ platform(
     ],
 )
 
+platform(
+    name = "x86_64-windows",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
 zig_binary(
     name = "read_elf_arch",
     main = "read_elf_arch.zig",
+)
+
+zig_binary(
+    name = "read_pe32_arch",
+    main = "read_pe32_arch.zig",
 )
 
 # TODO[AH] Test target transition on zig_library.
@@ -40,10 +53,24 @@ zig_configure_binary(
     target = ":aarch64-linux",
 )
 
+zig_configure_binary(
+    name = "binary_x86_64-windows",
+    actual = ":binary",
+    tags = ["manual"],
+    target = ":x86_64-windows",
+)
+
 build_test(
     name = "binary_aarch64-linux_build_test",
     targets = [
         ":binary_aarch64-linux",
+    ],
+)
+
+build_test(
+    name = "binary_x86_64-windows_build_test",
+    targets = [
+        ":binary_x86_64-windows",
     ],
 )
 
@@ -55,13 +82,25 @@ genrule(
     tools = [":read_elf_arch"],
 )
 
+genrule(
+    name = "binary_x86_64-windows_arch",
+    srcs = [":binary_x86_64-windows"],
+    outs = ["binary_x86_64-windows_arch.actual"],
+    cmd = "$(execpath :read_pe32_arch) $(SRCS) > $(OUTS)",
+    tools = [":read_pe32_arch"],
+)
+
 diff_test(
     name = "binary_aarch64-linux_arch_test",
     file1 = ":binary_aarch64-linux_arch.expected",
     file2 = ":binary_aarch64-linux_arch.actual",
 )
 
-# TODO[AH] Test another operating system
+diff_test(
+    name = "binary_x86_64-windows_arch_test",
+    file1 = ":binary_x86_64-windows_arch.expected",
+    file2 = ":binary_x86_64-windows_arch.actual",
+)
 
 # ----------------------------------------------------------
 # zig_configure_test
@@ -79,10 +118,24 @@ zig_configure_test(
     target = ":aarch64-linux",
 )
 
+zig_configure_test(
+    name = "test_x86_64-windows",
+    actual = ":test",
+    tags = ["manual"],
+    target = ":x86_64-windows",
+)
+
 build_test(
     name = "test_aarch64-linux_build_test",
     targets = [
         ":test_aarch64-linux",
+    ],
+)
+
+build_test(
+    name = "test_x86_64-windows_build_test",
+    targets = [
+        ":test_x86_64-windows",
     ],
 )
 
@@ -95,10 +148,23 @@ genrule(
     tools = [":read_elf_arch"],
 )
 
+genrule(
+    name = "test_x86_64-windows_arch",
+    testonly = True,
+    srcs = [":test_x86_64-windows"],
+    outs = ["test_x86_64-windows_arch.actual"],
+    cmd = "$(execpath :read_pe32_arch) $(SRCS) > $(OUTS)",
+    tools = [":read_pe32_arch"],
+)
+
 diff_test(
     name = "test_aarch64-linux_arch_test",
     file1 = ":test_aarch64-linux_arch.expected",
     file2 = ":test_aarch64-linux_arch.actual",
 )
 
-# TODO[AH] Test another operating system
+diff_test(
+    name = "test_x86_64-windows_arch_test",
+    file1 = ":test_x86_64-windows_arch.expected",
+    file2 = ":test_x86_64-windows_arch.actual",
+)
