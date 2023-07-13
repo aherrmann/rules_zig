@@ -70,7 +70,10 @@ bzl_library(
     name = "zig_target_toolchain",
     srcs = ["zig_target_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_target_info"],
+    deps = [
+        "//zig/private/common:zig_target_triple",
+        "//zig/private/providers:zig_target_info",
+    ],
 )
 
 bzl_library(
