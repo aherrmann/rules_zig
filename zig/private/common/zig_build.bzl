@@ -82,7 +82,7 @@ def zig_build_impl(ctx, *, kind):
 
     Args:
       ctx: Bazel rule context object.
-      kind: String; The kind of the rule, one of `zig_binary`, `zig_library`, `zig_test`.
+      kind: String; The kind of the rule, one of `zig_binary`, `zig_library`, `zig_shared_library`, `zig_test`.
 
     Returns:
       List of providers.
@@ -125,9 +125,16 @@ def zig_build_impl(ctx, *, kind):
         static = ctx.actions.declare_file(ctx.label.name + extension)
         outputs.append(static)
         args.add(static, format = "-femit-bin=%s")
-        # TODO[AH] Support dynamic library output.
 
         files = depset([static])
+    elif kind == "zig_shared_library":
+        prefix = "" if zigtargetinfo.triple.os == "windows" else "lib"
+        extension = ".dll" if zigtargetinfo.triple.os == "windows" else ".so"
+        dynamic = ctx.actions.declare_file(prefix + ctx.label.name + extension)
+        outputs.append(dynamic)
+        args.add(dynamic, format = "-femit-bin=%s")
+
+        files = depset([dynamic])
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
@@ -195,6 +202,10 @@ def zig_build_impl(ctx, *, kind):
         arguments = ["build-lib", args]
         mnemonic = "ZigBuildLib"
         progress_message = "Building %{input} as Zig library %{output}"
+    elif kind == "zig_shared_library":
+        arguments = ["build-lib", "-dynamic", "-fsoname=" + dynamic.basename, args]
+        mnemonic = "ZigBuildSharedLib"
+        progress_message = "Building %{input} as Zig shared library %{output}"
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 

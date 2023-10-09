@@ -48,6 +48,7 @@ bzl_library(
         "//zig/private:zig_binary",
         "//zig/private:zig_configure",
         "//zig/private:zig_library",
+        "//zig/private:zig_shared_library",
         "//zig/private:zig_package",
         "//zig/private:zig_test",
     ],

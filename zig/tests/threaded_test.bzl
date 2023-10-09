@@ -55,6 +55,9 @@ _build_exe_threaded_multi_test = _define_build_threaded_test("ZigBuildExe", "mul
 _build_lib_threaded_single_test = _define_build_threaded_test("ZigBuildLib", "single", "-fsingle-threaded", "-fno-single-threaded")
 _build_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
 
+_build_shared_lib_threaded_single_test = _define_build_threaded_test("ZigBuildSharedLib", "single", "-fsingle-threaded", "-fno-single-threaded")
+_build_shared_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildSharedLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
+
 _build_test_threaded_single_test = _define_build_threaded_test("ZigBuildTest", "single", "-fsingle-threaded", "-fno-single-threaded")
 _build_test_threaded_multi_test = _define_build_threaded_test("ZigBuildTest", "multi", "-fno-single-threaded", "-fsingle-threaded")
 
@@ -70,6 +73,9 @@ def threaded_test_suite(name):
         # Test Zig threaded setting on a library target
         partial.make(_build_lib_threaded_single_test, target_under_test = "//zig/tests/simple-library:library"),
         partial.make(_build_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-library:library"),
+        # Test Zig threaded setting on a shared library target
+        partial.make(_build_shared_lib_threaded_single_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
+        partial.make(_build_shared_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
         # Test Zig threaded setting on a test target
         partial.make(_build_test_threaded_single_test, target_under_test = "//zig/tests/simple-test:test"),
         partial.make(_build_test_threaded_multi_test, target_under_test = "//zig/tests/simple-test:test"),

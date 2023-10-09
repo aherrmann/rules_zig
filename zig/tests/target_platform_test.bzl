@@ -61,6 +61,10 @@ _build_lib_target_platform_x86_64_linux_test = _define_build_target_platform_tes
 _build_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
 _build_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
 
+_build_shared_lib_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_X86_64_LINUX, "x86_64-linux")
+_build_shared_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
+_build_shared_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+
 _build_test_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_LINUX, "x86_64-linux")
 _build_test_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
 _build_test_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
@@ -90,6 +94,9 @@ _exe_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_
 _lib_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, ".a")
 _lib_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".lib")
 
+_shared_lib_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, ".so")
+_shared_lib_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".dll")
+
 _test_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
 _test_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".exe")
 
@@ -112,6 +119,12 @@ def target_platform_test_suite(name):
         partial.make(_build_lib_target_platform_x86_64_windows_test, target_under_test = "//zig/tests/simple-library:library"),
         partial.make(_lib_file_extension_x86_64_linux_test, target_under_test = "//zig/tests/simple-library:library"),
         partial.make(_lib_file_extension_x86_64_windows_test, target_under_test = "//zig/tests/simple-library:library"),
+        # Test Zig target plaform on a shared library target
+        partial.make(_build_shared_lib_target_platform_x86_64_linux_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
+        partial.make(_build_shared_lib_target_platform_aarch64_linux_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
+        partial.make(_build_shared_lib_target_platform_x86_64_windows_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
+        partial.make(_shared_lib_file_extension_x86_64_linux_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
+        partial.make(_shared_lib_file_extension_x86_64_windows_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
         # Test Zig target plaform on a test target
         partial.make(_build_test_target_platform_x86_64_linux_test, target_under_test = "//zig/tests/simple-test:test"),
         partial.make(_build_test_target_platform_aarch64_linux_test, target_under_test = "//zig/tests/simple-test:test"),

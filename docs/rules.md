@@ -278,6 +278,52 @@ zig_library(
 | <a id="zig_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using <code>@import</code>.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 
 
+<a id="zig_shared_library"></a>
+
+## zig_sahred_library
+
+<pre>
+zig_sahred_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-srcs">srcs</a>)
+</pre>
+
+Builds a Zig sahred library.
+
+The target can be built using `bazel build`, corresponding to `zig build-lib`.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_library")
+
+zig_shared_library(
+    name = "my-library",
+    main = "main.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":my-package",  # to support `@import("my-package")`.
+    ],
+)
+```
+
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig_shared_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_shared_library-copts"></a>copts |  C compiler flags required to build the C sources of the target.   | List of strings | optional | <code>[]</code> |
+| <a id="zig_shared_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="zig_shared_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="zig_shared_library-deps"></a>deps |  Packages or libraries required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using <code>@embedFile</code>.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+| <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
+| <a id="zig_shared_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_shared_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using <code>@import</code>.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
+
+
 <a id="zig_package"></a>
 
 ## zig_package
