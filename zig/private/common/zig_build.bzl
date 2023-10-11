@@ -133,6 +133,7 @@ def zig_build_impl(ctx, *, kind):
         dynamic = ctx.actions.declare_file(prefix + ctx.label.name + extension)
         outputs.append(dynamic)
         args.add(dynamic, format = "-femit-bin=%s")
+        args.add(dynamic.basename, format = "-fsoname=%s")
 
         files = depset([dynamic])
     else:
@@ -203,7 +204,7 @@ def zig_build_impl(ctx, *, kind):
         mnemonic = "ZigBuildLib"
         progress_message = "Building %{input} as Zig library %{output}"
     elif kind == "zig_shared_library":
-        arguments = ["build-lib", "-dynamic", "-fsoname=" + dynamic.basename, args]
+        arguments = ["build-lib", "-dynamic", args]
         mnemonic = "ZigBuildSharedLib"
         progress_message = "Building %{input} as Zig shared library %{output}"
     else:
