@@ -1,0 +1,23 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_shared_library")
+
+zig_shared_library(
+    name = "shared",
+    main = "main.zig",
+)
+
+genrule(
+    name = "shared-symbol",
+    srcs = [":shared"],
+    outs = ["shared-symbol.txt"],
+    cmd = "$(NM) -j --defined-only $(SRCS) | grep sayHello > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+build_test(
+    name = "shared_build_test",
+    targets = [
+        ":shared",
+        ":shared-symbol",
+    ],
+)

@@ -57,6 +57,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_shared_library",
+    srcs = ["zig_shared_library.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        "//zig/private/common:zig_build",
+    ],
+)
+
+bzl_library(
     name = "zig_toolchain",
     srcs = ["zig_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -114,6 +123,7 @@ filegroup(
         ":zig_configure.bzl",
         ":zig_library.bzl",
         ":zig_package.bzl",
+        ":zig_shared_library.bzl",
         ":zig_target_toolchain.bzl",
         ":zig_test.bzl",
         ":zig_toolchain.bzl",
