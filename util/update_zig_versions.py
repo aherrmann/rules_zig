@@ -6,6 +6,7 @@ import argparse
 
 
 _ZIG_INDEX_URL = "https://ziglang.org/download/index.json"
+
 _UNSUPPORTED_VERSIONS = [
     "0.9.1",
     "0.9.0",
@@ -19,6 +20,7 @@ _UNSUPPORTED_VERSIONS = [
     "0.3.0",
     "0.2.0",
     "0.1.1"]
+
 _SUPPORTED_PLATFORMS = [
     "aarch64-linux",
     "aarch64-macos",
