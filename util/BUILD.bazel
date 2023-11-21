@@ -54,3 +54,13 @@ py_binary(
     data = ["@buildifier_prebuilt//:buildozer"],
     deps = ["@rules_python//python/runfiles"],
 )
+
+py_binary(
+    name = "update_zig_versions",
+    srcs = ["update_zig_versions.py"],
+    args = [
+        "--output",
+        "$(rootpath //zig/private:versions.bzl)",
+    ],
+    data = ["//zig/private:versions.bzl"],
+)
