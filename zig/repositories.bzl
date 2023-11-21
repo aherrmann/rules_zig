@@ -42,19 +42,19 @@ _ATTRS = {
 }
 
 def _zig_repo_impl(repository_ctx):
-    # TODO[AH] read URLs from https://ziglang.org/download/index.json
-    basename = "zig-{}-{}".format(
-        repository_ctx.attr.platform,
-        repository_ctx.attr.zig_version,
-    )
-    url = "https://ziglang.org/download/{}/{}.tar.xz".format(
-        repository_ctx.attr.zig_version,
-        basename,
-    )
+    url = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform].url
+    integrity = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform].integrity
+    basename = url.rsplit("/", 1)[1]
+    if basename.endswith(".tar.gz") or basename.endswith(".tar.xz"):
+        prefix = basename[:-7]
+    elif basename.endswith(".zip"):
+        prefix = basename[:-4]
+    else:
+        fail("Cannot download Zig SDK at {}. Unsupported file extension.".format(url))
     repository_ctx.download_and_extract(
         url = url,
-        integrity = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform],
-        stripPrefix = basename,
+        integrity = integrity,
+        stripPrefix = prefix,
     )
 
     # TODO[AH] compiler and lib files
