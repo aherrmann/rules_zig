@@ -1,7 +1,9 @@
 load("//zig:defs.bzl", "zig_test")
+load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load("@bazel_binaries//:defs.bzl", "bazel_binaries")
 load(
     "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "bazel_integration_test",
     "bazel_integration_tests",
     "integration_test_utils",
 )
@@ -34,6 +36,27 @@ bazel_integration_tests(
     workspace_path = "workspace",
 )
 
+zig_test(
+    name = "zig_version_tests_runner",
+    srcs = ["integration_testing.zig"],
+    main = "zig_version_tests_runner.zig",
+    tags = ["manual"],
+)
+
+zig_version_tests = {
+    "zig_version_test_" + zig_version: bazel_integration_test(
+        name = "zig_version_test_" + zig_version,
+        bazel_version = bazel_binaries.versions.current,
+        env = {"ZIG_VERSION": zig_version},
+        test_runner = ":zig_version_tests_runner",
+        workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
+            "//:all_files",
+        ],
+        workspace_path = "workspace",
+    )
+    for zig_version in TOOL_VERSIONS.keys()
+}.keys()
+
 test_suite(
     name = "integration_tests",
     tags = integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
@@ -43,5 +66,5 @@ test_suite(
     ) + [integration_test_utils.bazel_integration_test_name(
         "bzlmod_test",
         bazel_binaries.versions.current,
-    )],
+    )] + zig_version_tests,
 )

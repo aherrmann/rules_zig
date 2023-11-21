@@ -7,7 +7,9 @@ load("@rules_zig//zig:repositories.bzl", "rules_zig_dependencies", "zig_register
 
 rules_zig_dependencies()
 
+load("//:zig_version.bzl", "ZIG_VERSION")
+
 zig_register_toolchains(
     name = "zig",
-    zig_version = "0.10.1",
+    zig_version = ZIG_VERSION,
 )
