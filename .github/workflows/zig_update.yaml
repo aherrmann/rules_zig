@@ -1,0 +1,24 @@
+name: Zig Update
+
+on:
+  schedule:
+    - cron: 0 0 * * 1
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Update
+        run: |
+          bazel run //util:update_zig_versions
+          [ -z "$(git status --porcelain=v1 zig/private/versions.bzl 2>/dev/null)" ] || {
+            NEW_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
+            git add zig/private/versions.bzl 
+            git commit -m 'update Zig versions'
+            gh pr create \
+              --title "chore: update Zig versions up to $NEW_VERSION" \
+              --body "- [ ] Manually update references to the latest Zig version."
+          }
