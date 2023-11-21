@@ -8,6 +8,7 @@ load(
 
 zig_test(
     name = "integration_tests_runner",
+    srcs = ["integration_testing.zig"],
     main = "integration_tests_runner.zig",
     tags = ["manual"],
 )
