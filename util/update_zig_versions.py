@@ -56,11 +56,42 @@ _PLATFORM = '''\
 '''
 
 
+def _parse_semver(version_str):
+    """Split a semantic version into its components.
+
+    Raises an error if the version is malformed.
+
+    If the version contains no pre-release component, then a sentinel of
+    `0x10FFFF` is returned. The intent is that it sorts higher than any other
+    code-point, therefore making versions without pre-release component sort
+    higher than this with.
+
+    If the version is the string `master` then it returns a maximum version
+    comprising `float("inf")` components and the pre-release sentinel.
+
+    Returns:
+      (major, minor, patch, pre_release)
+    """
+    max_component = float("inf")
+    max_prerelease = chr(0x10FFFF)  # Highest valid code point in Unicode
+
+    if version_str == "master":
+        return max_component, max_component, max_component, max_prerelease
+
+    pre_version, *_ = version_str.split("+", maxsplit=1)
+    main_version, *pre_release = pre_version.split("-", maxsplit=1)
+    major, minor, patch = map(int, main_version.split("."))
+
+    pre_release_segment = pre_release[0] if pre_release else max_prerelease
+
+    return major, minor, patch, pre_release_segment
+
+
 def generate_bzl_content(url, data, unsupported_versions, supported_platforms):
     content = [_HEADER.format(url = url)]
     content.append("TOOL_VERSIONS = {")
 
-    for version, platforms in sorted(data.items(), reverse=True):
+    for version, platforms in sorted(data.items(), key=lambda x: _parse_semver(x[0]), reverse=True):
         if version in unsupported_versions or version == "master":
             continue
 
