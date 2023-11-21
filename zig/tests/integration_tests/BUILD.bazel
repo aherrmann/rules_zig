@@ -8,6 +8,8 @@ load(
     "integration_test_utils",
 )
 
+# gazelle:exclude workspace
+
 zig_test(
     name = "integration_tests_runner",
     srcs = ["integration_testing.zig"],
