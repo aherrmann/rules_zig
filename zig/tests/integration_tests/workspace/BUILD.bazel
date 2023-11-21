@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
 
 platform(
@@ -35,4 +36,11 @@ genrule(
     outs = ["exec_build_mode.out"],
     cmd = "$(execpath :print_build_mode) > $(OUTS)",
     tools = [":print_build_mode"],
+)
+
+bzl_library(
+    name = "zig_version",
+    srcs = ["zig_version.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@rules_zig//zig/private:versions"],
 )
