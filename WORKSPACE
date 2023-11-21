@@ -13,9 +13,13 @@ load("//zig:repositories.bzl", "rules_zig_dependencies", "zig_register_toolchain
 # Fetch dependencies which users need as well
 rules_zig_dependencies()
 
+# Use the latest known Zig SDK version for testing
+# buildifier: disable=bzl-visibility
+load("//zig/private:versions.bzl", "TOOL_VERSIONS")
+
 zig_register_toolchains(
     name = "zig",
-    zig_version = "0.10.1",
+    zig_version = TOOL_VERSIONS.keys()[0],
 )
 
 # For running our own unit tests
