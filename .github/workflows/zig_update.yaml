@@ -21,6 +21,8 @@ jobs:
             readarray -t FILES < <(git grep -l -F "$OLD_VERSION" -- ':(exclude)zig/private/versions.bzl')
             sed -i "s/${OLD_VERSION//./\\.}/$NEW_VERSION/g" "${FILES[@]}"
             git add "${FILES[@]}"
+            git config user.name "GitHub"
+            git config user.email "noreply@github.com"
             git commit -m 'update Zig versions'
             gh pr create \
               --title "chore: update Zig versions up to $NEW_VERSION" \
