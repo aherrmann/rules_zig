@@ -110,7 +110,7 @@ def generate_bzl_content(url, data, unsupported_versions, supported_platforms):
 
         content.append('    },')
 
-    content.append('}')
+    content.append('}\n')
 
     return '\n'.join(content)
 
