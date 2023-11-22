@@ -13,12 +13,16 @@ jobs:
         uses: actions/checkout@v3
       - name: Update
         run: |
+          OLD_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
           bazel run //util:update_zig_versions
           [ -z "$(git status --porcelain=v1 zig/private/versions.bzl 2>/dev/null)" ] || {
             NEW_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
             git add zig/private/versions.bzl 
+            readarray -t FILES < <(git grep -l -F "$OLD_VERSION" -- ':(exclude)zig/private/versions.bzl')
+            sed -i "s/${OLD_VERSION//./\\.}/$NEW_VERSION/g" "${FILES[@]}"
+            git add "${FILES[@]}"
             git commit -m 'update Zig versions'
             gh pr create \
               --title "chore: update Zig versions up to $NEW_VERSION" \
-              --body "- [ ] Manually update references to the latest Zig version."
+              --body "- [ ] Check that the automatic version replacements make sense."
           }
