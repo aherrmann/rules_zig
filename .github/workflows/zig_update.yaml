@@ -12,6 +12,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Update
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           OLD_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
           bazel run //util:update_zig_versions
