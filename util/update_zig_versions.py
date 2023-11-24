@@ -8,6 +8,8 @@ import argparse
 _ZIG_INDEX_URL = "https://ziglang.org/download/index.json"
 
 _UNSUPPORTED_VERSIONS = [
+    "0.10.1",
+    "0.10.0",
     "0.9.1",
     "0.9.0",
     "0.8.1",
