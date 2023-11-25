@@ -215,6 +215,60 @@ _nested_packages_test = unittest.make(
     },
 )
 
+def _nested_packages_mod_cli_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    transitive_inputs = []
+    args = _mock_args()
+
+    zig_package_dependencies_mod_cli(
+        deps = [dep for dep in ctx.attr.pkgs if dep.label.name == "a"],
+        inputs = transitive_inputs,
+        args = args,
+    )
+
+    pkgs = {
+        pkg.label.name: pkg[ZigPackageInfo]
+        for pkg in ctx.attr.pkgs
+    }
+
+    expected = []
+    expected.extend(["--mod", "e::{}".format(pkgs["e"].main.path)])
+    expected.extend(["--mod", "b:e:{}".format(pkgs["b"].main.path)])
+    expected.extend(["--mod", "c:e:{}".format(pkgs["c"].main.path)])
+    expected.extend(["--mod", "f:e:{}".format(pkgs["f"].main.path)])
+    expected.extend(["--mod", "d:f:{}".format(pkgs["d"].main.path)])
+    expected.extend(["--mod", "a:b,c,d:{}".format(pkgs["a"].main.path)])
+    expected.extend(["--deps", "a"])
+
+    asserts.equals(
+        env,
+        expected,
+        args.get_args(),
+        "zig_package_dependencies should unfold the transitive dependency graph onto the command-line.",
+    )
+
+    inputs = depset(transitive = transitive_inputs)
+    asserts.set_equals(
+        env,
+        sets.make([
+            src
+            for pkg in pkgs.values()
+            for src in [pkg.main] + pkg.srcs
+        ]),
+        sets.make(inputs.to_list()),
+        "zig_package_dependencies should capture all package files.",
+    )
+
+    return unittest.end(env)
+
+_nested_packages_mod_cli_test = unittest.make(
+    _nested_packages_mod_cli_test_impl,
+    attrs = {
+        "pkgs": attr.label_list(providers = [ZigPackageInfo]),
+    },
+)
+
 def package_info_test_suite(name):
     unittest.suite(
         name,
@@ -227,6 +281,17 @@ def package_info_test_suite(name):
             pkg = "//zig/tests/multiple-sources-package:data",
         ),
         lambda name: _nested_packages_test(
+            name = name,
+            pkgs = [
+                "//zig/tests/nested-packages:a",
+                "//zig/tests/nested-packages:b",
+                "//zig/tests/nested-packages:c",
+                "//zig/tests/nested-packages:d",
+                "//zig/tests/nested-packages:e",
+                "//zig/tests/nested-packages:f",
+            ],
+        ),
+        lambda name: _nested_packages_mod_cli_test(
             name = name,
             pkgs = [
                 "//zig/tests/nested-packages:a",
