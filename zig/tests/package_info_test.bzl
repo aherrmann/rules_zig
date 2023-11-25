@@ -7,23 +7,34 @@ load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
     "zig_package_dependencies",
+    "zig_package_dependencies_mod_cli",
 )
 
 def _mock_args():
     self_args = []
 
-    def add_all(args):
+    def add_all(args, *, before_each = None):
+        if type(args) == "depset":
+            args = args.to_list()
         for arg in args:
+            if before_each:
+                self_args.append(before_each)
             if type(arg) == "File":
                 self_args.append(arg.path)
             else:
                 self_args.append(arg)
+
+    def add_joined(arg_name, args, *, join_with):
+        if args:
+            self_args.append(arg_name)
+            self_args.append(join_with.join(args))
 
     def get_args():
         return self_args
 
     return struct(
         add_all = add_all,
+        add_joined = add_joined,
         get_args = get_args,
     )
 
@@ -71,7 +82,7 @@ def _single_package_mod_cli_test_impl(ctx):
     transitive_inputs = []
     args = _mock_args()
 
-    zig_package_dependencies(
+    zig_package_dependencies_mod_cli(
         deps = [ctx.attr.pkg],
         inputs = transitive_inputs,
         args = args,
@@ -79,9 +90,16 @@ def _single_package_mod_cli_test_impl(ctx):
 
     package = ctx.attr.pkg[ZigPackageInfo]
 
+    expected = []
+    expected.extend(["--mod", "{name}::{src}".format(
+        name = package.name,
+        src = package.main.path,
+    )])
+    expected.extend(["--deps", package.name])
+
     asserts.equals(
         env,
-        ["--pkg-begin", package.name, package.main.path, "--pkg-end"],
+        expected,
         args.get_args(),
         "zig_package_dependencies should generate the expected arguments.",
     )

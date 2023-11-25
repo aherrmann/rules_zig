@@ -82,12 +82,16 @@ def _zig_package_impl(ctx):
 
     srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs
     flags = ["--pkg-begin", ctx.label.name, ctx.file.main.path]
+    dep_names = []
+    all_mods = []
     all_srcs = []
 
     for dep in ctx.attr.deps:
         if ZigPackageInfo in dep:
             package = dep[ZigPackageInfo]
             flags.extend(package.flags)
+            dep_names.append(package.name)
+            all_mods.append(package.all_mods)
             all_srcs.append(package.all_srcs)
 
     flags.append("--pkg-end")
@@ -97,6 +101,14 @@ def _zig_package_impl(ctx):
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         flags = flags,
+        all_mods = depset(
+            direct = ["{name}:{deps}:{src}".format(
+                name = ctx.label.name,
+                deps = ",".join(dep_names),
+                src = ctx.file.main.path,
+            )],
+            transitive = all_mods,
+        ),
         all_srcs = depset(
             direct = srcs,
             transitive = all_srcs,
