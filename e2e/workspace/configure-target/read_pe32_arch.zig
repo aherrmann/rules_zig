@@ -15,16 +15,7 @@ pub fn main() !void {
 fn printMachineType(allocator: std.mem.Allocator, binary_path: []const u8) !void {
     const content = try std.fs.cwd().readFileAlloc(allocator, binary_path, 1048576);
 
-    var coff = std.coff.Coff{ .allocator = allocator };
-    defer coff.deinit();
-
-    {
-        // coff.parse takes ownership of the data,
-        // but does not free on error during parsing itself.
-        // Note, this will be fixed in Zig 0.11.
-        errdefer allocator.free(content);
-        try coff.parse(content);
-    }
+    var coff = try std.coff.Coff.init(content);
 
     try std.io.getStdOut().writer().print("{s}\n", .{@tagName(coff.getCoffHeader().machine)});
 }

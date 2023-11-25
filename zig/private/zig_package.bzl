@@ -49,15 +49,7 @@ ATTRS = {
         mandatory = False,
     ),
     "deps": attr.label_list(
-        doc = """\
-Other packages required when building the package.
-
-Note, the Zig compiler requires that every package dependency is specified with
-its own package dependencies on the command-line, recursively. Meaning the
-entire Zig package dependency tree will be represented on the command-line
-without deduplication of shared nodes. Keep this in mind when you defined the
-granularity of your Zig packages.
-""",
+        doc = "Other packages required when building the package.",
         mandatory = False,
         providers = [ZigPackageInfo],
     ),
@@ -90,12 +82,16 @@ def _zig_package_impl(ctx):
 
     srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs
     flags = ["--pkg-begin", ctx.label.name, ctx.file.main.path]
+    dep_names = []
+    all_mods = []
     all_srcs = []
 
     for dep in ctx.attr.deps:
         if ZigPackageInfo in dep:
             package = dep[ZigPackageInfo]
             flags.extend(package.flags)
+            dep_names.append(package.name)
+            all_mods.append(package.all_mods)
             all_srcs.append(package.all_srcs)
 
     flags.append("--pkg-end")
@@ -105,6 +101,14 @@ def _zig_package_impl(ctx):
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         flags = flags,
+        all_mods = depset(
+            direct = ["{name}:{deps}:{src}".format(
+                name = ctx.label.name,
+                deps = ",".join(dep_names),
+                src = ctx.file.main.path,
+            )],
+            transitive = all_mods,
+        ),
         all_srcs = depset(
             direct = srcs,
             transitive = all_srcs,

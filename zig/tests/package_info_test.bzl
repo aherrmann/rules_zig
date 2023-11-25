@@ -12,18 +12,28 @@ load(
 def _mock_args():
     self_args = []
 
-    def add_all(args):
+    def add_all(args, *, before_each = None):
+        if type(args) == "depset":
+            args = args.to_list()
         for arg in args:
+            if before_each:
+                self_args.append(before_each)
             if type(arg) == "File":
                 self_args.append(arg.path)
             else:
                 self_args.append(arg)
+
+    def add_joined(arg_name, args, *, join_with):
+        if args:
+            self_args.append(arg_name)
+            self_args.append(join_with.join(args))
 
     def get_args():
         return self_args
 
     return struct(
         add_all = add_all,
+        add_joined = add_joined,
         get_args = get_args,
     )
 
@@ -41,9 +51,16 @@ def _single_package_test_impl(ctx):
 
     package = ctx.attr.pkg[ZigPackageInfo]
 
+    expected = []
+    expected.extend(["--mod", "{name}::{src}".format(
+        name = package.name,
+        src = package.main.path,
+    )])
+    expected.extend(["--deps", package.name])
+
     asserts.equals(
         env,
-        ["--pkg-begin", package.name, package.main.path, "--pkg-end"],
+        expected,
         args.get_args(),
         "zig_package_dependencies should generate the expected arguments.",
     )
@@ -82,58 +99,18 @@ def _nested_packages_test_impl(ctx):
         for pkg in ctx.attr.pkgs
     }
 
+    expected = []
+    expected.extend(["--mod", "e::{}".format(pkgs["e"].main.path)])
+    expected.extend(["--mod", "b:e:{}".format(pkgs["b"].main.path)])
+    expected.extend(["--mod", "c:e:{}".format(pkgs["c"].main.path)])
+    expected.extend(["--mod", "f:e:{}".format(pkgs["f"].main.path)])
+    expected.extend(["--mod", "d:f:{}".format(pkgs["d"].main.path)])
+    expected.extend(["--mod", "a:b,c,d:{}".format(pkgs["a"].main.path)])
+    expected.extend(["--deps", "a"])
+
     asserts.equals(
         env,
-        [
-            # a <-- b, c, d
-            "--pkg-begin",
-            pkgs["a"].name,
-            pkgs["a"].main.path,
-            # b <-- e
-            "--pkg-begin",
-            pkgs["b"].name,
-            pkgs["b"].main.path,
-            # e
-            "--pkg-begin",
-            pkgs["e"].name,
-            pkgs["e"].main.path,
-            # /e
-            "--pkg-end",
-            # /b
-            "--pkg-end",
-            # c <-- e
-            "--pkg-begin",
-            pkgs["c"].name,
-            pkgs["c"].main.path,
-            # e
-            "--pkg-begin",
-            pkgs["e"].name,
-            pkgs["e"].main.path,
-            # /e
-            "--pkg-end",
-            # /c
-            "--pkg-end",
-            # d <-- f
-            "--pkg-begin",
-            pkgs["d"].name,
-            pkgs["d"].main.path,
-            # f <-- e
-            "--pkg-begin",
-            pkgs["f"].name,
-            pkgs["f"].main.path,
-            # e
-            "--pkg-begin",
-            pkgs["e"].name,
-            pkgs["e"].main.path,
-            # /e
-            "--pkg-end",
-            # /f
-            "--pkg-end",
-            # /d
-            "--pkg-end",
-            # /a
-            "--pkg-end",
-        ],
+        expected,
         args.get_args(),
         "zig_package_dependencies should unfold the transitive dependency graph onto the command-line.",
     )

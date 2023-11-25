@@ -8,7 +8,7 @@ bazel_dep(name = "bazel_skylib", version = "1.4.1")
 bazel_dep(name = "platforms", version = "0.0.6")
 
 zig = use_extension("//zig:extensions.bzl", "zig")
-zig.toolchain(zig_version = "0.10.1")
+zig.toolchain(zig_version = "0.11.0")
 use_repo(zig, "zig_toolchains")
 
 register_toolchains("@rules_zig//zig/target:all")

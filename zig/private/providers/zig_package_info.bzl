@@ -15,6 +15,7 @@ FIELDS = {
     "main": "File, The main source file of the package.",
     "srcs": "list of File, Other Zig source files that belong to the package.",
     "flags": "list of string, Zig compiler flags requried when depending on the package.",
+    "all_mods": "depset of string, All module CLI specifications required when depending on the package.",
     "all_srcs": "depset of File, All source files required when depending on the package.",
 }
 
@@ -31,9 +32,16 @@ def zig_package_dependencies(*, deps, inputs, args):
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
+    mods = []
+    names = []
+
     for dep in deps:
         if not ZigPackageInfo in dep:
             continue
         package = dep[ZigPackageInfo]
+        names.append(package.name)
+        mods.append(package.all_mods)
         inputs.append(package.all_srcs)
-        args.add_all(package.flags)
+
+    args.add_all(depset(transitive = mods), before_each = "--mod")
+    args.add_joined("--deps", names, join_with = ",")
