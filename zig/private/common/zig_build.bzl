@@ -13,7 +13,7 @@ load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
-    "zig_package_dependencies_mod_cli",
+    "zig_package_dependencies",
 )
 load(
     "//zig/private/providers:zig_settings_info.bzl",
@@ -151,7 +151,7 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    zig_package_dependencies_mod_cli(
+    zig_package_dependencies(
         deps = ctx.attr.deps,
         inputs = transitive_inputs,
         args = args,

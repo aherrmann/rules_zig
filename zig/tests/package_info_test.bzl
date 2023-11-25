@@ -6,7 +6,7 @@ load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
-    "zig_package_dependencies_mod_cli",
+    "zig_package_dependencies",
 )
 
 def _mock_args():
@@ -37,13 +37,13 @@ def _mock_args():
         get_args = get_args,
     )
 
-def _single_package_mod_cli_test_impl(ctx):
+def _single_package_test_impl(ctx):
     env = unittest.begin(ctx)
 
     transitive_inputs = []
     args = _mock_args()
 
-    zig_package_dependencies_mod_cli(
+    zig_package_dependencies(
         deps = [ctx.attr.pkg],
         inputs = transitive_inputs,
         args = args,
@@ -75,20 +75,20 @@ def _single_package_mod_cli_test_impl(ctx):
 
     return unittest.end(env)
 
-_single_package_mod_cli_test = unittest.make(
-    _single_package_mod_cli_test_impl,
+_single_package_test = unittest.make(
+    _single_package_test_impl,
     attrs = {
         "pkg": attr.label(providers = [ZigPackageInfo]),
     },
 )
 
-def _nested_packages_mod_cli_test_impl(ctx):
+def _nested_packages_test_impl(ctx):
     env = unittest.begin(ctx)
 
     transitive_inputs = []
     args = _mock_args()
 
-    zig_package_dependencies_mod_cli(
+    zig_package_dependencies(
         deps = [dep for dep in ctx.attr.pkgs if dep.label.name == "a"],
         inputs = transitive_inputs,
         args = args,
@@ -129,8 +129,8 @@ def _nested_packages_mod_cli_test_impl(ctx):
 
     return unittest.end(env)
 
-_nested_packages_mod_cli_test = unittest.make(
-    _nested_packages_mod_cli_test_impl,
+_nested_packages_test = unittest.make(
+    _nested_packages_test_impl,
     attrs = {
         "pkgs": attr.label_list(providers = [ZigPackageInfo]),
     },
@@ -139,11 +139,11 @@ _nested_packages_mod_cli_test = unittest.make(
 def package_info_test_suite(name):
     unittest.suite(
         name,
-        lambda name: _single_package_mod_cli_test(
+        lambda name: _single_package_test(
             name = name,
             pkg = "//zig/tests/multiple-sources-package:data",
         ),
-        lambda name: _nested_packages_mod_cli_test(
+        lambda name: _nested_packages_test(
             name = name,
             pkgs = [
                 "//zig/tests/nested-packages:a",

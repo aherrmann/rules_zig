@@ -24,7 +24,7 @@ ZigPackageInfo = provider(
     doc = DOC,
 )
 
-def zig_package_dependencies_mod_cli(*, deps, inputs, args):
+def zig_package_dependencies(*, deps, inputs, args):
     """Collect inputs and flags for Zig package dependencies.
 
     Args:
