@@ -49,15 +49,7 @@ ATTRS = {
         mandatory = False,
     ),
     "deps": attr.label_list(
-        doc = """\
-Other packages required when building the package.
-
-Note, the Zig compiler requires that every package dependency is specified with
-its own package dependencies on the command-line, recursively. Meaning the
-entire Zig package dependency tree will be represented on the command-line
-without deduplication of shared nodes. Keep this in mind when you defined the
-granularity of your Zig packages.
-""",
+        doc = "Other packages required when building the package.",
         mandatory = False,
         providers = [ZigPackageInfo],
     ),
