@@ -180,19 +180,13 @@ test "zig_binary result should not contain the output base path in release_safe 
     try testBinaryShouldNotContainOutputBase("release_safe");
 }
 
-test "zig_binary result should not contain the output base path in release_fast mode" {
-    if (builtin.os.tag == .macos) {
-        // TODO[AH] Avoid output base path on MacOS.
-        //   See https://github.com/aherrmann/rules_zig/issues/79
-        return error.SkipZigTest;
-    }
-
+test "zig_binary result should not contain the output base path in release_small mode" {
     try testBinaryShouldNotContainOutputBase("release_small");
 }
 
-test "zig_binary result should not contain the output base path in release_small mode" {
+test "zig_binary result should not contain the output base path in release_fast mode" {
     if (true) {
-        // TODO[AH] Avoid output base path in release_small mode.
+        // TODO[AH] Avoid output base path in release_fast mode.
         //   See https://github.com/aherrmann/rules_zig/issues/79
         return error.SkipZigTest;
     }
