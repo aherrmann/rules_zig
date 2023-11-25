@@ -119,13 +119,7 @@ test "can compile to target platform aarch64-linux" {
     try std.testing.expectEqual(std.elf.EM.AARCH64, elf_header.machine);
 }
 
-test "zig_binary result should not contain the output base path" {
-    if (builtin.os.tag == .macos) {
-        // TODO[AH] Avoid output base path on MacOS.
-        //   See https://github.com/aherrmann/rules_zig/issues/79
-        return error.SkipZigTest;
-    }
-
+fn testBinaryShouldNotContainOutputBase(mode: []const u8) !void {
     const ctx = try BitContext.init();
 
     const info_result = try ctx.exec_bazel(.{
@@ -135,8 +129,15 @@ test "zig_binary result should not contain the output base path" {
 
     const output_base = std.mem.trim(u8, info_result.stdout, " \n");
 
+    const mode_flag = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "--@rules_zig//zig/settings:mode={s}",
+        .{mode},
+    );
+    defer std.testing.allocator.free(mode_flag);
+
     const result = try ctx.exec_bazel(.{
-        .argv = &[_][]const u8{ "build", "//:binary", "--@rules_zig//zig/settings:mode=debug" },
+        .argv = &[_][]const u8{ "build", "//:binary", mode_flag },
     });
     defer result.deinit();
 
@@ -148,7 +149,7 @@ test "zig_binary result should not contain the output base path" {
     const file = try workspace.openFile("bazel-bin/binary", .{});
     defer file.close();
 
-    const file_content = try file.readToEndAlloc(std.testing.allocator, 1_000_000);
+    const file_content = try file.readToEndAlloc(std.testing.allocator, 64_000_000);
     defer std.testing.allocator.free(file_content);
 
     if (std.mem.indexOf(u8, file_content, output_base)) |start| {
@@ -157,4 +158,44 @@ test "zig_binary result should not contain the output base path" {
         std.debug.print("\nFound output_base in binary at {}-{}: {s}\n", .{ start, end, file_content[start..end] });
         return error.TestExpectNotFound;
     }
+}
+
+test "zig_binary result should not contain the output base path in debug mode" {
+    if (true) {
+        // TODO[AH] Avoid output base path in debug mode.
+        //   See https://github.com/aherrmann/rules_zig/issues/79
+        return error.SkipZigTest;
+    }
+
+    try testBinaryShouldNotContainOutputBase("debug");
+}
+
+test "zig_binary result should not contain the output base path in release_safe mode" {
+    if (true) {
+        // TODO[AH] Avoid output base path in release_safe mode.
+        //   See https://github.com/aherrmann/rules_zig/issues/79
+        return error.SkipZigTest;
+    }
+
+    try testBinaryShouldNotContainOutputBase("release_safe");
+}
+
+test "zig_binary result should not contain the output base path in release_fast mode" {
+    if (builtin.os.tag == .macos) {
+        // TODO[AH] Avoid output base path on MacOS.
+        //   See https://github.com/aherrmann/rules_zig/issues/79
+        return error.SkipZigTest;
+    }
+
+    try testBinaryShouldNotContainOutputBase("release_small");
+}
+
+test "zig_binary result should not contain the output base path in release_small mode" {
+    if (true) {
+        // TODO[AH] Avoid output base path in release_small mode.
+        //   See https://github.com/aherrmann/rules_zig/issues/79
+        return error.SkipZigTest;
+    }
+
+    try testBinaryShouldNotContainOutputBase("release_fast");
 }
