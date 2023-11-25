@@ -4,6 +4,17 @@
 
 import %workspace%/.bazelrc.flags
 
+common --incompatible_disallow_empty_glob
+
+build --incompatible_strict_action_env
+build --sandbox_default_allow_network=false
+build --reuse_sandbox_directories
+build --nolegacy_external_runfiles
+
+test --test_output=errors
+test --test_verbose_timeout_warnings
+test --incompatible_exclusive_test_sandboxed
+
 # Deleted packages for integration tests.
 # To update these lines, execute
 # `bazel run @rules_bazel_integration_test//tools:update_deleted_packages`
