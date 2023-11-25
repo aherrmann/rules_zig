@@ -65,6 +65,44 @@ _single_package_test = unittest.make(
     },
 )
 
+def _single_package_mod_cli_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    transitive_inputs = []
+    args = _mock_args()
+
+    zig_package_dependencies(
+        deps = [ctx.attr.pkg],
+        inputs = transitive_inputs,
+        args = args,
+    )
+
+    package = ctx.attr.pkg[ZigPackageInfo]
+
+    asserts.equals(
+        env,
+        ["--pkg-begin", package.name, package.main.path, "--pkg-end"],
+        args.get_args(),
+        "zig_package_dependencies should generate the expected arguments.",
+    )
+
+    inputs = depset(transitive = transitive_inputs)
+    asserts.set_equals(
+        env,
+        sets.make([package.main] + package.srcs),
+        sets.make(inputs.to_list()),
+        "zig_package_dependencies should capture all package files.",
+    )
+
+    return unittest.end(env)
+
+_single_package_mod_cli_test = unittest.make(
+    _single_package_mod_cli_test_impl,
+    attrs = {
+        "pkg": attr.label(providers = [ZigPackageInfo]),
+    },
+)
+
 def _nested_packages_test_impl(ctx):
     env = unittest.begin(ctx)
 
@@ -163,6 +201,10 @@ def package_info_test_suite(name):
     unittest.suite(
         name,
         lambda name: _single_package_test(
+            name = name,
+            pkg = "//zig/tests/multiple-sources-package:data",
+        ),
+        lambda name: _single_package_mod_cli_test(
             name = name,
             pkg = "//zig/tests/multiple-sources-package:data",
         ),
