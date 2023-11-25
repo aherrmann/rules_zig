@@ -62,7 +62,7 @@ pub const BitContext = struct {
         var argv = try std.testing.allocator.alloc([]const u8, argc);
         defer std.testing.allocator.free(argv);
         argv[0] = self.bazel_path;
-        for (args.argv) |arg, i| {
+        for (args.argv, 0..) |arg, i| {
             argv[i + 1] = arg;
         }
         if (self.bzlmod_enabled and !args.omit_bzlmod_flag) {
