@@ -110,13 +110,18 @@ jobs:
         working-directory: ${{ matrix.folder }}
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
+      - name: Set bzlmod flag
+        # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
+        id: set_bzlmod_flag
+        run: echo "bzlmod_flag=${{ matrix.bzlmodEnabled && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
+
       - name: Test generated files
         if: matrix.folder == '.' && matrix.target == '//...'
         env:
           # Bazelisk will download bazel to here, ensure it is cached between runs.
           XDG_CACHE_HOME: ~/.cache/bazel-repo
         run: |
-          bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
+          bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run ${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} //util:update
           test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; git diff >&2; exit 1; }
 
       - name: Check for test.sh
@@ -126,11 +131,6 @@ jobs:
         uses: andstor/file-existence-action@v2
         with:
           files: "${{ matrix.folder }}/test.sh"
-
-      - name: Set bzlmod flag
-        # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
-        id: set_bzlmod_flag
-        run: echo "bzlmod_flag=${{ matrix.bzlmodEnabled && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
 
       - name: bazel test ${{ matrix.target }}
         env:
