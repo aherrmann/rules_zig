@@ -20,6 +20,7 @@ zig_test(
 bazel_integration_tests(
     name = "workspace_test",
     bazel_versions = bazel_binaries.versions.all,
+    tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":integration_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
@@ -31,6 +32,7 @@ bazel_integration_tests(
     name = "bzlmod_test",
     bazel_versions = bazel_binaries.versions.all,
     env = {"BZLMOD_ENABLED": "true"},
+    tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":integration_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
@@ -50,6 +52,7 @@ zig_version_tests = {
         name = "zig_version_test_" + zig_version,
         bazel_version = bazel_binaries.versions.current,
         env = {"ZIG_VERSION": zig_version},
+        tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
         test_runner = ":zig_version_tests_runner",
         workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
             "//:all_files",
