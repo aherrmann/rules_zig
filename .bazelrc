@@ -2,22 +2,32 @@
 # Take care to document any settings that you expect users to apply.
 # Settings that apply only to CI are in .github/workflows/ci.bazelrc
 
+# Zig build mode flag aliases. See further explanation in that file.
 import %workspace%/.bazelrc.flags
 
+# docs: https://bazel.build/reference/command-line-reference#flag--incompatible_disallow_empty_glob
 common --incompatible_disallow_empty_glob
 
+# docs: https://bazel.build/reference/command-line-reference#flag--incompatible_strict_action_env
 build --incompatible_strict_action_env
+# docs: https://bazel.build/reference/command-line-reference#flag--sandbox_default_allow_network
 build --sandbox_default_allow_network=false
+# docs: https://bazel.build/reference/command-line-reference#flag--reuse_sandbox_directories
 build --reuse_sandbox_directories
+# docs: https://bazel.build/reference/command-line-reference#flag--legacy_external_runfiles
 build --nolegacy_external_runfiles
 
+# docs: https://bazel.build/reference/command-line-reference#flag--test_output
 test --test_output=errors
+# docs: https://bazel.build/reference/command-line-reference#flag--test_verbose_timeout_warnings
 test --test_verbose_timeout_warnings
+# docs: https://bazel.build/reference/command-line-reference#flag--incompatible_exclusive_test_sandboxed
 test --incompatible_exclusive_test_sandboxed
 
 # Deleted packages for integration tests.
 # To update these lines, execute
 # `bazel run @rules_bazel_integration_test//tools:update_deleted_packages`
+# docs: https://bazel.build/reference/command-line-reference#flag--deleted_packages
 build --deleted_packages=e2e/workspace,e2e/workspace/c-sources,e2e/workspace/configure-mode,e2e/workspace/configure-target,e2e/workspace/configure-threaded,e2e/workspace/data-dependencies,e2e/workspace/embed-file,e2e/workspace/linker-script,e2e/workspace/multiple-sources-and-packages-test,e2e/workspace/multiple-sources-binary,e2e/workspace/simple-binary,e2e/workspace/simple-library,e2e/workspace/simple-shared-library,e2e/workspace/simple-test,e2e/workspace/transitive-zig-packages-binary,e2e/workspace/transitive-zig-packages-binary/hello-world,e2e/workspace/transitive-zig-packages-binary/hello-world/data,e2e/workspace/transitive-zig-packages-binary/hello-world/data/hello,e2e/workspace/transitive-zig-packages-binary/hello-world/data/world,e2e/workspace/transitive-zig-packages-binary/hello-world/io,e2e/workspace/zig-package-binary,e2e/workspace/zig-package-binary/data,e2e/workspace/zig-package-binary/io,zig/tests/integration_tests/workspace
 query --deleted_packages=e2e/workspace,e2e/workspace/c-sources,e2e/workspace/configure-mode,e2e/workspace/configure-target,e2e/workspace/configure-threaded,e2e/workspace/data-dependencies,e2e/workspace/embed-file,e2e/workspace/linker-script,e2e/workspace/multiple-sources-and-packages-test,e2e/workspace/multiple-sources-binary,e2e/workspace/simple-binary,e2e/workspace/simple-library,e2e/workspace/simple-shared-library,e2e/workspace/simple-test,e2e/workspace/transitive-zig-packages-binary,e2e/workspace/transitive-zig-packages-binary/hello-world,e2e/workspace/transitive-zig-packages-binary/hello-world/data,e2e/workspace/transitive-zig-packages-binary/hello-world/data/hello,e2e/workspace/transitive-zig-packages-binary/hello-world/data/world,e2e/workspace/transitive-zig-packages-binary/hello-world/io,e2e/workspace/zig-package-binary,e2e/workspace/zig-package-binary/data,e2e/workspace/zig-package-binary/io,zig/tests/integration_tests/workspace
 

@@ -2,30 +2,42 @@
 # It is referenced with a --bazelrc option in the call to bazel in ci.yaml
 
 # Debug where options came from
+# docs: https://bazel.build/reference/command-line-reference#flag--announce_rc
 build --announce_rc
 
+# docs: https://bazel.build/reference/command-line-reference#flag--show_timestamps
 build --show_timestamps
+# docs: https://bazel.build/reference/command-line-reference#flag--show_progress_rate_limit
 build --show_progress_rate_limit=60
+# docs: https://bazel.build/reference/command-line-reference#flag--curses
 build --curses=yes
+# docs: https://bazel.build/reference/command-line-reference#flag--color
 build --color=yes
 
 # This directory is configured in GitHub actions to be persisted between runs.
+# docs: https://bazel.build/reference/command-line-reference#flag--disk_cache
 build --disk_cache=~/.cache/bazel
+# docs: https://bazel.build/reference/command-line-reference#flag--repository_cache
 build --repository_cache=~/.cache/bazel-repo
 
+# docs: https://bazel.build/reference/command-line-reference#flag--remote_download_toplevel
 build --remote_download_toplevel
 
+# docs: https://bazel.build/reference/command-line-reference#flag--experimental_check_output_files
 build --noexperimental_check_output_files
 fetch --noexperimental_check_output_files
 query --noexperimental_check_output_files
 
+# docs: https://bazel.build/reference/command-line-reference#flag--experimental_check_external_repository_files
 build --noexperimental_check_external_repository_files
 fetch --noexperimental_check_external_repository_files
 query --noexperimental_check_external_repository_files
 
 # Don't rely on test logs being easily accessible from the test runner,
 # though it makes the log noisier.
+# docs: https://bazel.build/reference/command-line-reference#flag--test_output
 test --test_output=errors
 
 # Allows tests to run bazelisk-in-bazel, since this is the cache folder used
+# docs: https://bazel.build/reference/command-line-reference#flag--test_env
 test --test_env=XDG_CACHE_HOME
