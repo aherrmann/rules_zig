@@ -23,7 +23,7 @@ bazel_dep(
     version = "6.1.0",
     dev_dependency = True,
 )
-bazel_dep(name = "rules_multirun", version = "0.6.0", dev_dependency = True)
+bazel_dep(name = "rules_multirun", version = "0.6.1", dev_dependency = True)
 bazel_dep(name = "rules_python", version = "0.22.0", dev_dependency = True)
 bazel_dep(
     name = "rules_bazel_integration_test",
