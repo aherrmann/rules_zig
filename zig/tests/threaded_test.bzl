@@ -1,7 +1,7 @@
 """Analysis tests for Zig multi- or single-threaded settings."""
 
-load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
 load(
     ":util.bzl",
