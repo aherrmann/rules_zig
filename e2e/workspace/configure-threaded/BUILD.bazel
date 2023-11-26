@@ -71,10 +71,6 @@ zig_configure_binary(
     threaded = "multi",
 )
 
-# NOTE using genrule instead of run fails with Bazel version 5.3.2.
-#   It seems that the configuration transition is not handled correctly by
-#   genrule in Bazel version 5.3.2.
-
 run(
     name = "binary_single_output",
     out = "binary_single_output.actual",

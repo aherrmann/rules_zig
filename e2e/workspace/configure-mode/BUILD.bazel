@@ -71,10 +71,6 @@ zig_configure_binary(
     mode = "release_safe",
 )
 
-# NOTE using genrule instead of run fails with Bazel version 5.3.2.
-#   It seems that the configuration transition is not handled correctly by
-#   genrule in Bazel version 5.3.2.
-
 run(
     name = "binary_debug_output",
     out = "binary_debug_output.actual",
