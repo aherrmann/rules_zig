@@ -125,11 +125,9 @@ jobs:
           files: "${{ matrix.folder }}/test.sh"
 
       - name: Set bzlmod flag
-        # Store the --enable_bzlmod flag that we add to the test command below
-        # only when we're running bzlmod in our test matrix.
+        # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
         id: set_bzlmod_flag
-        if: matrix.bzlmodEnabled
-        run: echo "bzlmod_flag=--enable_bzlmod" >> $GITHUB_OUTPUT
+        run: echo "bzlmod_flag=${{ matrix.bzlmodEnabled && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
 
       - name: bazel test ${{ matrix.target }}
         env:

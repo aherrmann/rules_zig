@@ -60,6 +60,8 @@ def query_packages(bazel, enable_bzlmod):
     command = [bazel, "query", pattern, "--output=package"]
     if enable_bzlmod:
         command += ["--enable_bzlmod"]
+    else:
+        command += ["--noenable_bzlmod"]
     return subprocess.check_output(command).decode().split("\n")
 
 
@@ -81,6 +83,8 @@ def query_package_sources(bazel, package, enable_bzlmod):
     command = [bazel, "query", pattern]
     if enable_bzlmod:
         command += ["--enable_bzlmod"]
+    else:
+        command += ["--noenable_bzlmod"]
     sources = subprocess.check_output(command).decode().split("\n")
     sources.extend(EXTRA_SRCS.get(package, []))
     return sources
