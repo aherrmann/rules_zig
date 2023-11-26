@@ -29,14 +29,19 @@ resolved_toolchain(
 )
 
 bzl_library(
+    name = "bazel_tools",
+    srcs = ["@bazel_tools//tools:bzl_srcs"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
     name = "repositories",
     srcs = ["repositories.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        ":bazel_tools",
         "//zig/private:toolchains_repo",
         "//zig/private:versions",
-        "@bazel_tools//tools/build_defs/repo:http.bzl",
-        "@bazel_tools//tools/build_defs/repo:utils.bzl",
     ],
 )
 
