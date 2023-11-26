@@ -22,6 +22,11 @@ zig_register_toolchains(
     zig_version = TOOL_VERSIONS.keys()[0],
 )
 
+# rules_python dependencies
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
+
 # For running our own unit tests
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
