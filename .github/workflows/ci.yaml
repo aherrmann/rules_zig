@@ -70,9 +70,6 @@ jobs:
             folder: "."
             target: "//zig/tests/integration_tests"
         exclude:
-          # Don't test bzlmod with Bazel 5 (not supported)
-          - bazelversion: 6.0.0
-            bzlmodEnabled: true
           # Only test the latest Bazel version on MacOS (MacOS runners are expensive and slow)
           - bazelversion: 6.0.0
             os: macos-latest
