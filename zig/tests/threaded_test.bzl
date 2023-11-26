@@ -65,18 +65,18 @@ def threaded_test_suite(name):
     unittest.suite(
         name,
         # Test Zig threaded setting on the settings target
-        partial.make(_settings_threaded_single_test, target_under_test = "//zig/settings"),
-        partial.make(_settings_threaded_multi_test, target_under_test = "//zig/settings"),
+        partial.make(_settings_threaded_single_test, target_under_test = "//zig/settings", size = "small"),
+        partial.make(_settings_threaded_multi_test, target_under_test = "//zig/settings", size = "small"),
         # Test Zig threaded setting on a binary target
-        partial.make(_build_exe_threaded_single_test, target_under_test = "//zig/tests/simple-binary:binary"),
-        partial.make(_build_exe_threaded_multi_test, target_under_test = "//zig/tests/simple-binary:binary"),
+        partial.make(_build_exe_threaded_single_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
+        partial.make(_build_exe_threaded_multi_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
         # Test Zig threaded setting on a library target
-        partial.make(_build_lib_threaded_single_test, target_under_test = "//zig/tests/simple-library:library"),
-        partial.make(_build_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-library:library"),
+        partial.make(_build_lib_threaded_single_test, target_under_test = "//zig/tests/simple-library:library", size = "small"),
+        partial.make(_build_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-library:library", size = "small"),
         # Test Zig threaded setting on a shared library target
-        partial.make(_build_shared_lib_threaded_single_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
-        partial.make(_build_shared_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-shared-library:shared"),
+        partial.make(_build_shared_lib_threaded_single_test, target_under_test = "//zig/tests/simple-shared-library:shared", size = "small"),
+        partial.make(_build_shared_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-shared-library:shared", size = "small"),
         # Test Zig threaded setting on a test target
-        partial.make(_build_test_threaded_single_test, target_under_test = "//zig/tests/simple-test:test"),
-        partial.make(_build_test_threaded_multi_test, target_under_test = "//zig/tests/simple-test:test"),
+        partial.make(_build_test_threaded_single_test, target_under_test = "//zig/tests/simple-test:test", size = "small"),
+        partial.make(_build_test_threaded_multi_test, target_under_test = "//zig/tests/simple-test:test", size = "small"),
     )

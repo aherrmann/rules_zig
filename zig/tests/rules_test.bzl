@@ -37,6 +37,7 @@ def _test_simple_binary(name):
     _simple_binary_test(
         name = name,
         target_under_test = "//zig/tests/simple-binary:binary",
+        size = "small",
     )
     return [":" + name]
 
@@ -77,6 +78,7 @@ def _test_multiple_sources_binary(name):
         name = name,
         target_under_test = "//zig/tests/multiple-sources-binary:binary",
         main = "//zig/tests/multiple-sources-binary:main.zig",
+        size = "small",
     )
     return [":" + name]
 
@@ -117,6 +119,7 @@ def _test_package_binary(name):
         name = name,
         target_under_test = "//zig/tests/package-binary:binary",
         main = "//zig/tests/package-binary:main.zig",
+        size = "small",
     )
     return [":" + name]
 
@@ -171,6 +174,7 @@ def _test_c_sources_binary(name):
             "//zig/tests/c-sources-binary:symbol_b.c",
         ],
         copts = ["-DNUMBER_A=1", "-DNUMBER_B=2"],
+        size = "small",
     )
     _c_sources_binary_test(
         name = name + "_without_copts",
@@ -180,6 +184,7 @@ def _test_c_sources_binary(name):
             "//zig/tests/c-sources-binary:symbol_b.c",
         ],
         copts = [],
+        size = "small",
     )
     return [":" + name + "_with_copts", ":" + name + "_without_copts"]
 

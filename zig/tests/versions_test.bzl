@@ -3,6 +3,7 @@ See https://bazel.build/rules/testing#testing-starlark-utilities
 """
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 def _smoke_test_impl(ctx):
@@ -13,4 +14,7 @@ def _smoke_test_impl(ctx):
 _smoke_test = unittest.make(_smoke_test_impl)
 
 def versions_test_suite(name):
-    unittest.suite(name, _smoke_test)
+    unittest.suite(
+        name,
+        partial.make(_smoke_test, size = "small"),
+    )
