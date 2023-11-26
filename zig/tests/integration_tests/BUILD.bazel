@@ -1,5 +1,3 @@
-load("//zig:defs.bzl", "zig_test")
-load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load("@bazel_binaries//:defs.bzl", "bazel_binaries")
 load(
     "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
@@ -7,6 +5,8 @@ load(
     "bazel_integration_tests",
     "integration_test_utils",
 )
+load("//zig:defs.bzl", "zig_test")
+load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 # gazelle:exclude workspace
 

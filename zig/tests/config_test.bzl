@@ -1,7 +1,7 @@
 """Analysis tests for Zig configuration settings."""
 
-load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load(":util.bzl", "canonical_label")
 
 _ValueInfo = provider(

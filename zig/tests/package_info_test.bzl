@@ -1,8 +1,8 @@
 """Unit tests for ZigPackageInfo functions.
 """
 
-load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load(
     "//zig/private/providers:zig_package_info.bzl",
     "ZigPackageInfo",
