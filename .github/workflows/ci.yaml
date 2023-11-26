@@ -28,7 +28,7 @@ jobs:
     # Prepares the 'bazelversion' axis of the test matrix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: versions_from_bazel_versions_bzl
         run: echo "bazelversions=$(.github/workflows/bazel_versions.py)" >> $GITHUB_OUTPUT
     outputs:
@@ -80,7 +80,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Cache build and external artifacts so that the next ci build is incremental.
       # Because github action caches cannot be updated after a build, we need to
