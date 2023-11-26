@@ -47,4 +47,4 @@ use_repo(
 )
 
 # TODO[AH] Should be an implicit transitive dependency through rules_bazel_integration_test.
-bazel_dep(name = "cgrindel_bazel_starlib", version = "0.16.0", dev_dependency = True)
+bazel_dep(name = "cgrindel_bazel_starlib", version = "0.18.1", dev_dependency = True)
