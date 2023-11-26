@@ -34,3 +34,8 @@ repos:
     rev: 37.68.1
     hooks:
       - id: renovate-config-validator
+  # Check validity of GitHub actions configuration
+  - repo: https://github.com/mpalmer/action-validator
+    rev: v0.5.1
+    hooks:
+      - id: action-validator
