@@ -70,6 +70,9 @@ jobs:
             folder: "."
             target: "//zig/tests/integration_tests"
         exclude:
+          # rules_bazel_integration_tests requires at least Bazel 6.3.0 with bzlmod enabled.
+          - bazelversion: 6.0.0
+            bzlmodEnabled: true
           # Only test the latest Bazel version on MacOS (MacOS runners are expensive and slow)
           - bazelversion: 6.0.0
             os: macos-latest
