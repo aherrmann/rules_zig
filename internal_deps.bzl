@@ -26,6 +26,13 @@ def rules_zig_internal_deps():
     )
 
     http_archive(
+        name = "rules_python",
+        sha256 = "9acc0944c94adb23fba1c9988b48768b1bacc6583b52a2586895c5b7491e2e31",
+        strip_prefix = "rules_python-0.27.0",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/0.27.0/rules_python-0.27.0.tar.gz",
+    )
+
+    http_archive(
         name = "bazel_gazelle",
         sha256 = "b7387f72efb59f876e4daae42f1d3912d0d45563eac7cb23d1de0b094ab588cf",
         urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.34.0/bazel-gazelle-v0.34.0.tar.gz"],
@@ -83,8 +90,8 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "rules_bazel_integration_test",
-        sha256 = "bfba659b9e29fc4cbeb2410e20f0270c54da3886bbe69aa8b0378701dca06a8d",
+        sha256 = "567ef30550a90c0dc22a9076743b2b2715b4d7148b4d573bdcc61aaa5d0177b3",
         urls = [
-            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.14.1/rules_bazel_integration_test.v0.14.1.tar.gz",
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.18.0/rules_bazel_integration_test.v0.18.0.tar.gz",
         ],
     )

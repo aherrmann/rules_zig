@@ -1,24 +1,18 @@
 #!/usr/bin/env python3
-"""Reads the supported Bazel versions from bazel_versions.bzl
+"""Determines the list of Bazel versions to test against.
+
+Parses the rules_bazel_integration_testing configuration exposed in
+`WORKPACE` to extract the list of Bazel versions.
 """
 
+import ast
 import json
 import sys
 
 
-def read_supported_bazel_versions(filename):
-    """Read SUPPORTED_BAZEL_VERSIONS from the given file.
-
-    Note, this will execute the given file as Python code.
-    Do not apply to untrusted input!
-    """
-    with open(filename, "r") as f:
-        content = f.read()
-    namespace = {}
-    exec(content, {}, namespace)
-    if "SUPPORTED_BAZEL_VERSIONS" not in namespace:
-        raise RuntimeError(f"SUPPORTED_BAZEL_VERSIONS not defined by {filename}.")
-    return namespace["SUPPORTED_BAZEL_VERSIONS"]
+def is_label(label):
+    """Returns whether the given string is a Bazel label."""
+    return label.startswith("//") or label.startswith("@//")
 
 
 def label_to_path(label):
@@ -39,31 +33,77 @@ def read_version_file(filename):
         return f.read().lstrip(" \n").partition("\n")[0].rstrip(" \n")
 
 
-def parse_bazel_version_spec(version):
-    """Produce a stringly representation of the Bazel version.
+def parse_bazelisk_config(label):
+    """Parses a Bazelisk configuration file.
 
-    This parses any instances of a `//:.bazelversion` file label
-    and forwards instances of other stringly version specifications.
+    The Bazelisk configuration file is a text file containing a single line
+    with the Bazel version to use.
+
+    Args:
+      label: The Bazel label to the Bazelisk configuration file.
+
+    Returns:
+      The Bazel version.
     """
-    if version.startswith("//"):
-        return read_version_file(label_to_path(version))
-    else:
-        return version
+    path = label_to_path(label)
+    version = read_version_file(path)
+    return version
 
 
-def parse_bazel_versions(specs):
-    """Parse a list of versions specifications.
+def parse_bazel_versions(path):
+    """Parses the Bazel versions from the WORKSPACE file.
 
-    Reads from any `.bazelversion` files.
+    The `bazel_binaries` macro is invoked in the `WORKSPACE` file in the
+    following form:
+    ```
+    bazel_binaries(versions = [
+        "//:.bazelversion",  # A bazelisk configuration file.
+        "6.4.0",  # A specific version.
+    ])
+    ```
+
+    Args:
+      path: The path to the defs.bzl file.
+
+    Returns:
+      The list of Bazel versions.
     """
-    return [parse_bazel_version_spec(spec) for spec in specs]
+    # Open the WORKSPACE file and extract the bazel_binaries macro.
+    with open(path, "r") as workspace_file:
+        workspace_contents = workspace_file.read()
+        bazel_binaries_macro = workspace_contents[
+            workspace_contents.find("bazel_binaries(") :]
+        bazel_binaries_macro = bazel_binaries_macro[
+            : bazel_binaries_macro.find(")") + 1
+        ]
+
+    # Parse the bazel_binaries macro to extract the list of Bazel version specifications.
+    # Starlark syntax is a subset of Python, so we can use Python's ast module.
+    ast_tree = ast.parse(bazel_binaries_macro)
+    version_specs = []
+    for item in ast_tree.body[0].value.keywords:
+        if item.arg == "versions":
+            for version in item.value.elts:
+                version_specs.append(version.s)
+
+    # Parse the version specifications to extract the list of Bazel versions.
+    # Specifications are either a specific version or a Bazel label to a
+    # bazelisk configuration file. Pass specific versions on as is, and
+    # resolve labels to the file they point to and read the version from the file.
+    bazel_versions = []
+    for version_spec in version_specs:
+        if is_label(version_spec):
+            bazel_versions.append(parse_bazelisk_config(version_spec))
+        else:
+            bazel_versions.append(version_spec)
+
+    return bazel_versions
 
 
 def main():
-    filename = "bazel_versions.bzl"
-    specs = read_supported_bazel_versions(filename)
-    versions = parse_bazel_versions(specs)
-    json.dump(versions, sys.stdout, separators=(",", ":"))
+    """Prints the list of Bazel versions to test against."""
+    bazel_versions = parse_bazel_versions("WORKSPACE")
+    json.dump(list(bazel_versions), sys.stdout, separators=(",", ":"))
 
 
 if __name__ == "__main__":
