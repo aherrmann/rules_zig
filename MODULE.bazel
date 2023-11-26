@@ -42,10 +42,7 @@ bazel_binaries.download(version = "6.3.0")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
-    # TODO[AH] Should be implicit through bazel_binaries.
+    "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
     "build_bazel_bazel_6_3_0",
 )
-
-# TODO[AH] Should be an implicit transitive dependency through rules_bazel_integration_test.
-bazel_dep(name = "cgrindel_bazel_starlib", version = "0.18.1", dev_dependency = True)
