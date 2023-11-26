@@ -33,9 +33,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "rules_multirun",
-        sha256 = "00aad85eca054dbb5dc12178a3c83fd4bbee83d4824d9d76bfd86ab757a4c327",
-        strip_prefix = "rules_multirun-73017d503a524a9de59a5339c1db9cc4860cec2a",
-        url = "https://github.com/keith/rules_multirun/archive/73017d503a524a9de59a5339c1db9cc4860cec2a.tar.gz",
+        sha256 = "bf8040f7ec17ba2162997abcb916563b6df5519c8573a3a077b1443925232066",
+        strip_prefix = "rules_multirun-f37bc7a43894efe9f074103aca5405861a9192fc",
+        url = "https://github.com/keith/rules_multirun/archive/f37bc7a43894efe9f074103aca5405861a9192fc.tar.gz",
     )
 
     http_archive(
