@@ -47,7 +47,7 @@ py_binary(
     srcs = ["update_filegroups.py"],
     args = [
         "--buildozer",
-        "$(rootpath @buildifier_prebuilt//:buildozer)",
+        "$(rlocationpath @buildifier_prebuilt//:buildozer)",
     ] + select({
         "@aspect_bazel_lib//lib:bzlmod": ["--enable_bzlmod"],
         "//conditions:default": [],
