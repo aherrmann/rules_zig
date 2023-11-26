@@ -2,8 +2,8 @@
 See https://bazel.build/rules/testing#testing-starlark-utilities
 """
 
-load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 def _smoke_test_impl(ctx):
