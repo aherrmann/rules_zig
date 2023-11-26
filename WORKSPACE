@@ -54,7 +54,7 @@ load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_bi
 
 bazel_binaries(versions = [
     "//:.bazelversion",
-    "5.3.2",
+    "6.0.0",
 ])
 
 ############################################
