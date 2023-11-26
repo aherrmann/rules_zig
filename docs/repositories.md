@@ -5,7 +5,6 @@ Declare rules_zig dependencies and toolchains.
 These are needed for local development, and users must install them as well.
 See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 
-
 <a id="zig_repositories"></a>
 
 ## zig_repositories
@@ -23,7 +22,7 @@ Fetch and install a Zig toolchain.
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_repositories-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_repositories-platform"></a>platform |  -   | String | required |  |
-| <a id="zig_repositories-repo_mapping"></a>repo_mapping |  A dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.&lt;p&gt;For example, an entry <code>"@foo": "@bar"</code> declares that, for any time this repository depends on <code>@foo</code> (such as a dependency on <code>@foo//some:target</code>, it should actually resolve that dependency within globally-declared <code>@bar</code> (<code>@bar//some:target</code>).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | required |  |
+| <a id="zig_repositories-repo_mapping"></a>repo_mapping |  A dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<p>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`, it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | required |  |
 | <a id="zig_repositories-zig_version"></a>zig_version |  -   | String | required |  |
 
 
@@ -64,7 +63,7 @@ Users can avoid this macro and do these steps themselves, if they want more cont
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="zig_register_toolchains-name"></a>name |  base name for all created repos, like "zig1_14"   |  none |
-| <a id="zig_register_toolchains-register"></a>register |  whether to call through to native.register_toolchains. Should be True for WORKSPACE users, but False when used under bzlmod extension.   |  <code>True</code> |
+| <a id="zig_register_toolchains-register"></a>register |  whether to call through to native.register_toolchains. Should be True for WORKSPACE users, but False when used under bzlmod extension.   |  `True` |
 | <a id="zig_register_toolchains-kwargs"></a>kwargs |  passed to each zig_repositories call   |  none |
 
 
