@@ -20,6 +20,9 @@ build --disk_cache=~/.cache/bazel
 # docs: https://bazel.build/reference/command-line-reference#flag--repository_cache
 build --repository_cache=~/.cache/bazel-repo
 
+# docs: https://bazel.build/reference/command-line-reference#flag--remote_upload_local_results
+build --remote_upload_local_results
+
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_download_toplevel
 build --remote_download_toplevel
 
