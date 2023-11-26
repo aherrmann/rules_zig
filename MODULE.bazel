@@ -15,7 +15,7 @@ register_toolchains("@rules_zig//zig/target:all")
 
 register_toolchains("@zig_toolchains//:all")
 
-bazel_dep(name = "aspect_bazel_lib", version = "1.39.0", dev_dependency = True)
+bazel_dep(name = "aspect_bazel_lib", version = "2.0.1", dev_dependency = True)
 bazel_dep(name = "gazelle", version = "0.34.0", dev_dependency = True, repo_name = "bazel_gazelle")
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.5.0", dev_dependency = True)
 bazel_dep(
