@@ -54,7 +54,7 @@ load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_bi
 
 bazel_binaries(versions = [
     "//:.bazelversion",
-    "6.0.0",
+    "6.3.0",
 ])
 
 # Stardoc dependencies

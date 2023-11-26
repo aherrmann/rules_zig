@@ -71,8 +71,8 @@ test_suite(
     tests = integration_test_utils.bazel_integration_test_names(
         "workspace_test",
         bazel_binaries.versions.all,
-    ) + [integration_test_utils.bazel_integration_test_name(
+    ) + integration_test_utils.bazel_integration_test_names(
         "bzlmod_test",
-        bazel_binaries.versions.current,
-    )] + zig_version_tests,
+        bazel_binaries.versions.all,
+    ) + zig_version_tests,
 )
