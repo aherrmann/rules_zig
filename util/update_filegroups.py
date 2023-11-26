@@ -47,7 +47,7 @@ def get_runfiles():
 
 
 def get_buildozer(r, path):
-    buildozer = r.Rlocation(os.path.join("rules_zig", path))
+    buildozer = r.Rlocation(path)
     return buildozer
 
 

@@ -2,6 +2,7 @@ load("@rules_zig//zig:defs.bzl", "zig_test")
 
 zig_test(
     name = "test",
+    size = "small",
     main = "main.zig",
     visibility = ["//zig/tests:__pkg__"],
 )

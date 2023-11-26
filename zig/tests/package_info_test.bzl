@@ -142,6 +142,7 @@ def package_info_test_suite(name):
         lambda name: _single_package_test(
             name = name,
             pkg = "//zig/tests/multiple-sources-package:data",
+            size = "small",
         ),
         lambda name: _nested_packages_test(
             name = name,
@@ -153,5 +154,6 @@ def package_info_test_suite(name):
                 "//zig/tests/nested-packages:e",
                 "//zig/tests/nested-packages:f",
             ],
+            size = "small",
         ),
     )

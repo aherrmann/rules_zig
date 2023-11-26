@@ -1,6 +1,7 @@
 """Unit tests for target triple helpers.
 """
 
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load("//zig/private/common:zig_target_triple.bzl", "triple")
 
@@ -45,6 +46,6 @@ _print_triple_test = unittest.make(_print_triple_test_impl)
 def target_triple_test_suite(name):
     unittest.suite(
         name,
-        _parse_triple_test,
-        _print_triple_test,
+        partial.make(_parse_triple_test, size = "small"),
+        partial.make(_print_triple_test, size = "small"),
     )

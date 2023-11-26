@@ -71,11 +71,11 @@ def config_test_suite(name):
     unittest.suite(
         name,
         # mode
-        partial.make(_mode_debug_test, target_under_test = mode_name),
-        partial.make(_mode_release_safe_test, target_under_test = mode_name),
-        partial.make(_mode_release_small_test, target_under_test = mode_name),
-        partial.make(_mode_release_fast_test, target_under_test = mode_name),
+        partial.make(_mode_debug_test, target_under_test = mode_name, size = "small"),
+        partial.make(_mode_release_safe_test, target_under_test = mode_name, size = "small"),
+        partial.make(_mode_release_small_test, target_under_test = mode_name, size = "small"),
+        partial.make(_mode_release_fast_test, target_under_test = mode_name, size = "small"),
         # threaded
-        partial.make(_threaded_single_test, target_under_test = threaded_name),
-        partial.make(_threaded_multi_test, target_under_test = threaded_name),
+        partial.make(_threaded_single_test, target_under_test = threaded_name, size = "small"),
+        partial.make(_threaded_multi_test, target_under_test = threaded_name, size = "small"),
     )
