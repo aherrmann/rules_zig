@@ -146,3 +146,14 @@ jobs:
         # Run the script potentially setting BZLMOD_FLAG=--enable_bzlmod. All test.sh
         # scripts that run bazel directly should make use of this variable.
         run: BZLMOD_FLAG=${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} ./test.sh
+
+  all_tests:
+    runs-on: ubuntu-latest
+    needs:
+      - matrix-prep-bazelversion
+      - test
+    if: ${{ always() }}
+    steps:
+      - uses: cgrindel/gha_join_jobs@v1.2.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
