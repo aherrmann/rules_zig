@@ -27,6 +27,7 @@ build_test(
 
 diff_test(
     name = "zig_version_test",
+    size = "small",
     file1 = ":zig_version.expected",
     file2 = ":zig_version.actual",
 )

@@ -2,6 +2,7 @@ load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
 
 zig_test(
     name = "direct-data",
+    size = "small",
     data = ["data.txt"],
     main = "direct-data.zig",
 )
@@ -14,6 +15,7 @@ zig_package(
 
 zig_test(
     name = "direct-package-data",
+    size = "small",
     main = "direct-package-data.zig",
     deps = [":direct-package"],
 )
@@ -26,6 +28,7 @@ zig_package(
 
 zig_test(
     name = "indirect-package-data",
+    size = "small",
     main = "indirect-package-data.zig",
     deps = [":indirect-package"],
 )

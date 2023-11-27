@@ -18,6 +18,7 @@ zig_library(
 
 zig_test(
     name = "test",
+    size = "small",
     copts = ["-DNUMBER=42"],
     csrcs = ["symbol.c"],
     main = "main.zig",
@@ -25,6 +26,7 @@ zig_test(
 
 build_test(
     name = "build",
+    size = "small",
     targets = [
         ":binary",
         ":library",
@@ -41,6 +43,7 @@ genrule(
 
 diff_test(
     name = "output_test",
+    size = "small",
     file1 = ":output.expected",
     file2 = ":output.actual",
 )

@@ -85,12 +85,14 @@ run(
 
 diff_test(
     name = "binary_single_output_test",
+    size = "small",
     file1 = ":binary_single_output.expected",
     file2 = ":binary_single_output.actual",
 )
 
 diff_test(
     name = "binary_multi_output_test",
+    size = "small",
     file1 = ":binary_multi_output.expected",
     file2 = ":binary_multi_output.actual",
 )
@@ -103,6 +105,7 @@ zig_test(
 
 zig_configure_test(
     name = "test_single",
+    size = "small",
     actual = "_test_single",
     threaded = "single",
 )
@@ -115,6 +118,7 @@ zig_test(
 
 zig_configure_test(
     name = "test_multi",
+    size = "small",
     actual = "_test_multi",
     threaded = "multi",
 )
