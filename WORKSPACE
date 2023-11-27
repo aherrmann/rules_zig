@@ -52,6 +52,7 @@ bazel_starlib_dependencies()
 
 load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
 
+# NOTE: Keep in sync with MODULE.bazel.
 bazel_binaries(versions = [
     "//:.bazelversion",
     "6.3.0",

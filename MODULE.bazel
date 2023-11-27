@@ -37,6 +37,8 @@ bazel_binaries = use_extension(
     "bazel_binaries",
     dev_dependency = True,
 )
+
+# NOTE: Keep in sync with WORKSPACE.
 bazel_binaries.download(version_file = "//:.bazelversion")
 bazel_binaries.download(version = "6.3.0")
 use_repo(
