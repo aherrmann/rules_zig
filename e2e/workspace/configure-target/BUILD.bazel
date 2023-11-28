@@ -92,12 +92,14 @@ genrule(
 
 diff_test(
     name = "binary_aarch64-linux_arch_test",
+    size = "small",
     file1 = ":binary_aarch64-linux_arch.expected",
     file2 = ":binary_aarch64-linux_arch.actual",
 )
 
 diff_test(
     name = "binary_x86_64-windows_arch_test",
+    size = "small",
     file1 = ":binary_x86_64-windows_arch.expected",
     file2 = ":binary_x86_64-windows_arch.actual",
 )
@@ -159,12 +161,14 @@ genrule(
 
 diff_test(
     name = "test_aarch64-linux_arch_test",
+    size = "small",
     file1 = ":test_aarch64-linux_arch.expected",
     file2 = ":test_aarch64-linux_arch.actual",
 )
 
 diff_test(
     name = "test_x86_64-windows_arch_test",
+    size = "small",
     file1 = ":test_x86_64-windows_arch.expected",
     file2 = ":test_x86_64-windows_arch.actual",
 )

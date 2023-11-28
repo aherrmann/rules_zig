@@ -19,6 +19,7 @@ genrule(
 
 diff_test(
     name = "output_test",
+    size = "small",
     file1 = ":output.expected",
     file2 = ":output.actual",
 )

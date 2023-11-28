@@ -19,6 +19,7 @@ genrule(
 
 diff_test(
     name = "bin_output_test",
+    size = "small",
     file1 = ":bin_output.expected",
     file2 = ":bin_output.actual",
     target_compatible_with = ["@platforms//os:linux"],
@@ -41,6 +42,7 @@ build_test(
 
 zig_test(
     name = "test",
+    size = "small",
     linker_script = "custom.ld",
     main = "test.zig",
     target_compatible_with = ["@platforms//os:linux"],

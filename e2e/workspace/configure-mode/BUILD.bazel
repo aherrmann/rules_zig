@@ -85,12 +85,14 @@ run(
 
 diff_test(
     name = "binary_debug_output_test",
+    size = "small",
     file1 = ":binary_debug_output.expected",
     file2 = ":binary_debug_output.actual",
 )
 
 diff_test(
     name = "binary_release_safe_output_test",
+    size = "small",
     file1 = ":binary_release_safe_output.expected",
     file2 = ":binary_release_safe_output.actual",
 )
@@ -103,6 +105,7 @@ zig_test(
 
 zig_configure_test(
     name = "test_debug",
+    size = "small",
     actual = "_test_debug",
     mode = "debug",
 )
@@ -115,6 +118,7 @@ zig_test(
 
 zig_configure_test(
     name = "test_release_safe",
+    size = "small",
     actual = "_test_release_safe",
     mode = "release_safe",
 )

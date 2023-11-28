@@ -1,0 +1,4 @@
+# Configure Bazel for local testing
+try-import %workspace%/../../.bazelrc.common
+try-import %workspace%/../../.bazelrc.remote
+try-import %workspace%/.bazelrc.user

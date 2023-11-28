@@ -3,6 +3,7 @@ load("@rules_zig//zig:defs.bzl", "zig_test")
 
 zig_test(
     name = "succeeds",
+    size = "small",
     main = "succeeding-test.zig",
 )
 
@@ -16,6 +17,7 @@ genrule(
 
 diff_test(
     name = "success_result_test",
+    size = "small",
     file1 = ":success_result.expected",
     file2 = ":success_result.actual",
 )
@@ -36,6 +38,7 @@ genrule(
 
 diff_test(
     name = "failure_result_test",
+    size = "small",
     file1 = ":failure_result.expected",
     file2 = ":failure_result.actual",
 )

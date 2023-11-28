@@ -16,6 +16,7 @@ zig_library(
 
 zig_test(
     name = "test",
+    size = "small",
     extra_srcs = ["message.txt"],
     main = "main.zig",
 )
@@ -28,6 +29,7 @@ zig_package(
 
 zig_test(
     name = "test-with-package",
+    size = "small",
     main = "test-with-package.zig",
     deps = [":package"],
 )
@@ -51,6 +53,7 @@ genrule(
 
 diff_test(
     name = "output_test",
+    size = "small",
     file1 = ":output.expected",
     file2 = ":output.actual",
 )
