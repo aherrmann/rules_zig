@@ -3,7 +3,7 @@
 # Settings that apply only to CI are in .github/workflows/ci.bazelrc
 
 # Common configuration.
-impot %workspace%/.bazelrc.common
+import %workspace%/.bazelrc.common
 
 # Zig build mode flag aliases. See further explanation in that file.
 import %workspace%/.bazelrc.flags
