@@ -111,10 +111,11 @@ jobs:
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
       - name: Set bzlmod flag
+        working-directory: ${{ matrix.folder }}
         # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
         id: set_bzlmod_flag
         run: |
-          echo "${{ matrix.bzlmodEnabled && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
+          echo "common ${{ matrix.bzlmodEnabled && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
           echo "bzlmod_flag=${{ matrix.bzlmodEnabled && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
 
       - name: Test generated files
