@@ -121,8 +121,9 @@ def zig_build_impl(ctx, *, kind):
         files = depset([output])
         direct_data.append(output)
     elif kind == "zig_library":
+        prefix = "" if zigtargetinfo.triple.os == "windows" else "lib"
         extension = ".lib" if zigtargetinfo.triple.os == "windows" else ".a"
-        static = ctx.actions.declare_file(ctx.label.name + extension)
+        static = ctx.actions.declare_file(prefix + ctx.label.name + extension)
         outputs.append(static)
         args.add(static, format = "-femit-bin=%s")
 
