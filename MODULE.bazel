@@ -48,3 +48,10 @@ use_repo(
     "build_bazel_bazel_.bazelversion",
     "build_bazel_bazel_6_3_0",
 )
+
+# TODO[AH] Should be an implicit transitive dependency through rules_bazel_integration_test.
+# However, if we do not include it explicitly, then the runfiles resolution for
+# cgrindel_bazel_starlib/shlib/lib/message.sh fails in
+# rules_bazel_integration_test/tools/update_deleted_packages.sh when invoked
+# through the rules_multirun target //util:update.
+bazel_dep(name = "cgrindel_bazel_starlib", version = "0.18.1", dev_dependency = True)
