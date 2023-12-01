@@ -54,6 +54,8 @@ jobs:
           - "e2e/workspace"
         target: ["//..."]
         include:
+          # The integration tests iterate over all supported Bazel versions, so
+          # we only run them against the latest Bazel version.
           - os: ubuntu-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
             bzlmodEnabled: false
@@ -69,13 +71,27 @@ jobs:
             bzlmodEnabled: true
             folder: "."
             target: "//zig/tests/integration_tests"
-        exclude:
-          # rules_bazel_integration_tests requires at least Bazel 6.3.0 with bzlmod enabled.
-          - bazelversion: 6.0.0
-            bzlmodEnabled: true
           # Only test the latest Bazel version on MacOS (MacOS runners are expensive and slow)
-          - bazelversion: 6.0.0
-            os: macos-latest
+          - os: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: false
+            folder: "."
+            target: "//..."
+          - os: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: true
+            folder: "."
+            target: "//..."
+          - os: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: false
+            folder: "e2e/workspace"
+            target: "//..."
+          - os: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            bzlmodEnabled: true
+            folder: "e2e/workspace"
+            target: "//..."
 
     # Configure a human readable name for each job
     name: Test ${{ matrix.target }} in ${{ matrix.folder }} with Bazel ${{ matrix.bazelversion }} and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
@@ -109,6 +125,18 @@ jobs:
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
+
+      - name: Configure documentation generation
+        if: matrix.folder == '.' && matrix.target == '//...'
+        run: |
+          # Disable documentation generation for all but the first Bazel
+          # version, by setting --no@rules_zig//docs:build_docs in
+          # .bazelrc.user. The generated documentation can vary between Bazel
+          # versions. For example, Bazel version 7 changed the documentation of
+          # the implicit `repo_mapping` parameter to repository rules compared
+          # to Bazel version 6.
+          PREFIX=${{ matrix.bazelversion == fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] && '' || 'no' }}
+          echo "common --$PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
 
       - name: Set bzlmod flag
         working-directory: ${{ matrix.folder }}

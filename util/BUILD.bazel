@@ -26,10 +26,14 @@ multirun(
     commands = [
         ":gazelle",
         ":update_filegroups",
-        "//docs:update-alias",
         "@rules_bazel_integration_test//tools:update_deleted_packages",
         ":buildifier.fix",
-    ],
+    ] + select({
+        # Keep in sync with //docs:BUILD.bazel.
+        "@platforms//os:windows": [],
+        "//docs:do_not_build_docs": [],
+        "//conditions:default": ["//docs:update-alias"],
+    }),
 )
 
 gazelle_binary(

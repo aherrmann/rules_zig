@@ -1,23 +1,53 @@
 # This load statement must be in the docs/ package rather than anything users depend on
 # so that the dependency on stardoc doesn't leak to them.
 load("@aspect_bazel_lib//lib:docs.bzl", "stardoc_with_diff_test", "update_docs")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+
+bool_flag(
+    name = "build_docs",
+    build_setting_default = True,
+    help = "Whether to build Stardoc documentation and test that the documentation is up to date.",
+)
+
+config_setting(
+    name = "do_not_build_docs",
+    flag_values = {
+        ":build_docs": "False",
+    },
+    visibility = ["//util:__pkg__"],
+)
+
+# Keep in sync with //util:update.
+_TARGET_COMPATIBLE_WITH = select({
+    # stardoc produces different line endings on Windows
+    # which makes the diff_test fail
+    "@platforms//os:windows": ["@platforms//:incompatible"],
+    ":do_not_build_docs": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
 
 stardoc_with_diff_test(
     name = "rules",
     bzl_library_target = "//zig:defs",
+    target_compatible_with = _TARGET_COMPATIBLE_WITH,
 )
 
 stardoc_with_diff_test(
     name = "toolchains",
     bzl_library_target = "//zig:toolchain",
+    target_compatible_with = _TARGET_COMPATIBLE_WITH,
 )
 
 stardoc_with_diff_test(
     name = "repositories",
     bzl_library_target = "//zig:repositories",
+    target_compatible_with = _TARGET_COMPATIBLE_WITH,
 )
 
-update_docs(name = "update")
+update_docs(
+    name = "update",
+    target_compatible_with = _TARGET_COMPATIBLE_WITH,
+)
 
 # workaround: update_docs does not allow to modify visibility.
 alias(
