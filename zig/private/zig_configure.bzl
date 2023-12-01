@@ -144,8 +144,8 @@ def _make_attrs(*, executable):
             mandatory = False,
             values = THREADED_VALUES,
         ),
-        "_whitelist_function_transition": attr.label(
-            default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     }
 
