@@ -28,6 +28,7 @@ resolved_toolchain(
     visibility = ["//visibility:public"],
 )
 
+# keep
 bzl_library(
     name = "bazel_tools",
     srcs = ["@bazel_tools//tools:bzl_srcs"],
