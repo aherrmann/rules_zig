@@ -91,7 +91,7 @@ def _define_file_extension_test(target, extension, basename_pattern = "%s"):
 _exe_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
 _exe_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".exe")
 
-_lib_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, ".a")
+_lib_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, ".a", basename_pattern = "lib%s")
 _lib_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".lib")
 
 _shared_lib_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, ".so", basename_pattern = "lib%s")
