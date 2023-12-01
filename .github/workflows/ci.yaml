@@ -126,6 +126,18 @@ jobs:
         working-directory: ${{ matrix.folder }}
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
+      - name: Configure documentation generation
+        if: matrix.folder == '.' && matrix.target == '//...'
+        run: |
+          # Disable documentation generation for all but the first Bazel
+          # version, by setting --no@rules_zig//docs:build_docs in
+          # .bazelrc.user. The generated documentation can vary between Bazel
+          # versions. For example, Bazel version 7 changed the documentation of
+          # the implicit `repo_mapping` parameter to repository rules compared
+          # to Bazel version 6.
+          PREFIX=${{ matrix.bazelversion == fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] && '' || 'no' }}
+          echo "common --$PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
+
       - name: Set bzlmod flag
         working-directory: ${{ matrix.folder }}
         # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
