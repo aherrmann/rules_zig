@@ -7,11 +7,6 @@ Build [Zig code][zig] with the [Bazel build system][bazel].
 
 ## Status
 
-🚧 This is a hobby project in early development. 🚧
-
-Please [get in touch](https://github.com/aherrmann) if you would like to use
-these rules in production.
-
 Take a look at the [planned functionality][planned-functionality] tracking
 issue to get a picture of which functionality is already implemented and what
 is still missing.
@@ -51,9 +46,27 @@ and build configuration features well.
 
 ## Installation
 
+The instructions assume basic familiarity with the Bazel build system.
+Take a look at [Bazel's documentation][bazel-intro] if you are unfamiliar.
+
+[bazel-intro]: https://bazel.build/about/intro
+
 ### Using Bzlmod with Bazel >=6
 
-Add the following to your MODULE.bazel file to install rules_zig:
+Bzlmod is Bazel's new dependency manager. You can read more about it in the
+[Bazel documentation][bzlmod-doc]. If you use bzlmod, then you can skip the
+WORKSPACE section below. Take a look at [Bazel's migration
+guide][bzlmod-migration] if you are switching from WORKSPACE to bzlmod.
+
+[bzlmod-doc]: https://bazel.build/external/overview#bzlmod
+[bzlmod-migration]: https://bazel.build/external/migration
+
+To install a [release version of rules_zig][rules-zig-releases] follow the
+installation instructions given in the corresponding release notes.
+
+[rules-zig-releases]: https://github.com/aherrmann/rules_zig/releases
+
+To install a development version add the following to your MODULE.bazel file:
 
 ```bzl
 bazel_dep(name = "rules_zig")
@@ -65,9 +78,25 @@ archive_override(
 )
 ```
 
+Note, `$SHA256` and `$COMMIT` are placeholders that you need to fill in. Take a
+look at the [Bazel documentation][archive-override-doc] for further
+information.
+
+[archive-override-doc]: https://bazel.build/versions/6.4.0/rules/lib/globals#archive_override
+
 ### Using WORKSPACE
 
-Add the following to your WORKSPACE file to install rules_zig:
+The old way of managing external dependencies with Bazel is to declare them in
+your WORKSPACE file. You can read more about it in the [Bazel
+documentation][workspace-doc]. If you use the WORKSPACE approach, then you can
+skip the bzlmod section above.
+
+[workspace-doc]: https://bazel.build/external/overview#workspace-system
+
+To install a [release version of rules_zig][rules-zig-releases] follow the
+installation instructions given in the corresponding release notes.
+
+To install a development version add the following to your WORKSPACE file:
 
 ```bzl
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -93,13 +122,11 @@ zig_register_toolchains(
 )
 ```
 
-<!-- TODO[AH] Point to release installation instructions
+Note, `$SHA256` and `$COMMIT` are placeholders that you need to fill in. Take a
+look at the [Bazel documentation][http-archive-doc] for further
+information.
 
-From the release you wish to use:
-<https://github.com/aherrmann/rules_zig/releases>
-copy the WORKSPACE snippet into your `WORKSPACE` file.
-
--->
+[http-archive-doc]: https://bazel.build/rules/lib/repo/http#http_archive
 
 <!-- TODO[AH] Write a user-guide
   https://github.com/aherrmann/rules_zig/issues/59
@@ -107,11 +134,6 @@ copy the WORKSPACE snippet into your `WORKSPACE` file.
 ## User Guide Documentation
 
 -->
-
-## Reference Documentation
-
-Generated API documentation for the provided rules is available in
-[`./docs/rules.md`](./docs/rules.md).
 
 ## Usage Examples
 
@@ -121,3 +143,8 @@ Generated API documentation for the provided rules is available in
 
 Examples can be found among the end-to-end tests under
 [`./e2e/workspace`](./e2e/workspace).
+
+## Reference Documentation
+
+Generated API documentation for the provided rules is available in
+[`./docs/rules.md`](./docs/rules.md).
