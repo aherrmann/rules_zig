@@ -22,10 +22,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Prepare release notes and artifacts
-        run: .github/workflows/release_prep.sh ${{ env.GITHUB_REF_NAME }} > release_notes.txt
+        run: .github/workflows/release_prep.sh > release_notes.txt
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          draft: true
           prerelease: true
           # Use GH feature to populate the changelog automatically
           generate_release_notes: true
