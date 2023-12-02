@@ -51,7 +51,20 @@ and build configuration features well.
 
 ## Installation
 
+The instructions assume basic familiarity with the Bazel build system.
+Take a look at [Bazel's documentation][bazel-intro] if you are unfamiliar.
+
+[bazel-intro]: https://bazel.build/about/intro
+
 ### Using Bzlmod with Bazel >=6
+
+Bzlmod is Bazel's new dependency manager. You can read more about it in the
+[Bazel documentation][bzlmod-doc]. If you use bzlmod, then you can skip the
+WORKSPACE section below. Take a look at [Bazel's migration
+guide][bzlmod-migration] if you are switching from WORKSPACE to bzlmod.
+
+[bzlmod-doc]: https://bazel.build/external/overview#bzlmod
+[bzlmod-migration]: https://bazel.build/external/migration
 
 Add the following to your MODULE.bazel file to install rules_zig:
 
@@ -65,7 +78,20 @@ archive_override(
 )
 ```
 
+Note, `$SHA256` and `$COMMIT` are placeholders that you need to fill in. Take a
+look at the [Bazel documentation][archive-override-doc] for further
+information.
+
+[archive-override-doc]: https://bazel.build/versions/6.4.0/rules/lib/globals#archive_override
+
 ### Using WORKSPACE
+
+The old way of managing external dependencies with Bazel is to declare them in
+your WORKSPACE file. You can read more about it in the [Bazel
+documentation][workspace-doc]. If you use the WORKSPACE approach, then you can
+skip the bzlmod section above.
+
+[workspace-doc]: https://bazel.build/external/overview#workspace-system
 
 Add the following to your WORKSPACE file to install rules_zig:
 
@@ -92,6 +118,12 @@ zig_register_toolchains(
     zig_version = "0.11.0",
 )
 ```
+
+Note, `$SHA256` and `$COMMIT` are placeholders that you need to fill in. Take a
+look at the [Bazel documentation][http-archive-doc] for further
+information.
+
+[http-archive-doc]: https://bazel.build/rules/lib/repo/http#http_archive
 
 <!-- TODO[AH] Point to release installation instructions
 
