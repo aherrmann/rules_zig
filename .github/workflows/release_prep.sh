@@ -24,7 +24,7 @@ bazel_dep(name = "rules_zig", version = "$VERSION")
 
 ## Using WORKSPACE
 
-Paste this snippet into your `WORKSPACE.bazel` file:
+Paste this snippet into your \`WORKSPACE.bazel\` file:
 
 \`\`\`starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
