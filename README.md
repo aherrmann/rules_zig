@@ -140,11 +140,6 @@ copy the WORKSPACE snippet into your `WORKSPACE` file.
 
 -->
 
-## Reference Documentation
-
-Generated API documentation for the provided rules is available in
-[`./docs/rules.md`](./docs/rules.md).
-
 ## Usage Examples
 
 <!-- TODO[AH] Create an instructive example.
@@ -153,3 +148,8 @@ Generated API documentation for the provided rules is available in
 
 Examples can be found among the end-to-end tests under
 [`./e2e/workspace`](./e2e/workspace).
+
+## Reference Documentation
+
+Generated API documentation for the provided rules is available in
+[`./docs/rules.md`](./docs/rules.md).
