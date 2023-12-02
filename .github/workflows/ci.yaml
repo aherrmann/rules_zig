@@ -187,5 +187,9 @@ jobs:
     if: ${{ always() }}
     steps:
       - uses: cgrindel/gha_join_jobs@v1.2.0
+        # Skip on release flows when invoked through the release workflow.
+        # Otherwise gha_join_jobs discovers its own job in the job list and
+        # fails since it is not yet succeeded, but still in progress.
+        if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/v')
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
