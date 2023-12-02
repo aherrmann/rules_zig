@@ -7,11 +7,6 @@ Build [Zig code][zig] with the [Bazel build system][bazel].
 
 ## Status
 
-🚧 This is a hobby project in early development. 🚧
-
-Please [get in touch](https://github.com/aherrmann) if you would like to use
-these rules in production.
-
 Take a look at the [planned functionality][planned-functionality] tracking
 issue to get a picture of which functionality is already implemented and what
 is still missing.
