@@ -66,7 +66,12 @@ guide][bzlmod-migration] if you are switching from WORKSPACE to bzlmod.
 [bzlmod-doc]: https://bazel.build/external/overview#bzlmod
 [bzlmod-migration]: https://bazel.build/external/migration
 
-Add the following to your MODULE.bazel file to install rules_zig:
+To install a [release version of rules_zig][rules-zig-releases] follow the
+installation instructions given in the corresponding release notes.
+
+[rules-zig-releases]: https://github.com/aherrmann/rules_zig/releases
+
+To install a development version add the following to your MODULE.bazel file:
 
 ```bzl
 bazel_dep(name = "rules_zig")
@@ -93,7 +98,10 @@ skip the bzlmod section above.
 
 [workspace-doc]: https://bazel.build/external/overview#workspace-system
 
-Add the following to your WORKSPACE file to install rules_zig:
+To install a [release version of rules_zig][rules-zig-releases] follow the
+installation instructions given in the corresponding release notes.
+
+To install a development version add the following to your WORKSPACE file:
 
 ```bzl
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -124,14 +132,6 @@ look at the [Bazel documentation][http-archive-doc] for further
 information.
 
 [http-archive-doc]: https://bazel.build/rules/lib/repo/http#http_archive
-
-<!-- TODO[AH] Point to release installation instructions
-
-From the release you wish to use:
-<https://github.com/aherrmann/rules_zig/releases>
-copy the WORKSPACE snippet into your `WORKSPACE` file.
-
--->
 
 <!-- TODO[AH] Write a user-guide
   https://github.com/aherrmann/rules_zig/issues/59
