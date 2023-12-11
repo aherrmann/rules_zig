@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import requests
+import urllib.request
+import json
 import base64
 import argparse
 
@@ -35,9 +36,11 @@ _SUPPORTED_PLATFORMS = [
 
 
 def fetch_zig_versions(url):
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()
+    with urllib.request.urlopen(url) as response:
+        if response.status != 200:
+            raise Exception(f"HTTP error: {response.status}")
+        data = response.read()
+        return json.loads(data.decode('utf-8'))
 
 
 def convert_sha256(sha256_hex):
