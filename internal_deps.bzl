@@ -83,9 +83,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "c858cc637db5370f6fd752478d1153955b4b4cbec7ffe95eb4a47a48499a79c3",
-        strip_prefix = "bazel-lib-2.0.3",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.3/bazel-lib-v2.0.3.tar.gz",
+        sha256 = "fc8bd670380eaba5314769abbe9fee21d641e3da06d9d26b8073a301f6d62332",
+        strip_prefix = "bazel-lib-2.1.0",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.1.0/bazel-lib-v2.1.0.tar.gz",
     )
 
     http_archive(
