@@ -1,0 +1,22 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+
+cc_library(
+    name = "add",
+    srcs = ["add.c"],
+    linkstatic = True,
+)
+
+zig_binary(
+    name = "binary",
+    cdeps = [":add"],
+    main = "main.zig",
+)
+
+build_test(
+    name = "build",
+    size = "small",
+    targets = [
+        ":library",
+    ],
+)
