@@ -51,7 +51,7 @@ ATTRS = {
         mandatory = False,
     ),
     "deps": attr.label_list(
-        doc = "Packages or libraries required to build the target.",
+        doc = "Packages required to build the target.",
         mandatory = False,
         providers = [ZigPackageInfo],
     ),
