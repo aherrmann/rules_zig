@@ -7,7 +7,7 @@ Rules to build and run Zig code.
 ## zig_binary
 
 <pre>
-zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>)
+zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linkdeps">linkdeps</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>)
 </pre>
 
 Builds a Zig binary.
@@ -38,12 +38,13 @@ zig_binary(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_binary-deps"></a>deps |  Packages or libraries required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_binary-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-copts"></a>copts |  C compiler flags required to build the C sources of the target.   | List of strings | optional |  `[]`  |
 | <a id="zig_binary-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_binary-linkdeps"></a>linkdeps |  Libraries to link the target against, typically `cc_library` targets.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_binary-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
@@ -233,7 +234,7 @@ zig_configure_test(
 ## zig_library
 
 <pre>
-zig_library(<a href="#zig_library-name">name</a>, <a href="#zig_library-deps">deps</a>, <a href="#zig_library-srcs">srcs</a>, <a href="#zig_library-data">data</a>, <a href="#zig_library-copts">copts</a>, <a href="#zig_library-csrcs">csrcs</a>, <a href="#zig_library-extra_srcs">extra_srcs</a>, <a href="#zig_library-linker_script">linker_script</a>, <a href="#zig_library-main">main</a>)
+zig_library(<a href="#zig_library-name">name</a>, <a href="#zig_library-deps">deps</a>, <a href="#zig_library-srcs">srcs</a>, <a href="#zig_library-data">data</a>, <a href="#zig_library-copts">copts</a>, <a href="#zig_library-csrcs">csrcs</a>, <a href="#zig_library-extra_srcs">extra_srcs</a>, <a href="#zig_library-linkdeps">linkdeps</a>, <a href="#zig_library-linker_script">linker_script</a>, <a href="#zig_library-main">main</a>)
 </pre>
 
 Builds a Zig library.
@@ -263,12 +264,13 @@ zig_library(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_library-deps"></a>deps |  Packages or libraries required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-copts"></a>copts |  C compiler flags required to build the C sources of the target.   | List of strings | optional |  `[]`  |
 | <a id="zig_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-linkdeps"></a>linkdeps |  Libraries to link the target against, typically `cc_library` targets.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
@@ -325,7 +327,7 @@ zig_package(
 ## zig_shared_library
 
 <pre>
-zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>)
+zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linkdeps">linkdeps</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>)
 </pre>
 
 Builds a Zig shared library.
@@ -355,12 +357,13 @@ zig_shared_library(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_shared_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_shared_library-deps"></a>deps |  Packages or libraries required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_shared_library-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-copts"></a>copts |  C compiler flags required to build the C sources of the target.   | List of strings | optional |  `[]`  |
 | <a id="zig_shared_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_shared_library-linkdeps"></a>linkdeps |  Libraries to link the target against, typically `cc_library` targets.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_shared_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
@@ -370,7 +373,7 @@ zig_shared_library(
 ## zig_test
 
 <pre>
-zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>)
+zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linkdeps">linkdeps</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>)
 </pre>
 
 Builds a Zig test.
@@ -400,12 +403,13 @@ zig_test(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_test-deps"></a>deps |  Packages or libraries required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_test-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-copts"></a>copts |  C compiler flags required to build the C sources of the target.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_test-linkdeps"></a>linkdeps |  Libraries to link the target against, typically `cc_library` targets.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 

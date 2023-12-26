@@ -7,6 +7,7 @@ load(
     "ZIG_C_SOURCE_EXTENSIONS",
     "ZIG_SOURCE_EXTENSIONS",
 )
+load("//zig/private/common:linkdeps.bzl", "zig_linkdeps")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -51,9 +52,14 @@ ATTRS = {
         mandatory = False,
     ),
     "deps": attr.label_list(
-        doc = "Packages or libraries required to build the target.",
+        doc = "Packages required to build the target.",
         mandatory = False,
         providers = [ZigPackageInfo],
+    ),
+    "linkdeps": attr.label_list(
+        doc = "Libraries to link the target against, typically `cc_library` targets.",
+        mandatory = False,
+        providers = [CcInfo],
     ),
     "linker_script": attr.label(
         doc = "Custom linker script for the target.",
@@ -155,6 +161,12 @@ def zig_build_impl(ctx, *, kind):
     zig_package_dependencies(
         deps = ctx.attr.deps,
         inputs = transitive_inputs,
+        args = args,
+    )
+
+    zig_linkdeps(
+        linkdeps = ctx.attr.linkdeps,
+        inputs = direct_inputs,
         args = args,
     )
 
