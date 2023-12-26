@@ -251,7 +251,7 @@ def zig_build_impl(ctx, *, kind):
         files = files,
         runfiles = zig_create_runfiles(
             ctx_runfiles = ctx.runfiles,
-            direct_data = [],
+            direct_data = direct_data,
             transitive_data = transitive_data,
             transitive_runfiles = transitive_runfiles,
         ),
