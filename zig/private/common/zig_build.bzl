@@ -180,6 +180,7 @@ def zig_build_impl(ctx, *, kind):
         direct_inputs = direct_inputs,
         transitive_inputs = transitive_inputs,
         args = args,
+        data = direct_data,
     )
 
     zig_linker_script(

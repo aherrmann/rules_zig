@@ -1,6 +1,6 @@
 """Handle C library dependencies."""
 
-def zig_cdeps(*, cdeps, direct_inputs, transitive_inputs, args):
+def zig_cdeps(*, cdeps, direct_inputs, transitive_inputs, args, data):
     """Handle C library dependencies.
 
     Sets the appropriate command-line flags for the Zig compiler to expose
@@ -11,6 +11,7 @@ def zig_cdeps(*, cdeps, direct_inputs, transitive_inputs, args):
       direct_inputs: List of File; mutable, Append the needed inputs to this list.
       transitive_inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the Zig command-line flags to this object.
+      data: List of File; mutable, Append the needed runtime dependencies.
     """
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = [cdep[CcInfo] for cdep in cdeps])
     _compilation_context(
@@ -22,6 +23,7 @@ def zig_cdeps(*, cdeps, direct_inputs, transitive_inputs, args):
         linking_context = cc_info.linking_context,
         inputs = direct_inputs,
         args = args,
+        data = data,
     )
 
 def _compilation_context(*, compilation_context, inputs, args):
@@ -38,20 +40,26 @@ def _compilation_context(*, compilation_context, inputs, args):
         args.add_all(compilation_context.external_includes, before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
-def _linking_context(*, linking_context, inputs, args):
+def _linking_context(*, linking_context, inputs, args, data):
     for link in linking_context.linker_inputs.to_list():
         args.add_all(link.user_link_flags)
         inputs.extend(link.additional_inputs)
         for lib in link.libraries:
             file = None
+            dynamic = False
             if lib.static_library != None:
                 file = lib.static_library
             elif lib.pic_static_library != None:
                 file = lib.pic_static_library
             elif lib.interface_library != None:
                 file = lib.interface_library
+                dynamic = True
             elif lib.dynamic_library != None:
                 file = lib.dynamic_library
+                dynamic = True
+
+            if dynamic and lib.dynamic_library:
+                data.append(lib.dynamic_library)
 
             # TODO[AH] Handle the remaining fields of LibraryToLink as needed:
             #   alwayslink
