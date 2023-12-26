@@ -1,13 +1,13 @@
 """Common implementation of the zig_binary|library|test rules."""
 
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
-load("//zig/private/common:linkdeps.bzl", "zig_linkdeps")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load(
     "//zig/private/common:filetypes.bzl",
     "ZIG_C_SOURCE_EXTENSIONS",
     "ZIG_SOURCE_EXTENSIONS",
 )
+load("//zig/private/common:linkdeps.bzl", "zig_linkdeps")
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
