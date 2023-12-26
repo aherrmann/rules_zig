@@ -1,17 +1,17 @@
 """Handle prebuilt library dependencies."""
 
-def zig_cdeps(*, cdeps, inputs, args):
+def zig_linkdeps(*, linkdeps, inputs, args):
     """Handle prebuilt library dependencies.
 
     Sets the appropriate command-line flags for the Zig compiler to link
-    against the provided C libraries.
+    against the provided libraries.
 
     Args:
-      cdeps: List of Target, Must provide `CcInfo`.
+      linkdeps: List of Target, Must provide `CcInfo`.
       inputs: List of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the Zig command-line flags to this object.
     """
-    cc_info = cc_common.merge_cc_infos(direct_cc_infos = [cdep[CcInfo] for cdep in cdeps])
+    cc_info = cc_common.merge_cc_infos(direct_cc_infos = [cdep[CcInfo] for cdep in linkdeps])
     for link in cc_info.linking_context.linker_inputs.to_list():
         args.add_all(link.user_link_flags)
         inputs.extend(link.additional_inputs)
