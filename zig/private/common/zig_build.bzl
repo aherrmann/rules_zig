@@ -1,6 +1,7 @@
 """Common implementation of the zig_binary|library|test rules."""
 
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
+load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load(
     "//zig/private/common:filetypes.bzl",
@@ -54,6 +55,11 @@ ATTRS = {
         doc = "Packages required to build the target.",
         mandatory = False,
         providers = [ZigPackageInfo],
+    ),
+    "cdeps": attr.label_list(
+        doc = "Prebuilt libraries to link the target against, typically `cc_library` targets.",
+        mandatory = False,
+        providers = [CcInfo],
     ),
     "linker_script": attr.label(
         doc = "Custom linker script for the target.",
@@ -155,6 +161,12 @@ def zig_build_impl(ctx, *, kind):
     zig_package_dependencies(
         deps = ctx.attr.deps,
         inputs = transitive_inputs,
+        args = args,
+    )
+
+    zig_cdeps(
+        cdeps = ctx.attr.cdeps,
+        inputs = direct_inputs,
         args = args,
     )
 
