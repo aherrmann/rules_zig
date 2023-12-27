@@ -26,16 +26,6 @@ zig_test(
     main = "main.zig",
 )
 
-build_test(
-    name = "build",
-    size = "small",
-    targets = [
-        ":binary",
-        ":library",
-        ":test",
-    ],
-)
-
 genrule(
     name = "output",
     outs = ["output.actual"],
@@ -48,4 +38,25 @@ diff_test(
     size = "small",
     file1 = ":output.expected",
     file2 = ":output.actual",
+)
+
+genrule(
+    name = "library-symbol",
+    srcs = [":library"],
+    outs = ["library-symbol.txt"],
+    # Test that `add` is not inlined into the Zig library, but remains an
+    # undefined symbol to be resolved later.
+    cmd = "$(NM) -j --undefined-only $(SRCS) | grep add > $(OUTS)",
+    toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
+)
+
+build_test(
+    name = "build",
+    size = "small",
+    targets = [
+        ":binary",
+        ":library",
+        ":library-symbol",
+        ":test",
+    ],
 )
