@@ -57,7 +57,7 @@ ATTRS = {
         providers = [ZigPackageInfo],
     ),
     "cdeps": attr.label_list(
-        doc = "Libraries to link the target against, typically `cc_library` targets.",
+        doc = "C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.",
         mandatory = False,
         providers = [CcInfo],
     ),
