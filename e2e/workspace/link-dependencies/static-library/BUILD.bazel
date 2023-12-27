@@ -10,19 +10,19 @@ cc_library(
 
 zig_binary(
     name = "binary",
-    linkdeps = [":add"],
+    cdeps = [":add"],
     main = "main.zig",
 )
 
 zig_library(
     name = "library",
-    linkdeps = [":add"],
+    cdeps = [":add"],
     main = "main.zig",
 )
 
 zig_test(
     name = "test",
-    linkdeps = [":add"],
+    cdeps = [":add"],
     main = "main.zig",
 )
 
