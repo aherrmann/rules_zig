@@ -15,19 +15,28 @@ cc_library(
 
 zig_binary(
     name = "binary",
-    cdeps = [":add"],
+    cdeps = [
+        ":add",
+        "@rules_zig//zig/lib:libc",
+    ],
     main = "main.zig",
 )
 
 zig_library(
     name = "library",
-    cdeps = [":add"],
+    cdeps = [
+        ":add",
+        "@rules_zig//zig/lib:libc",
+    ],
     main = "main.zig",
 )
 
 zig_test(
     name = "test",
-    cdeps = [":add"],
+    cdeps = [
+        ":add",
+        "@rules_zig//zig/lib:libc",
+    ],
     main = "main.zig",
 )
 
