@@ -57,7 +57,18 @@ ATTRS = {
         providers = [ZigPackageInfo],
     ),
     "cdeps": attr.label_list(
-        doc = "C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.",
+        doc = """
+C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.
+
+Note, if you need to include C or C++ standard library headers and encounter errors of the following form:
+
+```
+note: libc headers not available; compilation does not link against libc
+error: 'math.h' file not found
+```
+
+Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.
+""",
         mandatory = False,
         providers = [CcInfo],
     ),
