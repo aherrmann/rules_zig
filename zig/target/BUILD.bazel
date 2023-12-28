@@ -26,7 +26,7 @@ resolved_target_toolchain(
 
 zig_target_toolchain(
     name = "x86_32-linux",
-    target = "i386-linux",
+    target = "x86-linux",
 )
 
 toolchain(
