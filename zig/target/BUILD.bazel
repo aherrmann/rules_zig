@@ -24,24 +24,63 @@ resolved_target_toolchain(
 
 # TODO[AH] Use a generated, version specific set of platforms.
 
-zig_target_toolchain(
-    name = "x86_32-linux",
-    target = "x86-linux",
-)
-
 toolchain(
     name = "x86_32-linux_toolchain",
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_32",
     ],
-    toolchain = ":x86_32-linux",
+    # default to gnu
+    toolchain = ":x86_32-linux-gnu",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "x86_64-linux",
-    target = "x86_64-linux",
+    name = "x86_32-linux-none",
+    target = "x86-linux-none",
+)
+
+toolchain(
+    name = "x86_32-linux-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_32",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":x86_32-linux-none",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "x86_32-linux-gnu",
+    target = "x86-linux-gnu",
+)
+
+toolchain(
+    name = "x86_32-linux-gnu_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_32",
+        "//zig/platforms/abi:gnu",
+    ],
+    toolchain = ":x86_32-linux-gnu",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "x86_32-linux-musl",
+    target = "x86-linux-musl",
+)
+
+toolchain(
+    name = "x86_32-linux-musl_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_32",
+        "//zig/platforms/abi:musl",
+    ],
+    toolchain = ":x86_32-linux-musl",
+    toolchain_type = ":toolchain_type",
 )
 
 toolchain(
@@ -50,28 +89,105 @@ toolchain(
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
-    toolchain = ":x86_64-linux",
+    # default to gnu
+    toolchain = ":x86_64-linux-gnu",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "ppc-linux",
-    target = "powerpc-linux",
+    name = "x86_64-linux-none",
+    target = "x86_64-linux-none",
 )
 
 toolchain(
-    name = "ppc-linux_toolchain",
+    name = "x86_64-linux-none_toolchain",
     target_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:ppc",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:none",
     ],
-    toolchain = ":ppc-linux",
+    toolchain = ":x86_64-linux-none",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "aarch64-linux",
-    target = "aarch64-linux",
+    name = "x86_64-linux-gnu",
+    target = "x86_64-linux-gnu",
+)
+
+toolchain(
+    name = "x86_64-linux-gnu_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:gnu",
+    ],
+    toolchain = ":x86_64-linux-gnu",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "x86_64-linux-musl",
+    target = "x86_64-linux-musl",
+)
+
+toolchain(
+    name = "x86_64-linux-musl_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:musl",
+    ],
+    toolchain = ":x86_64-linux-musl",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "ppc-linux-none",
+    target = "powerpc-linux-none",
+)
+
+toolchain(
+    name = "ppc-linux-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":ppc-linux-none",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "ppc-linux-gnu",
+    target = "powerpc-linux-gnu",
+)
+
+toolchain(
+    name = "ppc-linux-gnu_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc",
+        "//zig/platforms/abi:gnu",
+    ],
+    toolchain = ":ppc-linux-gnu",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "ppc-linux-musl",
+    target = "powerpc-linux-musl",
+)
+
+toolchain(
+    name = "ppc-linux-musl_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc",
+        "//zig/platforms/abi:musl",
+    ],
+    toolchain = ":ppc-linux-musl",
+    toolchain_type = ":toolchain_type",
 )
 
 toolchain(
@@ -80,13 +196,57 @@ toolchain(
         "@platforms//os:linux",
         "@platforms//cpu:aarch64",
     ],
-    toolchain = ":aarch64-linux",
+    # default to gnu
+    toolchain = ":aarch64-linux-gnu",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "x86_64-macos",
-    target = "x86_64-macos",
+    name = "aarch64-linux-none",
+    target = "aarch64-linux-none",
+)
+
+toolchain(
+    name = "aarch64-linux-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":aarch64-linux-none",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "aarch64-linux-gnu",
+    target = "aarch64-linux-gnu",
+)
+
+toolchain(
+    name = "aarch64-linux-gnu_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:gnu",
+    ],
+    toolchain = ":aarch64-linux-gnu",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "aarch64-linux-musl",
+    target = "aarch64-linux-musl",
+)
+
+toolchain(
+    name = "aarch64-linux-musl_toolchain",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:musl",
+    ],
+    toolchain = ":aarch64-linux-musl",
+    toolchain_type = ":toolchain_type",
 )
 
 toolchain(
@@ -95,13 +255,25 @@ toolchain(
         "@platforms//os:macos",
         "@platforms//cpu:x86_64",
     ],
-    toolchain = ":x86_64-macos",
+    # default to none
+    toolchain = ":x86_64-macos-none",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "aarch64-macos",
-    target = "aarch64-macos",
+    name = "x86_64-macos-none",
+    target = "x86_64-macos-none",
+)
+
+toolchain(
+    name = "x86_64-macos-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":x86_64-macos-none",
+    toolchain_type = ":toolchain_type",
 )
 
 toolchain(
@@ -110,13 +282,25 @@ toolchain(
         "@platforms//os:macos",
         "@platforms//cpu:aarch64",
     ],
-    toolchain = ":aarch64-macos",
+    # default to none
+    toolchain = ":aarch64-macos-none",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "x86_64-windows",
-    target = "x86_64-windows",
+    name = "aarch64-macos-none",
+    target = "aarch64-macos-none",
+)
+
+toolchain(
+    name = "aarch64-macos-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":aarch64-macos-none",
+    toolchain_type = ":toolchain_type",
 )
 
 toolchain(
@@ -125,13 +309,41 @@ toolchain(
         "@platforms//os:windows",
         "@platforms//cpu:x86_64",
     ],
-    toolchain = ":x86_64-windows",
+    # default to gnu
+    toolchain = ":x86_64-windows-gnu",
     toolchain_type = ":toolchain_type",
 )
 
 zig_target_toolchain(
-    name = "aarch64-windows",
-    target = "aarch64-windows",
+    name = "x86_64-windows-none",
+    target = "x86_64-windows-none",
+)
+
+toolchain(
+    name = "x86_64-windows-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":x86_64-windows-none",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "x86_64-windows-gnu",
+    target = "x86_64-windows-gnu",
+)
+
+toolchain(
+    name = "x86_64-windows-gnu_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:gnu",
+    ],
+    toolchain = ":x86_64-windows-gnu",
+    toolchain_type = ":toolchain_type",
 )
 
 toolchain(
@@ -140,7 +352,40 @@ toolchain(
         "@platforms//os:windows",
         "@platforms//cpu:aarch64",
     ],
-    toolchain = ":aarch64-windows",
+    # default to gnu
+    toolchain = ":aarch64-windows-gnu",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "aarch64-windows-none",
+    target = "aarch64-windows-none",
+)
+
+toolchain(
+    name = "aarch64-windows-none_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:none",
+    ],
+    toolchain = ":aarch64-windows-none",
+    toolchain_type = ":toolchain_type",
+)
+
+zig_target_toolchain(
+    name = "aarch64-windows-gnu",
+    target = "aarch64-windows-gnu",
+)
+
+toolchain(
+    name = "aarch64-windows-gnu_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:gnu",
+    ],
+    toolchain = ":aarch64-windows-gnu",
     toolchain_type = ":toolchain_type",
 )
 
