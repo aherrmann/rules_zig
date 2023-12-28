@@ -1,0 +1,32 @@
+"""Helper targets to enable libc or libc++ linking.
+
+The Zig compiler ships with various versions of libc and libc++. However, it
+does not link against these libraries by default, and accordingly does not
+expose standard library headers for C imports by default. To enable the import
+of C standard library headers the compiler must be instructed to link against
+libc or libc++ as appropriate.
+
+The targets provided in this package can be used to accomplish this. Simply add
+them to the `cdeps` attribute of your Zig target to enable libc or libc++
+linking. E.g.
+
+```
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    cdeps = ["@rules_zig//zig/lib:libc"],
+)
+```
+"""
+
+cc_library(
+    name = "libc",
+    linkopts = ["-lc"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "libc++",
+    linkopts = ["-lc++"],
+    visibility = ["//visibility:public"],
+)
