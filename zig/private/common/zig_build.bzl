@@ -166,7 +166,8 @@ def zig_build_impl(ctx, *, kind):
 
     zig_cdeps(
         cdeps = ctx.attr.cdeps,
-        inputs = direct_inputs,
+        direct_inputs = direct_inputs,
+        transitive_inputs = transitive_inputs,
         args = args,
     )
 
