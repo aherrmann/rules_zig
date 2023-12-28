@@ -22,6 +22,7 @@ zig_library(
 
 zig_test(
     name = "test",
+    size = "small",
     cdeps = [":add"],
     main = "main.zig",
 )
