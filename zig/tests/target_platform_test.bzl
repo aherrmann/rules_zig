@@ -34,9 +34,9 @@ def _define_target_platform_test(target, option):
         config_settings = {_TARGET_PLATFORM: target},
     )
 
-_target_platform_x86_64_linux_test = _define_target_platform_test(_PLATFORM_X86_64_LINUX, "x86_64-linux")
-_target_platform_aarch64_linux_test = _define_target_platform_test(_PLATFORM_AARCH64_LINUX, "aarch64-linux")
-_target_platform_x86_64_windows_test = _define_target_platform_test(_PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+_target_platform_x86_64_linux_test = _define_target_platform_test(_PLATFORM_X86_64_LINUX, "x86_64-linux-gnu")
+_target_platform_aarch64_linux_test = _define_target_platform_test(_PLATFORM_AARCH64_LINUX, "aarch64-linux-gnu")
+_target_platform_x86_64_windows_test = _define_target_platform_test(_PLATFORM_X86_64_WINDOWS, "x86_64-windows-gnu")
 
 def _define_build_target_platform_test(mnemonic, target, option):
     def _test_impl(ctx):
@@ -53,21 +53,21 @@ def _define_build_target_platform_test(mnemonic, target, option):
         config_settings = {_TARGET_PLATFORM: target},
     )
 
-_build_exe_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_LINUX, "x86_64-linux")
-_build_exe_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-_build_exe_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+_build_exe_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_LINUX, "x86_64-linux-gnu")
+_build_exe_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_AARCH64_LINUX, "aarch64-linux-gnu")
+_build_exe_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_WINDOWS, "x86_64-windows-gnu")
 
-_build_lib_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_LINUX, "x86_64-linux")
-_build_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-_build_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+_build_lib_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_LINUX, "x86_64-linux-gnu")
+_build_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux-gnu")
+_build_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows-gnu")
 
-_build_shared_lib_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_X86_64_LINUX, "x86_64-linux")
-_build_shared_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-_build_shared_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+_build_shared_lib_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_X86_64_LINUX, "x86_64-linux-gnu")
+_build_shared_lib_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_AARCH64_LINUX, "aarch64-linux-gnu")
+_build_shared_lib_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildSharedLib", _PLATFORM_X86_64_WINDOWS, "x86_64-windows-gnu")
 
-_build_test_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_LINUX, "x86_64-linux")
-_build_test_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_AARCH64_LINUX, "aarch64-linux")
-_build_test_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_WINDOWS, "x86_64-windows")
+_build_test_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_LINUX, "x86_64-linux-gnu")
+_build_test_target_platform_aarch64_linux_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_AARCH64_LINUX, "aarch64-linux-gnu")
+_build_test_target_platform_x86_64_windows_test = _define_build_target_platform_test("ZigBuildTest", _PLATFORM_X86_64_WINDOWS, "x86_64-windows-gnu")
 
 def _define_file_extension_test(target, extension, basename_pattern = "%s"):
     def _test_impl(ctx):
