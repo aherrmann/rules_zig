@@ -9,6 +9,15 @@ platform(
 )
 
 platform(
+    name = "x86_64-linux-musl",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:musl",
+    ],
+)
+
+platform(
     name = "aarch64-linux",
     constraint_values = [
         "@platforms//os:linux",
@@ -17,9 +26,27 @@ platform(
 )
 
 platform(
+    name = "aarch64-linux-none",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+        "//zig/platforms/abi:none",
+    ],
+)
+
+platform(
     name = "x86_64-windows",
     constraint_values = [
         "@platforms//os:windows",
         "@platforms//cpu:x86_64",
+    ],
+)
+
+platform(
+    name = "x86_64-windows-none",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:none",
     ],
 )
