@@ -33,7 +33,9 @@ def _compilation_context(*, compilation_context, inputs, args):
     # args.add_all(compilation_context.quote_includes, format_each = "-iquote%s")
     args.add_all(compilation_context.quote_includes, format_each = "-I%s")
     args.add_all(compilation_context.system_includes, format_each = "-isystem%s")
-    args.add_all(compilation_context.external_includes, format_each = "-isystem%s")
+    if hasattr(compilation_context, "external_includes"):
+        # Added in Bazel 7, see https://github.com/bazelbuild/bazel/commit/a6ef0b341a8ffe8ab27e5ace79d8eaae158c422b
+        args.add_all(compilation_context.external_includes, format_each = "-isystem%s")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
 def _linking_context(*, linking_context, inputs, args):
