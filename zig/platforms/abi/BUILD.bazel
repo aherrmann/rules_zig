@@ -1,0 +1,30 @@
+constraint_setting(
+    name = "abi",
+    visibility = ["//visibility:public"],
+)
+
+# See `zig targets | jq .abi`.
+
+constraint_value(
+    name = "none",
+    constraint_setting = ":abi",
+    visibility = ["//visibility:public"],
+)
+
+constraint_value(
+    name = "gnu",
+    constraint_setting = ":abi",
+    visibility = ["//visibility:public"],
+)
+
+constraint_value(
+    name = "musl",
+    constraint_setting = ":abi",
+    visibility = ["//visibility:public"],
+)
+
+constraint_value(
+    name = "msvc",
+    constraint_setting = ":abi",
+    visibility = ["//visibility:public"],
+)
