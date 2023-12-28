@@ -3,21 +3,21 @@ load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
 
 cc_binary(
-    name = "add_shared",
+    name = "add",
     srcs = ["add.c"],
-    linkopts = ["-Wl,-soname,libadd_shared.so"],
+    linkopts = ["-Wl,-soname,libadd.so"],
     linkshared = True,
 )
 
 cc_library(
-    name = "add",
-    srcs = [":add_shared"],
+    name = "add_shared",
+    srcs = [":add"],
 )
 
 zig_binary(
     name = "binary",
     cdeps = [
-        ":add",
+        ":add_shared",
         "@rules_zig//zig/lib:libc",
     ],
     main = "main.zig",
@@ -26,7 +26,7 @@ zig_binary(
 zig_library(
     name = "library",
     cdeps = [
-        ":add",
+        ":add_shared",
         "@rules_zig//zig/lib:libc",
     ],
     main = "main.zig",
@@ -35,7 +35,7 @@ zig_library(
 zig_test(
     name = "test",
     cdeps = [
-        ":add",
+        ":add_shared",
         "@rules_zig//zig/lib:libc",
     ],
     main = "main.zig",
