@@ -87,6 +87,7 @@ filegroup(
         ":repositories.bzl",
         ":toolchain.bzl",
         "//zig/config:all_files",
+        "//zig/lib:all_files",
         "//zig/private:all_files",
         "//zig/settings:all_files",
         "//zig/target:all_files",
