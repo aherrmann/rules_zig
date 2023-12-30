@@ -26,7 +26,7 @@ def zig_cdeps(*, cdeps, direct_inputs, transitive_inputs, args):
 
 def _compilation_context(*, compilation_context, inputs, args):
     inputs.append(compilation_context.headers)
-    args.add_all(compilation_context.defines, format_each = "-d%s")
+    args.add_all(compilation_context.defines, format_each = "-D%s")
     args.add_all(compilation_context.includes, format_each = "-I%s")
 
     # Note, Zig does not support `-iquote` as of Zig 0.11.0
