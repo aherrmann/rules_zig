@@ -7,7 +7,7 @@ cc_binary(
     srcs = ["add.c"],
     linkopts = select({
         "@platforms//os:linux": ["-Wl,-soname,libadd.so"],
-        "@platforms//os:macos": ["-Wl,-install_name,libadd.so"],
+        "@platforms//os:macos": ["-Wl,-install_name,@rpath/libadd.so"],
         "//conditions:default": [],
     }),
     linkshared = True,
