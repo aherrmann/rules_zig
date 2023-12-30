@@ -50,6 +50,10 @@ ATTRS = {
         doc = "The value of the -target flag.",
         mandatory = True,
     ),
+    "dynamic_linker": attr.string(
+        doc = "The value of the --dynamic-linker flag.",
+        mandatory = False,
+    ),
 }
 
 def _zig_target_toolchain(ctx):
@@ -58,9 +62,14 @@ def _zig_target_toolchain(ctx):
     target = ctx.attr.target
     args.extend(["-target", target])
 
+    dynamic_linker = ctx.attr.dynamic_linker
+    if dynamic_linker:
+        args.extend(["--dynamic-linker", dynamic_linker])
+
     target_info = ZigTargetInfo(
         target = target,
         triple = triple.from_string(target),
+        dynamic_linker = dynamic_linker,
         args = args,
     )
 
@@ -69,6 +78,7 @@ def _zig_target_toolchain(ctx):
 
     template_variables = platform_common.TemplateVariableInfo({
         "ZIG_TARGET": target,
+        "ZIG_DYNAMIC_LINKER": dynamic_linker,
     })
     default = DefaultInfo(
         files = depset([target_json]),

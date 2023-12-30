@@ -193,3 +193,39 @@ test "zig_binary result should not contain the output base path in release_fast 
 
     try testBinaryShouldNotContainOutputBase("release_fast");
 }
+
+test "zig_target_toolchain attribute dynamic_linker configures the interpreter" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{
+            "build",
+            "//custom_interpreter:binary-custom_interpreter",
+            "--extra_toolchains=//custom_interpreter:x86_64-linux-custom_interpreter_toolchain",
+            "--extra_toolchains=//custom_interpreter:cc_x86_64-linux-custom_interpreter_toolchain",
+        },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    const file = try workspace.openFile("bazel-bin/custom_interpreter/binary-custom_interpreter", .{});
+    defer file.close();
+
+    const elf_header = try std.elf.Header.read(file);
+    var ph_iter = elf_header.program_header_iterator(file);
+    var interp = std.ArrayList(u8).init(std.testing.allocator);
+    defer interp.deinit();
+    while (try ph_iter.next()) |phdr| {
+        if (phdr.p_type == std.elf.PT_INTERP) {
+            try file.seekableStream().seekTo(phdr.p_offset);
+            try file.reader().streamUntilDelimiter(interp.writer(), 0, null);
+            break;
+        }
+    }
+
+    try std.testing.expectEqualStrings("/custom/loader.so", interp.items);
+}

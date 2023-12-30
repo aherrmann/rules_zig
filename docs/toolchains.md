@@ -7,7 +7,7 @@ Rules to declare Zig toolchains.
 ## zig_target_toolchain
 
 <pre>
-zig_target_toolchain(<a href="#zig_target_toolchain-name">name</a>, <a href="#zig_target_toolchain-target">target</a>)
+zig_target_toolchain(<a href="#zig_target_toolchain-name">name</a>, <a href="#zig_target_toolchain-dynamic_linker">dynamic_linker</a>, <a href="#zig_target_toolchain-target">target</a>)
 </pre>
 
 Defines a Zig target configuration toolchain.
@@ -56,6 +56,7 @@ toolchain(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_target_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_target_toolchain-dynamic_linker"></a>dynamic_linker |  The value of the --dynamic-linker flag.   | String | optional |  `""`  |
 | <a id="zig_target_toolchain-target"></a>target |  The value of the -target flag.   | String | required |  |
 
 
