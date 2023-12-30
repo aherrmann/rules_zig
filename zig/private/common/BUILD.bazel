@@ -37,6 +37,7 @@ bzl_library(
     name = "cdeps",
     srcs = ["cdeps.bzl"],
     visibility = ["//zig:__subpackages__"],
+    deps = ["@bazel_skylib//lib:paths"],
 )
 
 bzl_library(
