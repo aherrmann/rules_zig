@@ -5,7 +5,11 @@ load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
 cc_binary(
     name = "add",
     srcs = ["add.c"],
-    linkopts = ["-Wl,-soname,libadd.so"],
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-soname,libadd.so"],
+        "@platforms//os:macos": ["-Wl,-install_name,libadd.so"],
+        "//conditions:default": [],
+    }),
     linkshared = True,
 )
 
