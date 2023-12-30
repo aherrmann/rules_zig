@@ -34,6 +34,7 @@ zig_library(
 
 zig_test(
     name = "test",
+    size = "small",
     cdeps = [
         ":add_shared",
         "@rules_zig//zig/lib:libc",
