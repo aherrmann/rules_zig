@@ -121,7 +121,7 @@ def zig_build_impl(ctx, *, kind):
 
     zig_collect_data(
         data = ctx.attr.data,
-        deps = ctx.attr.deps,
+        deps = ctx.attr.deps + ctx.attr.cdeps,
         transitive_data = transitive_data,
         transitive_runfiles = transitive_runfiles,
     )
