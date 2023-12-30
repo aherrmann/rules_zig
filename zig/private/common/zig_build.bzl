@@ -10,6 +10,7 @@ load(
     "ZIG_SOURCE_EXTENSIONS",
 )
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
+load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
@@ -49,7 +50,7 @@ ATTRS = {
         mandatory = False,
     ),
     "copts": attr.string_list(
-        doc = "C compiler flags required to build the C sources of the target.",
+        doc = "C compiler flags required to build the C sources of the target. Subject to location expansion.",
         mandatory = False,
     ),
     "deps": attr.label_list(
@@ -163,8 +164,18 @@ def zig_build_impl(ctx, *, kind):
     direct_inputs.extend(ctx.files.extra_srcs)
     args.add(ctx.file.main)
 
+    location_targets = ctx.attr.data
+
+    copts = location_expansion(
+        ctx = ctx,
+        targets = location_targets,
+        outputs = outputs,
+        attribute_name = "copts",
+        strings = ctx.attr.copts,
+    )
+
     zig_csrcs(
-        copts = ctx.attr.copts,
+        copts = copts,
         csrcs = ctx.files.csrcs,
         inputs = direct_inputs,
         args = args,
