@@ -1,5 +1,6 @@
 """Common implementation of the zig_binary|library|test rules."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
@@ -177,9 +178,12 @@ def zig_build_impl(ctx, *, kind):
 
     zig_cdeps(
         cdeps = ctx.attr.cdeps,
+        output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
+        os = zigtargetinfo.triple.os,
         direct_inputs = direct_inputs,
         transitive_inputs = transitive_inputs,
         args = args,
+        data = direct_data,
     )
 
     zig_linker_script(
@@ -251,7 +255,7 @@ def zig_build_impl(ctx, *, kind):
         files = files,
         runfiles = zig_create_runfiles(
             ctx_runfiles = ctx.runfiles,
-            direct_data = [],
+            direct_data = direct_data,
             transitive_data = transitive_data,
             transitive_runfiles = transitive_runfiles,
         ),

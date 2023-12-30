@@ -1,0 +1,71 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
+
+cc_binary(
+    name = "add",
+    srcs = ["add.c"],
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-soname,libadd.so"],
+        "@platforms//os:macos": ["-Wl,-install_name,@rpath/libadd.dylib"],
+        "//conditions:default": [],
+    }),
+    linkshared = True,
+)
+
+cc_library(
+    name = "add_shared",
+    srcs = [":add"],
+)
+
+zig_binary(
+    name = "binary",
+    cdeps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+    main = "main.zig",
+)
+
+zig_library(
+    name = "library",
+    cdeps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+    main = "main.zig",
+)
+
+zig_test(
+    name = "test",
+    size = "small",
+    cdeps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+    main = "main.zig",
+)
+
+build_test(
+    name = "build",
+    size = "small",
+    targets = [
+        ":binary",
+        ":library",
+        ":test",
+    ],
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :binary) > $(OUTS)",
+    tools = [":binary"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)
