@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-def zig_cdeps(*, cdeps, output_dir, direct_inputs, transitive_inputs, args, data):
+def zig_cdeps(*, cdeps, output_dir, os, direct_inputs, transitive_inputs, args, data):
     """Handle C library dependencies.
 
     Sets the appropriate command-line flags for the Zig compiler to expose
@@ -11,6 +11,7 @@ def zig_cdeps(*, cdeps, output_dir, direct_inputs, transitive_inputs, args, data
     Args:
       cdeps: List of Target, Must provide `CcInfo`.
       output_dir: String, The directory in which the binary or library is created. Used for RUNPATH calcuation.
+      os: String, The OS component of the target triple.
       direct_inputs: List of File; mutable, Append the needed inputs to this list.
       transitive_inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the Zig command-line flags to this object.
@@ -25,6 +26,7 @@ def zig_cdeps(*, cdeps, output_dir, direct_inputs, transitive_inputs, args, data
     _linking_context(
         linking_context = cc_info.linking_context,
         output_dir = output_dir,
+        os = os,
         inputs = direct_inputs,
         args = args,
         data = data,
@@ -44,7 +46,7 @@ def _compilation_context(*, compilation_context, inputs, args):
         args.add_all(compilation_context.external_includes, before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
-def _linking_context(*, linking_context, output_dir, inputs, args, data):
+def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
     dynamic_libraries = []
     for link in linking_context.linker_inputs.to_list():
         args.add_all(link.user_link_flags)
@@ -79,12 +81,18 @@ def _linking_context(*, linking_context, output_dir, inputs, args, data):
                 inputs.append(file)
                 args.add(file)
 
-    args.add_all(dynamic_libraries, map_each = _make_to_rpath(output_dir), allow_closure = True, before_each = "-rpath")
     data.extend(dynamic_libraries)
+    args.add_all(dynamic_libraries, map_each = _make_to_rpath(output_dir, os), allow_closure = True, before_each = "-rpath")
 
-def _make_to_rpath(output_dir):
+def _make_to_rpath(output_dir, os):
+    origin = "$ORIGIN"
+
+    # Based on `zig targets | jq .os`
+    if os in ["freebsd", "ios", "macos", "netbsd", "openbsd", "tvos", "watchos"]:
+        origin = "@loader_path"
+
     def to_rpath(lib):
-        result = paths.join("$ORIGIN", _relativize(lib.dirname, output_dir))
+        result = paths.join(origin, _relativize(lib.dirname, output_dir))
         return result
 
     return to_rpath

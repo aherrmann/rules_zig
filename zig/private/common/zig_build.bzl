@@ -179,6 +179,7 @@ def zig_build_impl(ctx, *, kind):
     zig_cdeps(
         cdeps = ctx.attr.cdeps,
         output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
+        os = zigtargetinfo.triple.os,
         direct_inputs = direct_inputs,
         transitive_inputs = transitive_inputs,
         args = args,
