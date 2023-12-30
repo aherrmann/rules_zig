@@ -202,6 +202,7 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
             "build",
             "//custom_interpreter:binary-custom_interpreter",
             "--extra_toolchains=//custom_interpreter:x86_64-linux-custom_interpreter_toolchain",
+            "--extra_toolchains=//custom_interpreter:cc_x86_64-linux-custom_interpreter_toolchain",
         },
     });
     defer result.deinit();
