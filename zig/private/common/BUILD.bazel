@@ -24,6 +24,7 @@ bzl_library(
         ":data",
         ":filetypes",
         ":linker_script",
+        ":location_expansion",
         ":zig_cache",
         ":zig_lib_dir",
         ":zig_target_triple",
@@ -38,6 +39,13 @@ bzl_library(
     srcs = ["cdeps.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = ["@bazel_skylib//lib:paths"],
+)
+
+bzl_library(
+    name = "location_expansion",
+    srcs = ["location_expansion.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["@aspect_bazel_lib//lib:expand_make_vars"],
 )
 
 bzl_library(
@@ -80,6 +88,7 @@ filegroup(
         ":data.bzl",
         ":filetypes.bzl",
         ":linker_script.bzl",
+        ":location_expansion.bzl",
         ":zig_build.bzl",
         ":zig_cache.bzl",
         ":zig_lib_dir.bzl",
