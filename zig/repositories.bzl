@@ -22,7 +22,6 @@ def _http_archive(name, **kwargs):
 def rules_zig_dependencies():
     """Register dependencies required by rules_zig."""
 
-    # The minimal version of bazel_skylib we require
     _http_archive(
         name = "bazel_skylib",
         sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
@@ -30,6 +29,13 @@ def rules_zig_dependencies():
             "https://github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.3.0.tar.gz",
             "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
         ],
+    )
+
+    _http_archive(
+        name = "aspect_bazel_lib",
+        sha256 = "fc8bd670380eaba5314769abbe9fee21d641e3da06d9d26b8073a301f6d62332",
+        strip_prefix = "bazel-lib-2.1.0",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.1.0/bazel-lib-v2.1.0.tar.gz",
     )
 
 ########

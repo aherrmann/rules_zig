@@ -1,0 +1,14 @@
+load("@rules_zig//zig:defs.bzl", "zig_test")
+
+zig_test(
+    name = "test",
+    size = "small",
+    copts = [
+        '-DRLOCATIONPATH="$(rlocationpath :data.txt)"',
+        '-DTARGET="$(TARGET)"',
+        '-DZIG_TARGET="$(ZIG_TARGET)"',
+    ],
+    csrcs = ["main.c"],
+    data = ["data.txt"],
+    main = "main.zig",
+)
