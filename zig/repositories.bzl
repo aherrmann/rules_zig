@@ -35,7 +35,7 @@ def rules_zig_dependencies():
         name = "aspect_bazel_lib",
         sha256 = "8d71a578e4e1b6a54aea7598ebfbd8fc9e3be5da881ff9d2b80249577b933a40",
         strip_prefix = "bazel-lib-2.2.0",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.2.0/bazel-lib-v2.2.0.tar.gz",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.3.0/bazel-lib-v2.2.0.tar.gz",
     )
 
 ########
