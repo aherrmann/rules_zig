@@ -1,0 +1,19 @@
+load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
+
+_SRCS = [
+    "src/Runfiles.zig",
+]
+
+zig_package(
+    name = "runfiles",
+    srcs = _SRCS,
+    main = "runfiles.zig",
+    visibility = ["//visibility:public"],
+)
+
+zig_test(
+    name = "runfiles_test",
+    size = "small",
+    srcs = _SRCS,
+    main = "runfiles.zig",
+)
