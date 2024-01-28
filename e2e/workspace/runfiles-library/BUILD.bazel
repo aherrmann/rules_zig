@@ -1,9 +1,30 @@
-load("@rules_zig//zig:defs.bzl", "zig_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    deps = ["@rules_zig//zig/runfiles"],
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :binary) > $(OUTS)",
+    tools = [":binary"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)
 
 zig_test(
-    name = "direct-data",
+    name = "test",
     size = "small",
     data = ["data.txt"],
-    main = "direct-data.zig",
+    main = "main.zig",
     deps = ["@rules_zig//zig/runfiles"],
 )
