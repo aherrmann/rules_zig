@@ -7,6 +7,9 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
+    var r = try runfiles.Runfiles.create(allocator);
+    defer r.deinit(allocator);
+
     var file = try std.fs.cwd().openFile("runfiles-library/data.txt", .{});
     defer file.close();
 
