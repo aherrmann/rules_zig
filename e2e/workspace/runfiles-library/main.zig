@@ -23,7 +23,21 @@ pub fn main() !void {
 }
 
 test "read data file" {
-    var file = try std.fs.cwd().openFile("runfiles-library/data.txt", .{});
+    var env = try std.process.getEnvMap(std.testing.allocator);
+    defer env.deinit();
+
+    var iter = env.iterator();
+    while (iter.next()) |item| {
+        std.debug.print("ENV '{s}'='{s}'\n", .{ item.key_ptr.*, item.value_ptr.* });
+    }
+
+    var r = try runfiles.Runfiles.create(std.testing.allocator);
+    defer r.deinit(std.testing.allocator);
+
+    const file_path = try r.rlocation(std.testing.allocator, "_main/runfiles-library/data.txt");
+    defer std.testing.allocator.free(file_path);
+
+    var file = try std.fs.cwd().openFile(file_path, .{});
     defer file.close();
 
     const content = try file.readToEndAlloc(std.testing.allocator, 4096);
