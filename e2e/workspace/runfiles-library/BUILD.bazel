@@ -3,6 +3,7 @@ load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
 
 zig_binary(
     name = "binary",
+    data = ["data.txt"],
     main = "main.zig",
     deps = ["@rules_zig//zig/runfiles"],
 )

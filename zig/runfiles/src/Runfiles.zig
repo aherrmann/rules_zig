@@ -32,3 +32,14 @@ pub fn create(allocator: std.mem.Allocator) !Self {
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     allocator.free(self.directory);
 }
+
+pub fn rlocation(
+    self: *const Self,
+    allocator: std.mem.Allocator,
+    rpath: []const u8,
+) ![]const u8 {
+    return try std.fs.path.join(allocator, &[_][]const u8{
+        self.directory,
+        rpath,
+    });
+}

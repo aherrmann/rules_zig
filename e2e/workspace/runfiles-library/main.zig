@@ -10,7 +10,10 @@ pub fn main() !void {
     var r = try runfiles.Runfiles.create(allocator);
     defer r.deinit(allocator);
 
-    var file = try std.fs.cwd().openFile("runfiles-library/data.txt", .{});
+    const file_path = try r.rlocation(allocator, "_main/runfiles-library/data.txt");
+    defer allocator.free(file_path);
+
+    var file = try std.fs.cwd().openFile(file_path, .{});
     defer file.close();
 
     const content = try file.readToEndAlloc(allocator, 4096);
