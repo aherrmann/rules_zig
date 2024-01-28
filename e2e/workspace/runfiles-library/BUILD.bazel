@@ -5,4 +5,5 @@ zig_test(
     size = "small",
     data = ["data.txt"],
     main = "direct-data.zig",
+    deps = ["@rules_zig//zig/runfiles"],
 )

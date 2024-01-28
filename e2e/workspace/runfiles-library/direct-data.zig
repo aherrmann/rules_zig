@@ -1,4 +1,5 @@
 const std = @import("std");
+const runfiles = @import("runfiles");
 
 test "read data file" {
     var file = try std.fs.cwd().openFile("runfiles-library/data.txt", .{});
