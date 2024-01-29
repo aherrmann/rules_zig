@@ -59,7 +59,7 @@ ATTRS = {
         providers = [ZigPackageInfo],
     ),
     "cdeps": attr.label_list(
-        doc = """
+        doc = """\
 C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.
 
 Note, if you need to include C or C++ standard library headers and encounter errors of the following form:
@@ -88,6 +88,33 @@ Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:lib
         default = "//zig/settings",
         doc = "Zig build settings.",
         providers = [ZigSettingsInfo],
+    ),
+}
+
+BINARY_ATTRS = {
+    "env": attr.string_dict(
+        doc = """\
+Additional environment variables to set when executed by `bazel run`.
+Subject to location expansion.
+NOTE: The environment variables are not set when you run the target outside of Bazel (for example, by manually executing the binary in bazel-bin/).
+        """,
+        mandatory = False,
+    ),
+}
+
+TEST_ATTRS = {
+    "env": attr.string_dict(
+        doc = """\
+Additional environment variables to set when executed by `bazel run` or `bazel test`.
+Subject to location expansion.
+        """,
+        mandatory = False,
+    ),
+    "env_inherit": attr.string_list(
+        doc = """\
+Environment variables to inherit from external environment when executed by `bazel test`.
+        """,
+        mandatory = False,
     ),
 }
 

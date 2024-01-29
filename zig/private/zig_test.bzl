@@ -2,6 +2,7 @@
 
 load(
     "//zig/private/common:zig_build.bzl",
+    "TEST_ATTRS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
@@ -30,7 +31,7 @@ zig_test(
 ```
 """
 
-ATTRS = COMMON_ATTRS
+ATTRS = COMMON_ATTRS | TEST_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
