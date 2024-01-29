@@ -288,6 +288,8 @@ def zig_build_impl(ctx, *, kind):
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
     )
 
+    providers = []
+
     default = DefaultInfo(
         executable = executable,
         files = files,
@@ -298,5 +300,19 @@ def zig_build_impl(ctx, *, kind):
             transitive_runfiles = transitive_runfiles,
         ),
     )
+    providers.append(default)
 
-    return [default]
+    if kind in ["zig_binary", "zig_test"]:
+        run_environment = RunEnvironmentInfo(
+            environment = dict(zip(ctx.attr.env.keys(), location_expansion(
+                ctx = ctx,
+                targets = location_targets,
+                outputs = outputs,
+                attribute_name = "env",
+                strings = ctx.attr.env.values(),
+            ))),
+            inherited_environment = getattr(ctx.attr, "env_inherit", []),
+        )
+        providers.append(run_environment)
+
+    return providers
