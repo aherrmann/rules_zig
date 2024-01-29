@@ -229,3 +229,52 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
 
     try std.testing.expectEqualStrings("/custom/loader.so", interp.items);
 }
+
+test "zig_binary forwards env attribute environment" {
+    const ctx = try BitContext.init();
+
+    var extra_env = std.process.EnvMap.init(std.testing.allocator);
+    defer extra_env.deinit();
+    try extra_env.put("ENV_INHERIT", "21");
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "run", "//env-attr:binary" },
+        .extra_env = &extra_env,
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+    try std.testing.expectEqualStrings(
+        \\ENV_ATTR: '42'
+        \\ENV_INHERIT: '21'
+        \\
+    , result.stdout);
+}
+
+test "zig_test forwards env attribute environment" {
+    const ctx = try BitContext.init();
+
+    var extra_env = std.process.EnvMap.init(std.testing.allocator);
+    defer extra_env.deinit();
+    try extra_env.put("ENV_INHERIT", "21");
+
+    {
+        const result = try ctx.exec_bazel(.{
+            .argv = &[_][]const u8{ "test", "//env-attr:test" },
+            .extra_env = &extra_env,
+        });
+        defer result.deinit();
+
+        try std.testing.expect(result.success);
+    }
+
+    {
+        const result = try ctx.exec_bazel(.{
+            .argv = &[_][]const u8{ "test", "//env-attr:test-no-inherit" },
+            .extra_env = &extra_env,
+        });
+        defer result.deinit();
+
+        try std.testing.expect(!result.success);
+    }
+}

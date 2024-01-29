@@ -53,6 +53,7 @@ pub const BitContext = struct {
             argv: []const []const u8,
             print_on_error: bool = true,
             omit_bzlmod_flag: bool = false,
+            extra_env: ?*const std.process.EnvMap = null,
         },
     ) !BazelResult {
         var argc = 1 + args.argv.len;
@@ -68,10 +69,19 @@ pub const BitContext = struct {
         if (self.bzlmod_enabled and !args.omit_bzlmod_flag) {
             argv[argc - 1] = "--enable_bzlmod";
         }
+        var env_map: ?std.process.EnvMap = null;
+        defer if (env_map) |*env| env.deinit();
+        if (args.extra_env) |extra_env| {
+            env_map = try std.process.getEnvMap(std.testing.allocator);
+            var iter = extra_env.iterator();
+            while (iter.next()) |item|
+                try env_map.?.put(item.key_ptr.*, item.value_ptr.*);
+        }
         const result = try std.ChildProcess.exec(.{
             .allocator = std.testing.allocator,
             .argv = argv,
             .cwd = self.workspace_path,
+            .env_map = if (env_map) |*env| env else null,
         });
         const success = switch (result.term) {
             .Exited => |code| code == 0,
