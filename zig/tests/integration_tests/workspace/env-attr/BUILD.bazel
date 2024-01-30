@@ -1,0 +1,24 @@
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
+
+zig_binary(
+    name = "binary",
+    env = {"ENV_ATTR": "42"},
+    main = "main.zig",
+)
+
+zig_test(
+    name = "test",
+    size = "small",
+    env = {"ENV_ATTR": "42"},
+    env_inherit = ["ENV_INHERIT"],
+    main = "test.zig",
+    tags = ["manual"],
+)
+
+zig_test(
+    name = "test-no-inherit",
+    size = "small",
+    env = {"ENV_ATTR": "42"},
+    main = "test-no-inherit.zig",
+    tags = ["manual"],
+)

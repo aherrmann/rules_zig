@@ -59,7 +59,7 @@ ATTRS = {
         providers = [ZigPackageInfo],
     ),
     "cdeps": attr.label_list(
-        doc = """
+        doc = """\
 C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.
 
 Note, if you need to include C or C++ standard library headers and encounter errors of the following form:
@@ -88,6 +88,33 @@ Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:lib
         default = "//zig/settings",
         doc = "Zig build settings.",
         providers = [ZigSettingsInfo],
+    ),
+}
+
+BINARY_ATTRS = {
+    "env": attr.string_dict(
+        doc = """\
+Additional environment variables to set when executed by `bazel run`.
+Subject to location expansion.
+NOTE: The environment variables are not set when you run the target outside of Bazel (for example, by manually executing the binary in bazel-bin/).
+        """,
+        mandatory = False,
+    ),
+}
+
+TEST_ATTRS = {
+    "env": attr.string_dict(
+        doc = """\
+Additional environment variables to set when executed by `bazel run` or `bazel test`.
+Subject to location expansion.
+        """,
+        mandatory = False,
+    ),
+    "env_inherit": attr.string_list(
+        doc = """\
+Environment variables to inherit from external environment when executed by `bazel test`.
+        """,
+        mandatory = False,
     ),
 }
 
@@ -261,6 +288,8 @@ def zig_build_impl(ctx, *, kind):
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
     )
 
+    providers = []
+
     default = DefaultInfo(
         executable = executable,
         files = files,
@@ -271,5 +300,19 @@ def zig_build_impl(ctx, *, kind):
             transitive_runfiles = transitive_runfiles,
         ),
     )
+    providers.append(default)
 
-    return [default]
+    if kind in ["zig_binary", "zig_test"]:
+        run_environment = RunEnvironmentInfo(
+            environment = dict(zip(ctx.attr.env.keys(), location_expansion(
+                ctx = ctx,
+                targets = location_targets,
+                outputs = outputs,
+                attribute_name = "env",
+                strings = ctx.attr.env.values(),
+            ))),
+            inherited_environment = getattr(ctx.attr, "env_inherit", []),
+        )
+        providers.append(run_environment)
+
+    return providers

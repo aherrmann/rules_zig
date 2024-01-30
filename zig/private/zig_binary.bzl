@@ -2,6 +2,7 @@
 
 load(
     "//zig/private/common:zig_build.bzl",
+    "BINARY_ATTRS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
@@ -31,7 +32,7 @@ zig_binary(
 ```
 """
 
-ATTRS = COMMON_ATTRS
+ATTRS = COMMON_ATTRS | BINARY_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
