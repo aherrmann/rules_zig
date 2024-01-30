@@ -10,5 +10,8 @@ zig_test(
     ],
     csrcs = ["main.c"],
     data = ["data.txt"],
+    env = {
+        "TARGET": "$(TARGET)",
+    },
     main = "main.zig",
 )
