@@ -7,7 +7,7 @@ Rules to build and run Zig code.
 ## zig_binary
 
 <pre>
-zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-cdeps">cdeps</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>)
+zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-cdeps">cdeps</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-env">env</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>)
 </pre>
 
 Builds a Zig binary.
@@ -44,6 +44,7 @@ zig_binary(
 | <a id="zig_binary-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_binary-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_binary-env"></a>env |  Additional environment variables to set when executed by `bazel run`. Subject to location expansion. NOTE: The environment variables are not set when you run the target outside of Bazel (for example, by manually executing the binary in bazel-bin/).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="zig_binary-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_binary-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
@@ -373,7 +374,8 @@ zig_shared_library(
 ## zig_test
 
 <pre>
-zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-cdeps">cdeps</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>)
+zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-cdeps">cdeps</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>,
+         <a href="#zig_test-main">main</a>)
 </pre>
 
 Builds a Zig test.
@@ -409,6 +411,8 @@ zig_test(
 | <a id="zig_test-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_test-env"></a>env |  Additional environment variables to set when executed by `bazel run` or `bazel test`. Subject to location expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  `{}`  |
+| <a id="zig_test-env_inherit"></a>env_inherit |  Environment variables to inherit from external environment when executed by `bazel test`.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
