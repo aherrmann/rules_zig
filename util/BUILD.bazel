@@ -1,6 +1,6 @@
 load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
 load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
-load("@rules_multirun//:defs.bzl", "multirun")
+load("@rules_multirun//:defs.bzl", "command", "multirun")
 
 buildifier(
     name = "buildifier.fix",
@@ -26,7 +26,7 @@ multirun(
     commands = [
         ":gazelle",
         ":update_filegroups",
-        "@rules_bazel_integration_test//tools:update_deleted_packages",
+        ":update_deleted_packages",
         ":buildifier.fix",
     ] + select({
         # Keep in sync with //docs:BUILD.bazel.
@@ -58,6 +58,12 @@ py_binary(
     }),
     data = ["@buildifier_prebuilt//:buildozer"],
     deps = ["@rules_python//python/runfiles"],
+)
+
+command(
+    name = "update_deleted_packages",
+    command = "@rules_bazel_integration_test//tools:update_deleted_packages",
+    environment = {"LC_COLLATE": "C.UTF-8"},
 )
 
 py_binary(
