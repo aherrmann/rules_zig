@@ -90,6 +90,7 @@ filegroup(
         "//zig/lib:all_files",
         "//zig/platforms:all_files",
         "//zig/private:all_files",
+        "//zig/runfiles:all_files",
         "//zig/settings:all_files",
         "//zig/target:all_files",
     ],
