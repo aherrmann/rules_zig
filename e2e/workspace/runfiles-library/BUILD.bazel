@@ -4,14 +4,16 @@ load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
 zig_binary(
     name = "binary",
     data = ["data.txt"],
+    env = {"DATA": "$(rlocationpath data.txt)"},
     main = "main.zig",
     deps = ["@rules_zig//zig/runfiles"],
 )
 
 genrule(
     name = "output",
+    srcs = [":data.txt"],
     outs = ["output.actual"],
-    cmd = "$(execpath :binary) > $(OUTS)",
+    cmd = "DATA=$(rlocationpath data.txt) $(execpath :binary) > $(OUTS)",
     tools = [":binary"],
 )
 
@@ -26,6 +28,7 @@ zig_test(
     name = "test",
     size = "small",
     data = ["data.txt"],
+    env = {"DATA": "$(rlocationpath data.txt)"},
     main = "main.zig",
     deps = ["@rules_zig//zig/runfiles"],
 )

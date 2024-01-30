@@ -10,7 +10,13 @@ pub fn main() !void {
     var r = try runfiles.Runfiles.create(allocator);
     defer r.deinit(allocator);
 
-    const file_path = try r.rlocation(allocator, "_main/runfiles-library/data.txt");
+    const rpath = std.process.getEnvVarOwned(allocator, "DATA") catch |e| switch (e) {
+        error.EnvironmentVariableNotFound => return error.EnvironmentVariableDATANotFound,
+        else => |e_| return e_,
+    };
+    defer allocator.free(rpath);
+
+    const file_path = try r.rlocation(allocator, rpath);
     defer allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -23,18 +29,16 @@ pub fn main() !void {
 }
 
 test "read data file" {
-    var env = try std.process.getEnvMap(std.testing.allocator);
-    defer env.deinit();
-
-    var iter = env.iterator();
-    while (iter.next()) |item| {
-        std.debug.print("ENV '{s}'='{s}'\n", .{ item.key_ptr.*, item.value_ptr.* });
-    }
-
     var r = try runfiles.Runfiles.create(std.testing.allocator);
     defer r.deinit(std.testing.allocator);
 
-    const file_path = try r.rlocation(std.testing.allocator, "_main/runfiles-library/data.txt");
+    const rpath = std.process.getEnvVarOwned(std.testing.allocator, "DATA") catch |e| switch (e) {
+        error.EnvironmentVariableNotFound => return error.EnvironmentVariableDATANotFound,
+        else => |e_| return e_,
+    };
+    defer std.testing.allocator.free(rpath);
+
+    const file_path = try r.rlocation(std.testing.allocator, rpath);
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
