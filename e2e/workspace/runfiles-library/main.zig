@@ -1,6 +1,13 @@
 const std = @import("std");
 const runfiles = @import("runfiles");
 
+fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
+    return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
+        error.EnvironmentVariableNotFound => null,
+        else => |e_| return e_,
+    };
+}
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -10,10 +17,7 @@ pub fn main() !void {
     var r = try runfiles.Runfiles.create(allocator);
     defer r.deinit(allocator);
 
-    const rpath = std.process.getEnvVarOwned(allocator, "DATA") catch |e| switch (e) {
-        error.EnvironmentVariableNotFound => return error.EnvironmentVariableDATANotFound,
-        else => |e_| return e_,
-    };
+    const rpath = try getEnvVar(allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer allocator.free(rpath);
 
     const file_path = try r.rlocation(allocator, rpath);
@@ -32,10 +36,7 @@ test "read data file" {
     var r = try runfiles.Runfiles.create(std.testing.allocator);
     defer r.deinit(std.testing.allocator);
 
-    const rpath = std.process.getEnvVarOwned(std.testing.allocator, "DATA") catch |e| switch (e) {
-        error.EnvironmentVariableNotFound => return error.EnvironmentVariableDATANotFound,
-        else => |e_| return e_,
-    };
+    const rpath = try getEnvVar(std.testing.allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer std.testing.allocator.free(rpath);
 
     const file_path = try r.rlocation(std.testing.allocator, rpath);
@@ -54,10 +55,7 @@ test "resolve external dependency rpath" {
     var r = try runfiles.Runfiles.create(std.testing.allocator);
     defer r.deinit(std.testing.allocator);
 
-    const rpath = std.process.getEnvVarOwned(std.testing.allocator, "DEPENDENCY_DATA") catch |e| switch (e) {
-        error.EnvironmentVariableNotFound => return error.EnvironmentVariableDEPENDENCY_DATANotFound,
-        else => |e_| return e_,
-    };
+    const rpath = try getEnvVar(std.testing.allocator, "DEPENDENCY_DATA") orelse return error.EnvVarNotFoundDEPENDENCY_DATA;
     defer std.testing.allocator.free(rpath);
 
     const file_path = try r.rlocation(std.testing.allocator, rpath);
