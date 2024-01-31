@@ -33,7 +33,7 @@ zig_test(
     ],
     env = {
         "DATA": "$(rlocationpath data.txt)",
-        "DEPENDENCY_DATA": "$(rlocationpath @runfiles_library_dependency//:data.txt)",
+        "DEPENDENCY_DATA": "runfiles_library_dependency/data.txt",
     },
     main = "main.zig",
     deps = ["@rules_zig//zig/runfiles"],
