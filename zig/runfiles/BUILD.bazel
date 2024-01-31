@@ -12,7 +12,7 @@ zig_package(
 )
 
 zig_test(
-    name = "runfiles_test",
+    name = "test",
     size = "small",
     srcs = _SRCS,
     main = "runfiles.zig",
