@@ -27,8 +27,14 @@ diff_test(
 zig_test(
     name = "test",
     size = "small",
-    data = ["data.txt"],
-    env = {"DATA": "$(rlocationpath data.txt)"},
+    data = [
+        "data.txt",
+        "@runfiles_library_dependency//:data.txt",
+    ],
+    env = {
+        "DATA": "$(rlocationpath data.txt)",
+        "DEPENDENCY_DATA": "$(rlocationpath @runfiles_library_dependency//:data.txt)",
+    },
     main = "main.zig",
     deps = ["@rules_zig//zig/runfiles"],
 )

@@ -6,3 +6,9 @@ local_path_override(
     module_name = "rules_zig",
     path = "../..",
 )
+
+bazel_dep(name = "runfiles_library_dependency", dev_dependency = True)
+local_path_override(
+    module_name = "runfiles_library_dependency",
+    path = "runfiles-library/dependency",
+)
