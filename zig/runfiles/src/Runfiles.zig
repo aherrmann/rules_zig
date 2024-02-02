@@ -46,7 +46,7 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     allocator.free(self.directory);
 }
 
-pub fn rlocation(
+fn rlocationUnmapped(
     self: *const Self,
     allocator: std.mem.Allocator,
     rpath: []const u8,
@@ -55,4 +55,12 @@ pub fn rlocation(
         self.directory,
         rpath,
     });
+}
+
+pub fn rlocation(
+    self: *const Self,
+    allocator: std.mem.Allocator,
+    rpath: []const u8,
+) ![]const u8 {
+    return try self.rlocationUnmapped(allocator, rpath);
 }
