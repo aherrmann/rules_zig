@@ -1,8 +1,11 @@
 const std = @import("std");
 
+const RepoMapping = @import("RepoMapping.zig");
+
 const Self = @This();
 
 directory: []const u8,
+repo_mapping: RepoMapping,
 
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
@@ -37,13 +40,21 @@ pub fn create(allocator: std.mem.Allocator) !Self {
 
     const runfiles_path = try std.fs.cwd().realpathAlloc(allocator, check_path);
 
-    return .{
+    var result = Self{
         .directory = runfiles_path,
+        .repo_mapping = undefined,
     };
+
+    const repo_mapping_path = try result.rlocationUnmapped(allocator, "_repo_mapping");
+    defer allocator.free(repo_mapping_path);
+    result.repo_mapping = try RepoMapping.init(allocator, repo_mapping_path);
+
+    return result;
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     allocator.free(self.directory);
+    self.repo_mapping.deinit(allocator);
 }
 
 fn rlocationUnmapped(
