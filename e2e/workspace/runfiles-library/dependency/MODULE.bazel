@@ -5,3 +5,9 @@ local_path_override(
     module_name = "rules_zig",
     path = "../../../..",
 )
+
+bazel_dep(name = "runfiles_library_transitive_dependency", version = "0.0.0")
+local_path_override(
+    module_name = "runfiles_library_transitive_dependency",
+    path = "transitive-dependency",
+)
