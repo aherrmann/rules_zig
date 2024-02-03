@@ -50,6 +50,7 @@ fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
 /// TODO: The manifest-based strategy is not yet implemented.
 pub fn create(allocator: std.mem.Allocator) !Self {
     const runfiles_path = try discoverRunfiles(allocator);
+    errdefer allocator.free(runfiles_path);
 
     const repo_mapping_path = try rlocationUnmapped(allocator, runfiles_path, "", "_repo_mapping");
     defer allocator.free(repo_mapping_path);
