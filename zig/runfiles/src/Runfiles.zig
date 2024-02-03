@@ -43,16 +43,13 @@ fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
 pub fn create(allocator: std.mem.Allocator) !Self {
     const runfiles_path = try discoverRunfiles(allocator);
 
-    var result = Self{
-        .directory = runfiles_path,
-        .repo_mapping = undefined,
-    };
-
-    const repo_mapping_path = try result.rlocationUnmapped(allocator, "", "_repo_mapping");
+    const repo_mapping_path = try rlocationUnmapped(allocator, runfiles_path, "", "_repo_mapping");
     defer allocator.free(repo_mapping_path);
-    result.repo_mapping = try RepoMapping.init(allocator, repo_mapping_path);
 
-    return result;
+    return Self{
+        .directory = runfiles_path,
+        .repo_mapping = try RepoMapping.init(allocator, repo_mapping_path),
+    };
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
@@ -61,13 +58,13 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
 }
 
 fn rlocationUnmapped(
-    self: *const Self,
     allocator: std.mem.Allocator,
+    runfiles_directory: []const u8,
     repo: []const u8,
     path: []const u8,
 ) ![]const u8 {
     return try std.fs.path.join(allocator, &[_][]const u8{
-        self.directory,
+        runfiles_directory,
         repo,
         path,
     });
@@ -90,5 +87,5 @@ pub fn rlocation(
         // WORKSPACE mode and is apparently an issue in the spec and common
         // runfiles library implementations do not follow this pattern.
     }
-    return try self.rlocationUnmapped(allocator, repo, path);
+    return try rlocationUnmapped(allocator, self.directory, repo, path);
 }
