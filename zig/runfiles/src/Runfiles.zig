@@ -1,11 +1,12 @@
 const std = @import("std");
+const log = std.log.scoped(.runfiles);
 
 const RepoMapping = @import("RepoMapping.zig");
 
 const Self = @This();
 
 directory: []const u8,
-repo_mapping: RepoMapping,
+repo_mapping: ?RepoMapping,
 
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
@@ -52,18 +53,26 @@ pub fn create(allocator: std.mem.Allocator) !Self {
     const runfiles_path = try discoverRunfiles(allocator);
     errdefer allocator.free(runfiles_path);
 
-    const repo_mapping_path = try rlocationUnmapped(allocator, runfiles_path, "", "_repo_mapping");
-    defer allocator.free(repo_mapping_path);
+    var repo_mapping: ?RepoMapping = null;
+    {
+        const repo_mapping_path = try rlocationUnmapped(allocator, runfiles_path, "", "_repo_mapping");
+        defer allocator.free(repo_mapping_path);
+        if (std.fs.cwd().access(repo_mapping_path, .{}) != error.FileNotFound)
+            // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
+            repo_mapping = try RepoMapping.init(allocator, repo_mapping_path)
+        else
+            log.warn("No repository mapping found. This is likely an error if you are using Bazel version >=7 with bzlmod enabled.", .{});
+    }
 
     return Self{
         .directory = runfiles_path,
-        .repo_mapping = try RepoMapping.init(allocator, repo_mapping_path),
+        .repo_mapping = repo_mapping,
     };
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     allocator.free(self.directory);
-    self.repo_mapping.deinit(allocator);
+    if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
 }
 
 fn rlocationUnmapped(
@@ -102,12 +111,15 @@ pub fn rlocation(
     if (std.mem.indexOfScalar(u8, rpath, '/')) |pos| {
         repo = rpath[0..pos];
         path = rpath[pos + 1 ..];
-        if (self.repo_mapping.lookup(.{ .source = "", .target = repo })) |mapped|
-            repo = mapped;
-        // NOTE, the spec states that we should fail if no mapping is found and
-        // the repo name is not canonical. However, this always fails in
-        // WORKSPACE mode and is apparently an issue in the spec and common
-        // runfiles library implementations do not follow this pattern.
+        if (self.repo_mapping) |repo_mapping| {
+            if (repo_mapping.lookup(.{ .source = "", .target = repo })) |mapped|
+                repo = mapped;
+            // NOTE, the spec states that we should fail if no mapping is found
+            // and the repo name is not canonical. However, this always fails
+            // in WORKSPACE mode and is apparently an issue in the spec and
+            // common runfiles library implementations do not follow this
+            // pattern.
+        }
     }
     return try rlocationUnmapped(allocator, self.directory, repo, path);
 }
