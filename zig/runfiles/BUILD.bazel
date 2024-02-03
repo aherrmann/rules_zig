@@ -25,6 +25,7 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         ":runfiles.zig",
+        ":src/RepoMapping.zig",
         ":src/Runfiles.zig",
     ],
     visibility = ["//zig:__pkg__"],
