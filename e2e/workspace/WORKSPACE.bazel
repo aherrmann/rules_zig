@@ -4,6 +4,11 @@ local_repository(
     path = "../..",
 )
 
+local_repository(
+    name = "runfiles_library_dependency",
+    path = "runfiles-library/dependency",
+)
+
 #---SNIP--- Below here is re-used in the workspace snippet published on releases
 
 ###################

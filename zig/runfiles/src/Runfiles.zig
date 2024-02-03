@@ -1,8 +1,12 @@
 const std = @import("std");
+const log = std.log.scoped(.runfiles);
+
+const RepoMapping = @import("RepoMapping.zig");
 
 const Self = @This();
 
 directory: []const u8,
+repo_mapping: ?RepoMapping,
 
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
@@ -11,48 +15,111 @@ fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     };
 }
 
-pub fn create(allocator: std.mem.Allocator) !Self {
+fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
     if (try getEnvVar(allocator, "RUNFILES_DIR")) |value| {
         defer allocator.free(value);
-        const runfiles_path = try std.fs.cwd().realpathAlloc(allocator, value);
-        return .{ .directory = runfiles_path };
+        return try std.fs.cwd().realpathAlloc(allocator, value);
+    } else {
+        var iter = try std.process.argsWithAllocator(allocator);
+        defer iter.deinit();
+
+        const argv0 = iter.next() orelse
+            return error.Argv0Unavailable;
+
+        const check_path = try std.fmt.allocPrint(
+            allocator,
+            "{s}.runfiles",
+            .{argv0},
+        );
+        defer allocator.free(check_path);
+
+        var dir = std.fs.cwd().openDir(check_path, .{}) catch
+            return error.RunfilesNotFound;
+        dir.close();
+
+        return try std.fs.cwd().realpathAlloc(allocator, check_path);
+    }
+}
+
+/// Quoting the runfiles design:
+///
+/// > Every language's library will have a similar interface: a Create method
+/// > that inspects the environment and/or `argv[0]` to determine the runfiles
+/// > strategy (manifest-based or directory-based; see below), initializes
+/// > runfiles handling and returns a Runfiles object
+///
+/// TODO: The manifest-based strategy is not yet implemented.
+pub fn create(allocator: std.mem.Allocator) !Self {
+    const runfiles_path = try discoverRunfiles(allocator);
+    errdefer allocator.free(runfiles_path);
+
+    var repo_mapping: ?RepoMapping = null;
+    {
+        const repo_mapping_path = try rlocationUnmapped(allocator, runfiles_path, "", "_repo_mapping");
+        defer allocator.free(repo_mapping_path);
+        if (std.fs.cwd().access(repo_mapping_path, .{}) != error.FileNotFound)
+            // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
+            repo_mapping = try RepoMapping.init(allocator, repo_mapping_path)
+        else
+            log.warn("No repository mapping found. This is likely an error if you are using Bazel version >=7 with bzlmod enabled.", .{});
     }
 
-    var iter = try std.process.argsWithAllocator(allocator);
-    defer iter.deinit();
-
-    const argv0 = iter.next() orelse
-        return error.Argv0Unavailable;
-
-    const check_path = try std.fmt.allocPrint(
-        allocator,
-        "{s}.runfiles",
-        .{argv0},
-    );
-    defer allocator.free(check_path);
-
-    var dir = std.fs.cwd().openDir(check_path, .{}) catch
-        return error.RunfilesNotFound;
-    dir.close();
-
-    const runfiles_path = try std.fs.cwd().realpathAlloc(allocator, check_path);
-
-    return .{
+    return Self{
         .directory = runfiles_path,
+        .repo_mapping = repo_mapping,
     };
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     allocator.free(self.directory);
+    if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
 }
 
+fn rlocationUnmapped(
+    allocator: std.mem.Allocator,
+    runfiles_directory: []const u8,
+    repo: []const u8,
+    path: []const u8,
+) ![]const u8 {
+    return try std.fs.path.join(allocator, &[_][]const u8{
+        runfiles_directory,
+        repo,
+        path,
+    });
+}
+
+/// Quoting the runfiles design:
+///
+/// > Every language's library will have a similar interface: an
+/// > Rlocation(string) method that expects a runfiles-root-relative path
+/// > (case-sensitive on Linux/macOS, case-insensitive on Windows) and returns
+/// > the absolute path of the file, which is normalized (and lowercase on
+/// > Windows) and uses "/" as directory separator on every platform (including
+/// > Windows)
+///
+/// TODO: Rpath validation is not yet implemented.
+///
+/// TODO: Path normalization, in particular lower-case and '/' normalization on
+///   Windows, is not yet implemented.
 pub fn rlocation(
     self: *const Self,
     allocator: std.mem.Allocator,
     rpath: []const u8,
 ) ![]const u8 {
-    return try std.fs.path.join(allocator, &[_][]const u8{
-        self.directory,
-        rpath,
-    });
+    var repo: []const u8 = "";
+    var path: []const u8 = rpath;
+    if (std.mem.indexOfScalar(u8, rpath, '/')) |pos| {
+        repo = rpath[0..pos];
+        path = rpath[pos + 1 ..];
+        if (self.repo_mapping) |repo_mapping| {
+            if (repo_mapping.lookup(.{ .source = "", .target = repo })) |mapped|
+                repo = mapped;
+            // NOTE, the spec states that we should fail if no mapping is found
+            // and the repo name is not canonical. However, this always fails
+            // in WORKSPACE mode and is apparently an issue in the spec and
+            // common runfiles library implementations do not follow this
+            // pattern.
+        }
+    }
+    return try rlocationUnmapped(allocator, self.directory, repo, path);
 }
