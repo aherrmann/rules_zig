@@ -323,6 +323,46 @@ zig_package(
 | <a id="zig_package-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
+<a id="zig_runfiles"></a>
+
+## zig_runfiles
+
+<pre>
+zig_runfiles(<a href="#zig_runfiles-name">name</a>, <a href="#zig_runfiles-data">data</a>)
+</pre>
+
+Defines a Zig runfiles collection.
+
+That is a collection of data files that are runtime dependencies and a Zig
+source module to support access to these data files at runtime.
+
+This rule does not perform compilation by itself.
+Instead, packages are compiled at the use-site.
+Zig performs whole program compilation.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_runfiles")
+
+zig_runfiles(
+    name = "my-runfiles",
+    data = [
+        ":data.txt",
+        "@dependency//more:data.txt",
+    ],
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig_runfiles-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_runfiles-data"></a>data |  Files required by the package during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+
+
 <a id="zig_shared_library"></a>
 
 ## zig_shared_library
