@@ -1,3 +1,8 @@
+//! Implements repository mappings for bzlmod support as defined in the
+//! [updated runfiles design][runfiles-bzlmod].
+//!
+//! [runfiles-bzlmod]: https://github.com/bazelbuild/proposals/blob/53c5691c3f08011f0abf1d840d5824a3bbe039e2/designs/2022-07-21-locating-runfiles-with-bzlmod.md#2-extend-the-runfiles-libraries-to-take-repository-mappings-into-account
+
 const std = @import("std");
 const builtin = @import("builtin");
 const log = if (builtin.is_test)
@@ -22,6 +27,7 @@ const Self = @This();
 mapping: HashMapUnmanaged,
 content: []const u8,
 
+/// Reads the given file into memory and parses the repo-mapping file format.
 pub fn init(allocator: std.mem.Allocator, file_path: []const u8) !Self {
     const content = std.fs.cwd().readFileAlloc(allocator, file_path, std.math.maxInt(usize)) catch |e| {
         log.err("Failed to open repository mapping ({s}) at '{s}'", .{
@@ -43,6 +49,9 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
     allocator.free(self.content);
 }
 
+/// Performs a lookup in the parsed repo-mapping. Returns the given target
+/// repository if no entry is found in the mapping but the target is a
+/// canonical repository name.
 pub fn lookup(self: *const Self, key: Key) ?[]const u8 {
     return self.mapping.get(key) orelse {
         const is_canonical = std.mem.indexOfScalar(u8, key.target, '~') != null;

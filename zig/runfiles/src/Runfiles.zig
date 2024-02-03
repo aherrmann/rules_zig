@@ -40,6 +40,14 @@ fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
     }
 }
 
+/// Quoting the runfiles design:
+///
+/// > Every language's library will have a similar interface: a Create method
+/// > that inspects the environment and/or `argv[0]` to determine the runfiles
+/// > strategy (manifest-based or directory-based; see below), initializes
+/// > runfiles handling and returns a Runfiles object
+///
+/// TODO: The manifest-based strategy is not yet implemented.
 pub fn create(allocator: std.mem.Allocator) !Self {
     const runfiles_path = try discoverRunfiles(allocator);
 
@@ -70,6 +78,19 @@ fn rlocationUnmapped(
     });
 }
 
+/// Quoting the runfiles design:
+///
+/// > Every language's library will have a similar interface: an
+/// > Rlocation(string) method that expects a runfiles-root-relative path
+/// > (case-sensitive on Linux/macOS, case-insensitive on Windows) and returns
+/// > the absolute path of the file, which is normalized (and lowercase on
+/// > Windows) and uses "/" as directory separator on every platform (including
+/// > Windows)
+///
+/// TODO: Rpath validation is not yet implemented.
+///
+/// TODO: Path normalization, in particular lower-case and '/' normalization on
+///   Windows, is not yet implemented.
 pub fn rlocation(
     self: *const Self,
     allocator: std.mem.Allocator,
