@@ -20,7 +20,7 @@ pub fn main() !void {
     const rpath = try getEnvVar(allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer allocator.free(rpath);
 
-    const file_path = try r.rlocation(allocator, rpath);
+    const file_path = try r.rlocation(allocator, rpath, "");
     defer allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -39,7 +39,7 @@ test "read data file" {
     const rpath = try getEnvVar(std.testing.allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer std.testing.allocator.free(rpath);
 
-    const file_path = try r.rlocation(std.testing.allocator, rpath);
+    const file_path = try r.rlocation(std.testing.allocator, rpath, "");
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -58,7 +58,7 @@ test "resolve external dependency rpath" {
     const rpath = try getEnvVar(std.testing.allocator, "DEPENDENCY_DATA") orelse return error.EnvVarNotFoundDEPENDENCY_DATA;
     defer std.testing.allocator.free(rpath);
 
-    const file_path = try r.rlocation(std.testing.allocator, rpath);
+    const file_path = try r.rlocation(std.testing.allocator, rpath, "");
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -68,4 +68,11 @@ test "resolve external dependency rpath" {
     defer std.testing.allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello from dependency!\n", content);
+}
+
+test "read data file in dependency Zig package" {
+    const content = try @import("package_with_data").readData(std.testing.allocator);
+    defer std.testing.allocator.free(content);
+
+    try std.testing.expectEqualStrings("Hello from transitive dependency!\n", content);
 }

@@ -9,6 +9,11 @@ local_repository(
     path = "runfiles-library/dependency",
 )
 
+local_repository(
+    name = "runfiles_library_transitive_dependency",
+    path = "runfiles-library/dependency/transitive-dependency",
+)
+
 #---SNIP--- Below here is re-used in the workspace snippet published on releases
 
 ###################

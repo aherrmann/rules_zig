@@ -12,3 +12,8 @@ local_path_override(
     module_name = "runfiles_library_dependency",
     path = "runfiles-library/dependency",
 )
+
+local_path_override(
+    module_name = "runfiles_library_transitive_dependency",
+    path = "runfiles-library/dependency/transitive-dependency",
+)

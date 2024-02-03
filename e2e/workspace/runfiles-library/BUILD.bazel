@@ -33,8 +33,20 @@ zig_test(
     ],
     env = {
         "DATA": "$(rlocationpath data.txt)",
+        # Intentionally not using $(rlocation ...) to test repo-mapping.
         "DEPENDENCY_DATA": "runfiles_library_dependency/data.txt",
     },
     main = "main.zig",
-    deps = ["@rules_zig//zig/runfiles"],
+    deps = [
+        "@rules_zig//zig/runfiles",
+        "@runfiles_library_dependency//:package_with_data",
+    ],
+)
+
+test_suite(
+    name = "runfiles-library",
+    tests = [
+        ":test",
+        "@runfiles_library_dependency//:test",
+    ],
 )

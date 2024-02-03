@@ -105,6 +105,7 @@ pub fn rlocation(
     self: *const Self,
     allocator: std.mem.Allocator,
     rpath: []const u8,
+    source: []const u8,
 ) ![]const u8 {
     var repo: []const u8 = "";
     var path: []const u8 = rpath;
@@ -112,7 +113,7 @@ pub fn rlocation(
         repo = rpath[0..pos];
         path = rpath[pos + 1 ..];
         if (self.repo_mapping) |repo_mapping| {
-            if (repo_mapping.lookup(.{ .source = "", .target = repo })) |mapped|
+            if (repo_mapping.lookup(.{ .source = source, .target = repo })) |mapped|
                 repo = mapped;
             // NOTE, the spec states that we should fail if no mapping is found
             // and the repo name is not canonical. However, this always fails
