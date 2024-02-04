@@ -35,7 +35,7 @@ pub const current_target: []const u8 = "{target}";
     ctx.actions.write(main, content, is_executable = False)
 
     package = ZigPackageInfo(
-        name = name,
+        name = "bazel_builtin",
         canonical_name = name,
         main = main,
         srcs = [],
