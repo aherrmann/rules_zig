@@ -95,12 +95,16 @@ def _zig_package_impl(ctx):
     ] + [bazel_builtin]
 
     for package in packages:
-        dep_names.append(package.name)
+        if package.canonical_name != package.name:
+            dep_names.append("{}={}".format(package.name, package.canonical_name))
+        else:
+            dep_names.append(package.name)
         all_mods.append(package.all_mods)
         all_srcs.append(package.all_srcs)
 
     package = ZigPackageInfo(
         name = ctx.label.name,
+        canonical_name = ctx.label.name,
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         all_mods = depset(

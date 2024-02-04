@@ -12,6 +12,7 @@ instead the Zig compiler performs whole program compilation.
 
 FIELDS = {
     "name": "string, The import name of the package.",
+    "canonical_name": "string, The canonical name may differ from the import name via remapping.",
     "main": "File, The main source file of the package.",
     "srcs": "list of File, Other Zig source files that belong to the package.",
     "all_mods": "depset of string, All module CLI specifications required when depending on the package.",
@@ -42,7 +43,10 @@ def zig_package_dependencies(*, deps, extra_deps = [], inputs, args):
     ] + extra_deps
 
     for package in packages:
-        names.append(package.name)
+        if package.canonical_name != package.name:
+            names.append("{}={}".format(package.name, package.canonical_name))
+        else:
+            names.append(package.name)
         mods.append(package.all_mods)
         inputs.append(package.all_srcs)
 

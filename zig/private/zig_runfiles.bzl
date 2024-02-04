@@ -68,6 +68,7 @@ def _zig_runfiles_impl(ctx):
     # TODO[AH] Factor out the package creation logic.
     package = ZigPackageInfo(
         name = ctx.label.name,
+        canonical_name = ctx.label.name,
         main = main,
         all_mods = depset(
             direct = ["{name}:{deps}:{src}".format(

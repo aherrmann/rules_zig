@@ -36,6 +36,7 @@ pub const current_target: []const u8 = "{target}";
 
     package = ZigPackageInfo(
         name = name,
+        canonical_name = name,
         main = main,
         srcs = [],
         all_mods = depset(direct = ["{name}::{src}".format(
