@@ -2,6 +2,10 @@
 
 Rules to build and run Zig code.
 
+Note, all Zig targets implicitly depend on an automatically generated Zig
+module called `bazel_builtin` that exposes Bazel specific information such as
+the current target name or current repository name.
+
 <a id="zig_binary"></a>
 
 ## zig_binary

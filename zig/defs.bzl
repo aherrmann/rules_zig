@@ -1,4 +1,9 @@
-"Rules to build and run Zig code."
+"""Rules to build and run Zig code.
+
+Note, all Zig targets implicitly depend on an automatically generated Zig
+module called `bazel_builtin` that exposes Bazel specific information such as
+the current target name or current repository name.
+"""
 
 load("//zig/private:zig_binary.bzl", _zig_binary = "zig_binary")
 load(

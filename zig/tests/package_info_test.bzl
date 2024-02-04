@@ -1,6 +1,7 @@
 """Unit tests for ZigPackageInfo functions.
 """
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load(
@@ -37,6 +38,30 @@ def _mock_args():
         get_args = get_args,
     )
 
+def _bazel_builtin_name(label):
+    return "bazel_builtin_A{repo}_S_S{package}_C{target}".format(
+        repo = label.repo_name if hasattr(label, "repo_name") else label.workspace_name,
+        package = label.package.replace("/", "_S"),
+        target = label.name,
+    )
+
+def _bazel_builtin_file_name(ctx, label):
+    return paths.join(
+        ctx.bin_dir.path,
+        label.workspace_root,
+        label.package,
+        _bazel_builtin_name(label) + ".zig",
+    )
+
+def _bazel_builtin_mod_flags(ctx, label):
+    return ["--mod", "{}::{}".format(
+        _bazel_builtin_name(label),
+        _bazel_builtin_file_name(ctx, label),
+    )]
+
+def _bazel_builtin_dep(label):
+    return "bazel_builtin={}".format(_bazel_builtin_name(label))
+
 def _single_package_test_impl(ctx):
     env = unittest.begin(ctx)
 
@@ -52,8 +77,10 @@ def _single_package_test_impl(ctx):
     package = ctx.attr.pkg[ZigPackageInfo]
 
     expected = []
-    expected.extend(["--mod", "{name}::{src}".format(
+    expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.pkg.label))
+    expected.extend(["--mod", "{name}:{deps}:{src}".format(
         name = package.name,
+        deps = _bazel_builtin_dep(ctx.attr.pkg.label),
         src = package.main.path,
     )])
     expected.extend(["--deps", package.name])
@@ -65,10 +92,16 @@ def _single_package_test_impl(ctx):
         "zig_package_dependencies should generate the expected arguments.",
     )
 
+    bazel_builtin_file = [
+        file
+        for file in package.all_srcs.to_list()
+        if file.path == _bazel_builtin_file_name(ctx, ctx.attr.pkg.label)
+    ]
+
     inputs = depset(transitive = transitive_inputs)
     asserts.set_equals(
         env,
-        sets.make([package.main] + package.srcs),
+        sets.make([package.main] + package.srcs + bazel_builtin_file),
         sets.make(inputs.to_list()),
         "zig_package_dependencies should capture all package files.",
     )
@@ -99,13 +132,32 @@ def _nested_packages_test_impl(ctx):
         for pkg in ctx.attr.pkgs
     }
 
+    bazel_builtins = {
+        pkg.label.name: struct(
+            mod_flags = _bazel_builtin_mod_flags(ctx, pkg.label),
+            dep = _bazel_builtin_dep(pkg.label),
+            file = [
+                file
+                for file in pkgs[pkg.label.name].all_srcs.to_list()
+                if file.path == _bazel_builtin_file_name(ctx, pkg.label)
+            ],
+        )
+        for pkg in ctx.attr.pkgs
+    }
+
     expected = []
-    expected.extend(["--mod", "e::{}".format(pkgs["e"].main.path)])
-    expected.extend(["--mod", "b:e:{}".format(pkgs["b"].main.path)])
-    expected.extend(["--mod", "c:e:{}".format(pkgs["c"].main.path)])
-    expected.extend(["--mod", "f:e:{}".format(pkgs["f"].main.path)])
-    expected.extend(["--mod", "d:f:{}".format(pkgs["d"].main.path)])
-    expected.extend(["--mod", "a:b,c,d:{}".format(pkgs["a"].main.path)])
+    expected.extend(bazel_builtins["e"].mod_flags)
+    expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, pkgs["e"].main.path)])
+    expected.extend(bazel_builtins["b"].mod_flags)
+    expected.extend(["--mod", "b:e,{}:{}".format(bazel_builtins["b"].dep, pkgs["b"].main.path)])
+    expected.extend(bazel_builtins["c"].mod_flags)
+    expected.extend(["--mod", "c:e,{}:{}".format(bazel_builtins["c"].dep, pkgs["c"].main.path)])
+    expected.extend(bazel_builtins["f"].mod_flags)
+    expected.extend(["--mod", "f:e,{}:{}".format(bazel_builtins["f"].dep, pkgs["f"].main.path)])
+    expected.extend(bazel_builtins["d"].mod_flags)
+    expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, pkgs["d"].main.path)])
+    expected.extend(bazel_builtins["a"].mod_flags)
+    expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, pkgs["a"].main.path)])
     expected.extend(["--deps", "a"])
 
     asserts.equals(
@@ -121,7 +173,7 @@ def _nested_packages_test_impl(ctx):
         sets.make([
             src
             for pkg in pkgs.values()
-            for src in [pkg.main] + pkg.srcs
+            for src in [pkg.main] + pkg.srcs + bazel_builtins[pkg.name].file
         ]),
         sets.make(inputs.to_list()),
         "zig_package_dependencies should capture all package files.",

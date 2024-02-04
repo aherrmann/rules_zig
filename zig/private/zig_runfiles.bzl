@@ -65,17 +65,15 @@ def _zig_runfiles_impl(ctx):
 
     srcs = [main]
 
-    # TODO[AH] Depend on the runfiles library.
-    flags = ["--pkg-begin", ctx.label.name, main.path, "--pkg-end"]
-
     # TODO[AH] Factor out the package creation logic.
     package = ZigPackageInfo(
         name = ctx.label.name,
+        canonical_name = ctx.label.name,
         main = main,
-        flags = flags,
         all_mods = depset(
             direct = ["{name}:{deps}:{src}".format(
                 name = ctx.label.name,
+                # TODO[AH] Depend on the runfiles library.
                 deps = "",
                 src = main.path,
             )],

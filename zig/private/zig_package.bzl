@@ -1,5 +1,10 @@
 """Implementation of the zig_package rule."""
 
+load(
+    "//zig/private/common:bazel_builtin.bzl",
+    "bazel_builtin_package",
+    BAZEL_BUILTIN_ATTRS = "ATTRS",
+)
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
@@ -58,7 +63,7 @@ ATTRS = {
         doc = "Files required by the package during runtime.",
         mandatory = False,
     ),
-}
+} | BAZEL_BUILTIN_ATTRS
 
 def _zig_package_impl(ctx):
     transitive_data = []
@@ -81,26 +86,31 @@ def _zig_package_impl(ctx):
     )
 
     srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs
-    flags = ["--pkg-begin", ctx.label.name, ctx.file.main.path]
     dep_names = []
     all_mods = []
     all_srcs = []
 
-    for dep in ctx.attr.deps:
-        if ZigPackageInfo in dep:
-            package = dep[ZigPackageInfo]
-            flags.extend(package.flags)
-            dep_names.append(package.name)
-            all_mods.append(package.all_mods)
-            all_srcs.append(package.all_srcs)
+    bazel_builtin = bazel_builtin_package(ctx)
 
-    flags.append("--pkg-end")
+    packages = [
+        dep[ZigPackageInfo]
+        for dep in ctx.attr.deps
+        if ZigPackageInfo in dep
+    ] + [bazel_builtin]
+
+    for package in packages:
+        if package.canonical_name != package.name:
+            dep_names.append("{}={}".format(package.name, package.canonical_name))
+        else:
+            dep_names.append(package.name)
+        all_mods.append(package.all_mods)
+        all_srcs.append(package.all_srcs)
 
     package = ZigPackageInfo(
         name = ctx.label.name,
+        canonical_name = ctx.label.name,
         main = ctx.file.main,
         srcs = ctx.files.srcs,
-        flags = flags,
         all_mods = depset(
             direct = ["{name}:{deps}:{src}".format(
                 name = ctx.label.name,
