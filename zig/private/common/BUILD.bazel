@@ -21,6 +21,7 @@ bzl_library(
     srcs = ["zig_build.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        ":bazel_builtin",
         ":cdeps",
         ":csrcs",
         ":data",
@@ -48,6 +49,13 @@ bzl_library(
     srcs = ["location_expansion.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = ["@aspect_bazel_lib//lib:expand_make_vars"],
+)
+
+bzl_library(
+    name = "bazel_builtin",
+    srcs = ["bazel_builtin.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = ["//zig/private/providers:zig_package_info"],
 )
 
 bzl_library(
@@ -85,6 +93,8 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":bazel_builtin.bzl",
+        ":bazel_builtin.zig.tpl",
         ":cdeps.bzl",
         ":csrcs.bzl",
         ":data.bzl",
