@@ -24,21 +24,25 @@ ZigPackageInfo = provider(
     doc = DOC,
 )
 
-def zig_package_dependencies(*, deps, inputs, args):
+def zig_package_dependencies(*, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig package dependencies.
 
     Args:
       deps: List of Target, Considers the targets that have a ZigPackageInfo provider.
+      extra_deps: List of ZigPackageInfo.
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
     mods = []
     names = []
 
-    for dep in deps:
-        if not ZigPackageInfo in dep:
-            continue
-        package = dep[ZigPackageInfo]
+    packages = [
+        dep[ZigPackageInfo]
+        for dep in deps
+        if ZigPackageInfo in dep
+    ] + extra_deps
+
+    for package in packages:
         names.append(package.name)
         mods.append(package.all_mods)
         inputs.append(package.all_srcs)

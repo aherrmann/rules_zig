@@ -1,5 +1,6 @@
 """Implementation of the zig_package rule."""
 
+load("//zig/private/common:bazel_builtin.bzl", "bazel_builtin_package")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
@@ -86,13 +87,19 @@ def _zig_package_impl(ctx):
     all_mods = []
     all_srcs = []
 
-    for dep in ctx.attr.deps:
-        if ZigPackageInfo in dep:
-            package = dep[ZigPackageInfo]
-            flags.extend(package.flags)
-            dep_names.append(package.name)
-            all_mods.append(package.all_mods)
-            all_srcs.append(package.all_srcs)
+    bazel_builtin = bazel_builtin_package(ctx)
+
+    packages = [
+        dep[ZigPackageInfo]
+        for dep in ctx.attr.deps
+        if ZigPackageInfo in dep
+    ] + [bazel_builtin]
+
+    for package in packages:
+        flags.extend(package.flags)
+        dep_names.append(package.name)
+        all_mods.append(package.all_mods)
+        all_srcs.append(package.all_srcs)
 
     flags.append("--pkg-end")
 

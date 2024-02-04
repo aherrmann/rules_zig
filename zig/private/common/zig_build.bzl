@@ -1,6 +1,7 @@
 """Common implementation of the zig_binary|library|test rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//zig/private/common:bazel_builtin.bzl", "bazel_builtin_package")
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
@@ -208,8 +209,11 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
+    bazel_builtin = bazel_builtin_package(ctx)
+
     zig_package_dependencies(
         deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
         inputs = transitive_inputs,
         args = args,
     )
