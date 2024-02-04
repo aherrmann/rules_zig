@@ -38,7 +38,6 @@ pub const current_target: []const u8 = "{target}";
         name = name,
         main = main,
         srcs = [],
-        flags = ["--pkg-begin", name, main.path, "--pkg-end"],
         all_mods = depset(direct = ["{name}::{src}".format(
             name = name,
             src = main.path,
