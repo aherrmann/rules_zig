@@ -55,7 +55,6 @@ bzl_library(
         "//zig/private:zig_configure",
         "//zig/private:zig_library",
         "//zig/private:zig_package",
-        "//zig/private:zig_runfiles",
         "//zig/private:zig_shared_library",
         "//zig/private:zig_test",
     ],

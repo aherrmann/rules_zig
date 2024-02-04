@@ -1,20 +1,14 @@
-load("@rules_zig//zig:defs.bzl", "zig_package", "zig_runfiles", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
 
 exports_files(["data.txt"])
 
-zig_runfiles(
-    name = "dependency_runfiles",
-)
-
 zig_test(
     name = "test",
+    size = "small",
     data = ["@runfiles_library_transitive_dependency//:data.txt"],
     main = "main.zig",
     visibility = ["//visibility:public"],
-    deps = [
-        ":dependency_runfiles",
-        "@rules_zig//zig/runfiles",
-    ],
+    deps = ["@rules_zig//zig/runfiles"],
 )
 
 zig_package(
@@ -22,8 +16,5 @@ zig_package(
     data = ["@runfiles_library_transitive_dependency//:data.txt"],
     main = "main.zig",
     visibility = ["//visibility:public"],
-    deps = [
-        ":dependency_runfiles",
-        "@rules_zig//zig/runfiles",
-    ],
+    deps = ["@rules_zig//zig/runfiles"],
 )
