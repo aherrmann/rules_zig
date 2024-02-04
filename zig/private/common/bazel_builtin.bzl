@@ -29,17 +29,17 @@ def bazel_builtin_package(ctx):
     )
     main = ctx.actions.declare_file(name + ".zig")
 
-    # TODO[AH] Use ctx.actions.template_dict and ctx.actions.expand_template.
-    content = """\
-pub const current_repository: []const u8 = "{repo}";
-pub const current_package: []const u8 = "{package}";
-pub const current_target: []const u8 = "{target}";
-""".format(
-        repo = repo_name,
-        package = package_name,
-        target = target_name,
+    substitutions = ctx.actions.template_dict()
+    substitutions.add("{current_repository}", repo_name)
+    substitutions.add("{current_package}", package_name)
+    substitutions.add("{current_target}", target_name)
+
+    ctx.actions.expand_template(
+        template = ctx.file._bazel_builtin_template,
+        output = main,
+        computed_substitutions = substitutions,
+        is_executable = False,
     )
-    ctx.actions.write(main, content, is_executable = False)
 
     package = ZigPackageInfo(
         name = "bazel_builtin",
