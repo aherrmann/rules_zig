@@ -1,6 +1,10 @@
 """Implementation of the zig_package rule."""
 
-load("//zig/private/common:bazel_builtin.bzl", "bazel_builtin_package")
+load(
+    "//zig/private/common:bazel_builtin.bzl",
+    "bazel_builtin_package",
+    BAZEL_BUILTIN_ATTRS = "ATTRS",
+)
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
@@ -59,7 +63,7 @@ ATTRS = {
         doc = "Files required by the package during runtime.",
         mandatory = False,
     ),
-}
+} | BAZEL_BUILTIN_ATTRS
 
 def _zig_package_impl(ctx):
     transitive_data = []

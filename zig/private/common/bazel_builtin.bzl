@@ -2,6 +2,13 @@
 
 load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
 
+ATTRS = {
+    "_bazel_builtin_template": attr.label(
+        allow_single_file = True,
+        default = Label("//zig/private/common:bazel_builtin.zig.tpl"),
+    ),
+}
+
 def bazel_builtin_package(ctx):
     """Generate a `bazel_builtin` package for the current target.
 
