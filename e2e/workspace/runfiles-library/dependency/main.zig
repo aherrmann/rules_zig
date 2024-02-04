@@ -1,6 +1,6 @@
 const std = @import("std");
 const runfiles = @import("runfiles");
-const dependency_runfiles = @import("dependency_runfiles");
+const bazel_builtin = @import("bazel_builtin");
 
 pub fn readData(allocator: std.mem.Allocator) ![]const u8 {
     var r = try runfiles.Runfiles.create(allocator);
@@ -8,7 +8,7 @@ pub fn readData(allocator: std.mem.Allocator) ![]const u8 {
 
     const rpath = "runfiles_library_transitive_dependency/data.txt";
 
-    const file_path = try r.rlocation(allocator, rpath, dependency_runfiles.current_repository);
+    const file_path = try r.rlocation(allocator, rpath, bazel_builtin.current_repository);
     defer allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
