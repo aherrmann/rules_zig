@@ -4,6 +4,7 @@ exports_files(["data.txt"])
 
 zig_test(
     name = "test",
+    size = "small",
     data = ["@runfiles_library_transitive_dependency//:data.txt"],
     main = "main.zig",
     visibility = ["//visibility:public"],
