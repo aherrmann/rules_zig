@@ -278,3 +278,65 @@ test "zig_test forwards env attribute environment" {
         try std.testing.expect(!result.success);
     }
 }
+
+test "runfiles library supports manifest mode" {
+    const ctx = try BitContext.init();
+
+    // Build the binary with runfiles manifest.
+    {
+        const result = try ctx.exec_bazel(.{
+            .argv = &[_][]const u8{
+                "build",                   "//runfiles:binary",
+                "--enable_runfiles",       "--nolegacy_external_runfiles",
+                "--nobuild_runfile_links", "--build_runfile_manifests",
+            },
+        });
+        defer result.deinit();
+
+        try std.testing.expect(result.success);
+    }
+
+    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
+    defer workspace.close();
+
+    // Check that no runfiles tree was generated.
+    {
+        var dir: ?std.fs.Dir = workspace.openDir("bazel-bin/runfiles/binary.runfiles", .{}) catch |e| switch (e) {
+            error.FileNotFound => null,
+            else => |e_| return e_,
+        };
+        if (dir) |*dir_| {
+            dir_.close();
+            return error.RunfilesDirectoryShouldNotExist;
+        }
+    }
+
+    // Check that the runfiles manifest was generated.
+    {
+        const file = workspace.openFile("bazel-bin/runfiles/binary.runfiles_manifest", .{}) catch |e| switch (e) {
+            error.FileNotFound => return error.RunfilesManifestNotFound,
+            else => |e_| return e_,
+        };
+        file.close();
+    }
+
+    // Clean up the environment.
+    var env_map = try std.process.getEnvMap(std.testing.allocator);
+    defer env_map.deinit();
+    env_map.remove("RUNFILES_DIR");
+    env_map.remove("RUNFILES_MANIFEST_FILE");
+
+    // Execute the binary.
+    const result = try std.ChildProcess.exec(.{
+        .allocator = std.testing.allocator,
+        .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
+        .cwd_dir = workspace,
+        .env_map = &env_map,
+    });
+    defer std.testing.allocator.free(result.stdout);
+    defer std.testing.allocator.free(result.stderr);
+
+    try std.testing.expectEqualStrings("", result.stderr);
+    try std.testing.expectEqual(.{ .Exited = 0 }, result.term);
+    try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
+}
