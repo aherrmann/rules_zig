@@ -1,6 +1,11 @@
 const std = @import("std");
 const log = std.log.scoped(.runfiles);
 
+pub const runfiles_manifest_var_name = "RUNFILES_MANIFEST_FILE";
+pub const runfiles_directory_var_name = "RUNFILES_DIR";
+pub const runfiles_manifest_suffix = ".runfiles_manifest";
+pub const runfiles_directory_suffix = ".runfiles";
+
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
         error.EnvironmentVariableNotFound => null,
@@ -9,7 +14,7 @@ fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
 }
 
 pub fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
-    if (try getEnvVar(allocator, "RUNFILES_DIR")) |value| {
+    if (try getEnvVar(allocator, runfiles_directory_var_name)) |value| {
         defer allocator.free(value);
         return try std.fs.cwd().realpathAlloc(allocator, value);
     } else {
@@ -21,7 +26,7 @@ pub fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
 
         const check_path = try std.fmt.allocPrint(
             allocator,
-            "{s}.runfiles",
+            "{s}" ++ runfiles_directory_suffix,
             .{argv0},
         );
         defer allocator.free(check_path);
