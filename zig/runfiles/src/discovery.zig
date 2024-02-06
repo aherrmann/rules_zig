@@ -15,8 +15,7 @@ fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
 
 pub fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
     if (try getEnvVar(allocator, runfiles_directory_var_name)) |value| {
-        defer allocator.free(value);
-        return try std.fs.cwd().realpathAlloc(allocator, value);
+        return value;
     } else {
         var iter = try std.process.argsWithAllocator(allocator);
         defer iter.deinit();
@@ -29,12 +28,12 @@ pub fn discoverRunfiles(allocator: std.mem.Allocator) ![]const u8 {
             "{s}" ++ runfiles_directory_suffix,
             .{argv0},
         );
-        defer allocator.free(check_path);
+        errdefer allocator.free(check_path);
 
         var dir = std.fs.cwd().openDir(check_path, .{}) catch
             return error.RunfilesNotFound;
         dir.close();
 
-        return try std.fs.cwd().realpathAlloc(allocator, check_path);
+        return check_path;
     }
 }
