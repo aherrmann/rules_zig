@@ -19,7 +19,8 @@ repo_mapping: ?RepoMapping,
 /// TODO: The manifest-based strategy is not yet implemented.
 pub fn create(allocator: std.mem.Allocator) !Self {
     const runfiles_path = discover: {
-        const result = try discovery.discoverRunfiles(.{ .allocator = allocator });
+        const result = try discovery.discoverRunfiles(.{ .allocator = allocator }) orelse
+            return error.RunfilesNotFound;
         switch (result) {
             .manifest => |path| {
                 _ = path;

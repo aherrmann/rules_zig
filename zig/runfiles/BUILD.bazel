@@ -17,6 +17,7 @@ zig_test(
     name = "test",
     size = "small",
     srcs = _SRCS,
+    cdeps = ["//zig/lib:libc"],
     main = "runfiles.zig",
 )
 
