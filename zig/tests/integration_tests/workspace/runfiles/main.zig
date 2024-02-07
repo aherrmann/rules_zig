@@ -8,7 +8,7 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
-    var r = try runfiles.Runfiles.create(allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = allocator });
     defer r.deinit(allocator);
 
     const rpath = "__main__/runfiles/data.txt";

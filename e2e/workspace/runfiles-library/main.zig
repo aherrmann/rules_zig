@@ -14,7 +14,7 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
-    var r = try runfiles.Runfiles.create(allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = allocator });
     defer r.deinit(allocator);
 
     const rpath = try getEnvVar(allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
@@ -33,7 +33,7 @@ pub fn main() !void {
 }
 
 test "read data file" {
-    var r = try runfiles.Runfiles.create(std.testing.allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = std.testing.allocator });
     defer r.deinit(std.testing.allocator);
 
     const rpath = try getEnvVar(std.testing.allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
@@ -52,7 +52,7 @@ test "read data file" {
 }
 
 test "resolve external dependency rpath" {
-    var r = try runfiles.Runfiles.create(std.testing.allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = std.testing.allocator });
     defer r.deinit(std.testing.allocator);
 
     const rpath = try getEnvVar(std.testing.allocator, "DEPENDENCY_DATA") orelse return error.EnvVarNotFoundDEPENDENCY_DATA;

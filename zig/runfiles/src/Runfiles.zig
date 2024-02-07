@@ -17,9 +17,18 @@ repo_mapping: ?RepoMapping,
 /// > runfiles handling and returns a Runfiles object
 ///
 /// TODO: The manifest-based strategy is not yet implemented.
-pub fn create(allocator: std.mem.Allocator) !Self {
+pub fn create(options: struct {
+    /// Used to allocate intermediate data and the final location.
+    allocator: std.mem.Allocator,
+    /// User override for the `RUNFILES_MANIFEST_FILE` variable.
+    manifest: ?[]const u8 = null,
+    /// User override for the `RUNFILES_DIRECTORY` variable.
+    directory: ?[]const u8 = null,
+    /// User override for `argv[0]`.
+    argv0: ?[]const u8 = null,
+}) !Self {
     const runfiles_path = discover: {
-        const result = try discovery.discoverRunfiles(.{ .allocator = allocator }) orelse
+        const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;
         switch (result) {
             .manifest => |path| {
@@ -27,20 +36,20 @@ pub fn create(allocator: std.mem.Allocator) !Self {
                 return error.NotImplemented;
             },
             .directory => |path| {
-                defer allocator.free(path);
-                break :discover try std.fs.cwd().realpathAlloc(allocator, path);
+                defer options.allocator.free(path);
+                break :discover try std.fs.cwd().realpathAlloc(options.allocator, path);
             },
         }
     };
-    errdefer allocator.free(runfiles_path);
+    errdefer options.allocator.free(runfiles_path);
 
     var repo_mapping: ?RepoMapping = null;
     {
-        const repo_mapping_path = try rlocationUnmapped(allocator, runfiles_path, "", "_repo_mapping");
-        defer allocator.free(repo_mapping_path);
+        const repo_mapping_path = try rlocationUnmapped(options.allocator, runfiles_path, "", "_repo_mapping");
+        defer options.allocator.free(repo_mapping_path);
         if (std.fs.cwd().access(repo_mapping_path, .{}) != error.FileNotFound)
             // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
-            repo_mapping = try RepoMapping.init(allocator, repo_mapping_path)
+            repo_mapping = try RepoMapping.init(options.allocator, repo_mapping_path)
         else
             log.warn("No repository mapping found. This is likely an error if you are using Bazel version >=7 with bzlmod enabled.", .{});
     }
