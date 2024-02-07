@@ -43,28 +43,47 @@ pub fn discoverRunfiles(options: struct {
     /// User override for `argv[0]`.
     argv0: ?[]const u8 = null,
 }) !Location {
-    if (try getEnvVar(options.allocator, runfiles_directory_var_name)) |value| {
+    if (options.manifest) |value|
+        return .{ .manifest = try options.allocator.dupe(u8, value) };
+
+    if (options.directory) |value|
+        return .{ .directory = try options.allocator.dupe(u8, value) };
+
+    if (try getEnvVar(options.allocator, runfiles_manifest_var_name)) |value|
         return .{ .manifest = value };
-    } else {
-        var iter = try std.process.argsWithAllocator(options.allocator);
-        defer iter.deinit();
 
-        const argv0 = iter.next() orelse
-            return error.Argv0Unavailable;
+    if (try getEnvVar(options.allocator, runfiles_directory_var_name)) |value|
+        return .{ .directory = value };
 
-        const check_path = try std.fmt.allocPrint(
-            options.allocator,
-            "{s}" ++ runfiles_directory_suffix,
-            .{argv0},
-        );
-        errdefer options.allocator.free(check_path);
+    var iter = try std.process.argsWithAllocator(options.allocator);
+    defer iter.deinit();
+    const argv0 = options.argv0 orelse iter.next() orelse
+        return error.Argv0Unavailable;
 
-        var dir = std.fs.cwd().openDir(check_path, .{}) catch
-            return error.RunfilesNotFound;
-        dir.close();
+    var buffer = std.ArrayList(u8).init(options.allocator);
+    defer buffer.deinit();
 
-        return .{ .manifest = check_path };
-    }
+    buffer.clearRetainingCapacity();
+    try buffer.writer().print("{s}{s}", .{ argv0, runfiles_manifest_suffix });
+    if (isReadableFile(buffer.items))
+        return .{ .manifest = try buffer.toOwnedSlice() };
+
+    buffer.clearRetainingCapacity();
+    try buffer.writer().print("{s}.exe{s}", .{ argv0, runfiles_manifest_suffix });
+    if (isReadableFile(buffer.items))
+        return .{ .manifest = try buffer.toOwnedSlice() };
+
+    buffer.clearRetainingCapacity();
+    try buffer.writer().print("{s}{s}", .{ argv0, runfiles_directory_suffix });
+    if (isOpenableDir(buffer.items))
+        return .{ .directory = try buffer.toOwnedSlice() };
+
+    buffer.clearRetainingCapacity();
+    try buffer.writer().print("{s}.exe{s}", .{ argv0, runfiles_directory_suffix });
+    if (isOpenableDir(buffer.items))
+        return .{ .directory = try buffer.toOwnedSlice() };
+
+    return error.RunfilesNotFound;
 }
 
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
@@ -72,4 +91,16 @@ fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
         error.EnvironmentVariableNotFound => null,
         else => |e_| return e_,
     };
+}
+
+fn isReadableFile(file_path: []const u8) bool {
+    var file = std.fs.cwd().openFile(file_path, .{}) catch return false;
+    file.close();
+    return true;
+}
+
+fn isOpenableDir(dir_path: []const u8) bool {
+    var dir = std.fs.cwd().openDir(dir_path, .{}) catch return false;
+    dir.close();
+    return true;
 }
