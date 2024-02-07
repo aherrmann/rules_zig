@@ -42,9 +42,9 @@ pub fn discoverRunfiles(options: struct {
     directory: ?[]const u8 = null,
     /// User override for `argv[0]`.
     argv0: ?[]const u8 = null,
-}) ![]const u8 {
+}) !Location {
     if (try getEnvVar(options.allocator, runfiles_directory_var_name)) |value| {
-        return value;
+        return .{ .manifest = value };
     } else {
         var iter = try std.process.argsWithAllocator(options.allocator);
         defer iter.deinit();
@@ -63,7 +63,7 @@ pub fn discoverRunfiles(options: struct {
             return error.RunfilesNotFound;
         dir.close();
 
-        return check_path;
+        return .{ .manifest = check_path };
     }
 }
 
