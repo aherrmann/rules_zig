@@ -1,6 +1,7 @@
 load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
 
 _SRCS = [
+    "src/Directory.zig",
     "src/discovery.zig",
     "src/RepoMapping.zig",
     "src/Runfiles.zig",

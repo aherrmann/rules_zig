@@ -3,10 +3,11 @@ const log = std.log.scoped(.runfiles);
 
 const discovery = @import("discovery.zig");
 const RepoMapping = @import("RepoMapping.zig");
+const Directory = @import("Directory.zig");
 
 const Self = @This();
 
-directory: []const u8,
+directory: Directory,
 repo_mapping: ?RepoMapping,
 
 /// Quoting the runfiles design:
@@ -18,7 +19,7 @@ repo_mapping: ?RepoMapping,
 ///
 /// TODO: The manifest-based strategy is not yet implemented.
 pub fn create(options: discovery.DiscoverOptions) !Self {
-    const runfiles_path = discover: {
+    var directory = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;
         switch (result) {
@@ -28,15 +29,15 @@ pub fn create(options: discovery.DiscoverOptions) !Self {
             },
             .directory => |path| {
                 defer options.allocator.free(path);
-                break :discover try std.fs.cwd().realpathAlloc(options.allocator, path);
+                break :discover try Directory.init(options.allocator, path);
             },
         }
     };
-    errdefer options.allocator.free(runfiles_path);
+    errdefer directory.deinit(options.allocator);
 
     var repo_mapping: ?RepoMapping = null;
     {
-        const repo_mapping_path = try rlocationUnmapped(options.allocator, runfiles_path, "", "_repo_mapping");
+        const repo_mapping_path = try directory.rlocationUnmapped(options.allocator, "", "_repo_mapping");
         defer options.allocator.free(repo_mapping_path);
         if (std.fs.cwd().access(repo_mapping_path, .{}) != error.FileNotFound)
             // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
@@ -46,27 +47,14 @@ pub fn create(options: discovery.DiscoverOptions) !Self {
     }
 
     return Self{
-        .directory = runfiles_path,
+        .directory = directory,
         .repo_mapping = repo_mapping,
     };
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
-    allocator.free(self.directory);
+    self.directory.deinit(allocator);
     if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
-}
-
-fn rlocationUnmapped(
-    allocator: std.mem.Allocator,
-    runfiles_directory: []const u8,
-    repo: []const u8,
-    path: []const u8,
-) ![]const u8 {
-    return try std.fs.path.join(allocator, &[_][]const u8{
-        runfiles_directory,
-        repo,
-        path,
-    });
 }
 
 /// Quoting the runfiles design:
@@ -103,5 +91,5 @@ pub fn rlocation(
             // pattern.
         }
     }
-    return try rlocationUnmapped(allocator, self.directory, repo, path);
+    return try self.directory.rlocationUnmapped(allocator, repo, path);
 }
