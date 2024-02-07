@@ -17,16 +17,7 @@ repo_mapping: ?RepoMapping,
 /// > runfiles handling and returns a Runfiles object
 ///
 /// TODO: The manifest-based strategy is not yet implemented.
-pub fn create(options: struct {
-    /// Used to allocate intermediate data and the final location.
-    allocator: std.mem.Allocator,
-    /// User override for the `RUNFILES_MANIFEST_FILE` variable.
-    manifest: ?[]const u8 = null,
-    /// User override for the `RUNFILES_DIRECTORY` variable.
-    directory: ?[]const u8 = null,
-    /// User override for `argv[0]`.
-    argv0: ?[]const u8 = null,
-}) !Self {
+pub fn create(options: discovery.DiscoverOptions) !Self {
     const runfiles_path = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;

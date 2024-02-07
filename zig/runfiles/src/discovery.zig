@@ -31,6 +31,17 @@ pub const Location = union(Strategy) {
     }
 };
 
+pub const DiscoverOptions = struct {
+    /// Used to allocate intermediate data and the final location.
+    allocator: std.mem.Allocator,
+    /// User override for the `RUNFILES_MANIFEST_FILE` variable.
+    manifest: ?[]const u8 = null,
+    /// User override for the `RUNFILES_DIRECTORY` variable.
+    directory: ?[]const u8 = null,
+    /// User override for `argv[0]`.
+    argv0: ?[]const u8 = null,
+};
+
 /// The unified runfiles discovery strategy is to:
 /// * check if `RUNFILES_MANIFEST_FILE` or `RUNFILES_DIR` envvars are set, and
 ///   again initialize a `Runfiles` object accordingly; otherwise
@@ -41,16 +52,7 @@ pub const Location = union(Strategy) {
 /// * assume the binary has no runfiles.
 ///
 /// The caller has to free the path contained in the returned location.
-pub fn discoverRunfiles(options: struct {
-    /// Used to allocate intermediate data and the final location.
-    allocator: std.mem.Allocator,
-    /// User override for the `RUNFILES_MANIFEST_FILE` variable.
-    manifest: ?[]const u8 = null,
-    /// User override for the `RUNFILES_DIRECTORY` variable.
-    directory: ?[]const u8 = null,
-    /// User override for `argv[0]`.
-    argv0: ?[]const u8 = null,
-}) !?Location {
+pub fn discoverRunfiles(options: DiscoverOptions) !?Location {
     if (options.manifest) |value|
         return .{ .manifest = try options.allocator.dupe(u8, value) };
 
