@@ -33,3 +33,45 @@ pub fn rlocationUnmapped(
         rpath,
     });
 }
+
+test "Directory init and unmapped lookup" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.makePath("test.runfiles/my_workspace/some/package");
+    try tmp.dir.writeFile("test.runfiles/_repo_mapping", "_repo_mapping");
+    try tmp.dir.writeFile("test.runfiles/my_workspace/some/package/some_file", "some_file");
+
+    const cwd_path_absolute = try std.fs.cwd().realpathAlloc(std.testing.allocator, ".");
+    defer std.testing.allocator.free(cwd_path_absolute);
+    const runfiles_path_absolute = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    defer std.testing.allocator.free(runfiles_path_absolute);
+    const runfiles_path = try std.fs.path.relative(std.testing.allocator, cwd_path_absolute, runfiles_path_absolute);
+    defer std.testing.allocator.free(runfiles_path);
+
+    var directory = try Self.init(std.testing.allocator, runfiles_path);
+    defer directory.deinit(std.testing.allocator);
+
+    {
+        const filepath = try directory.rlocationUnmapped(std.testing.allocator, "", "_repo_mapping");
+        defer std.testing.allocator.free(filepath);
+        try std.testing.expect(std.fs.path.isAbsolute(filepath));
+        // TODO[AH] test normalized path (no '..', '/' sep, lower-case Windows)
+        const file = try std.fs.openFileAbsolute(filepath, .{});
+        defer file.close();
+        const content = try file.readToEndAlloc(std.testing.allocator, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("_repo_mapping", content);
+    }
+
+    {
+        const filepath = try directory.rlocationUnmapped(std.testing.allocator, "my_workspace", "some/package/some_file");
+        defer std.testing.allocator.free(filepath);
+        try std.testing.expect(std.fs.path.isAbsolute(filepath));
+        // TODO[AH] test normalized path (no '..', '/' sep, lower-case Windows)
+        const file = try std.fs.openFileAbsolute(filepath, .{});
+        defer file.close();
+        const content = try file.readToEndAlloc(std.testing.allocator, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("some_file", content);
+    }
+}
