@@ -49,6 +49,39 @@ pub fn init(rpath: []const u8) Self {
         .{ .repo = head, .path = tail };
 }
 
+// TODO[AH] Implement OS specific behavior
+//
+//   See https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
+//
+//   > an Rlocation(string) method that expects a runfiles-root-relative path
+//   > (case-sensitive on Linux/macOS, case-insensitive on Windows) and returns
+//   > the absolute path of the file, which is normalized (and lowercase on
+//   > Windows) and uses "/" as directory separator on every platform (including
+//   > Windows)
+//
+//   - Parameterize the HashMapContext by OS type (Windows, POSIX).
+//   - Iterate path component wise for hash and equality.
+//   - Normalize to lower-case for Windows.
+
+pub const HashMapContext = struct {
+    pub fn hash(self: @This(), p: Self) u64 {
+        _ = self;
+        var hasher = std.hash.Wyhash.init(0);
+        if (p.repo.len > 0) {
+            hasher.update(p.repo);
+            hasher.update("/");
+        }
+        hasher.update(p.path);
+        return hasher.final();
+    }
+    pub fn eql(self: @This(), a: Self, b: Self) bool {
+        _ = self;
+        const eqlRepo = std.hash_map.eqlString(a.repo, b.repo);
+        const eqlPath = std.hash_map.eqlString(a.path, b.path);
+        return eqlRepo and eqlPath;
+    }
+};
+
 test "RPath repo splitting" {
     {
         const input = "my_workspace/some/package/some_file";
@@ -70,5 +103,36 @@ test "RPath repo splitting" {
         const actual = Self.init(input);
         try std.testing.expectEqualStrings(expected.repo, actual.repo);
         try std.testing.expectEqualStrings(expected.path, actual.path);
+    }
+}
+
+test "RPath HashMapContext" {
+    const ctx = HashMapContext{};
+    {
+        const a = Self{ .repo = "repo", .path = "path" };
+        const b = Self{ .repo = "repo", .path = "path" };
+        try std.testing.expect(ctx.hash(a) == ctx.hash(b));
+        try std.testing.expect(ctx.eql(a, b));
+    }
+
+    {
+        const a = Self{ .repo = "repo_a", .path = "path" };
+        const b = Self{ .repo = "repo_b", .path = "path" };
+        try std.testing.expect(ctx.hash(a) != ctx.hash(b));
+        try std.testing.expect(!ctx.eql(a, b));
+    }
+
+    {
+        const a = Self{ .repo = "repo", .path = "path_a" };
+        const b = Self{ .repo = "repo", .path = "path_b" };
+        try std.testing.expect(ctx.hash(a) != ctx.hash(b));
+        try std.testing.expect(!ctx.eql(a, b));
+    }
+
+    {
+        const a = Self{ .repo = "foo", .path = "" };
+        const b = Self{ .repo = "", .path = "foo" };
+        try std.testing.expect(ctx.hash(a) != ctx.hash(b));
+        try std.testing.expect(!ctx.eql(a, b));
     }
 }
