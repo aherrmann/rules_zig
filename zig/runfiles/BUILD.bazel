@@ -29,6 +29,8 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         ":runfiles.zig",
+        ":src/Directory.zig",
+        ":src/RPath.zig",
         ":src/RepoMapping.zig",
         ":src/Runfiles.zig",
         ":src/discovery.zig",
