@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const log = std.log.scoped(.runfiles);
 
 const discovery = @import("discovery.zig");
@@ -125,3 +126,158 @@ const Implementation = union(discovery.Strategy) {
         };
     }
 };
+
+test "Runfiles from manifest" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.writeFile("test.repo_mapping",
+        \\,my_module,my_workspace
+        \\,other_module,other~3.4.5
+        \\their_module~1.2.3,another_module,other~3.4.5
+    );
+    try tmp.dir.makePath("some/package");
+    try tmp.dir.writeFile("some/package/some_file", "some_content");
+    try tmp.dir.makePath("other/package");
+    try tmp.dir.writeFile("other/package/other_file", "other_content");
+    {
+        var manifest_file = try tmp.dir.createFile("test.runfiles_manifest", .{});
+        defer manifest_file.close();
+        var buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
+        try manifest_file.writer().print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
+        try manifest_file.writer().print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
+    }
+    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
+    defer std.testing.allocator.free(manifest_path);
+
+    var runfiles = try Self.create(.{
+        .allocator = std.testing.allocator,
+        .manifest = manifest_path,
+    });
+    defer runfiles.deinit(std.testing.allocator);
+
+    {
+        const file_path = try runfiles.rlocation(
+            std.testing.allocator,
+            "my_module/some/package/some_file",
+            "",
+        );
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("some_content", content);
+    }
+
+    {
+        const file_path = try runfiles.rlocation(
+            std.testing.allocator,
+            "other_module/other/package/other_file",
+            "",
+        );
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("other_content", content);
+    }
+
+    {
+        const file_path = try runfiles.rlocation(
+            std.testing.allocator,
+            "another_module/other/package/other_file",
+            "their_module~1.2.3",
+        );
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("other_content", content);
+    }
+}
+
+test "Runfiles from directory" {
+    if (builtin.os.tag == .windows)
+        // Windows does not support symlinks out of the box.
+        return error.SkipZigTest;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    try tmp.dir.writeFile("test.repo_mapping",
+        \\,my_module,my_workspace
+        \\,other_module,other~3.4.5
+        \\their_module~1.2.3,another_module,other~3.4.5
+    );
+    try tmp.dir.makePath("some/package");
+    try tmp.dir.writeFile("some/package/some_file", "some_content");
+    try tmp.dir.makePath("other/package");
+    try tmp.dir.writeFile("other/package/other_file", "other_content");
+    {
+        var buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        try tmp.dir.makeDir("test.runfiles");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("test.repo_mapping", &buf),
+            "test.runfiles/_repo_mapping",
+            .{},
+        );
+        try tmp.dir.makePath("test.runfiles/my_workspace/some/package");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("some/package/some_file", &buf),
+            "test.runfiles/my_workspace/some/package/some_file",
+            .{},
+        );
+        try tmp.dir.makePath("test.runfiles/other~3.4.5/other/package");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("other/package/other_file", &buf),
+            "test.runfiles/other~3.4.5/other/package/other_file",
+            .{},
+        );
+    }
+    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    defer std.testing.allocator.free(directory_path);
+
+    var runfiles = try Self.create(.{
+        .allocator = std.testing.allocator,
+        .directory = directory_path,
+    });
+    defer runfiles.deinit(std.testing.allocator);
+
+    {
+        const file_path = try runfiles.rlocation(
+            std.testing.allocator,
+            "my_module/some/package/some_file",
+            "",
+        );
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("some_content", content);
+    }
+
+    {
+        const file_path = try runfiles.rlocation(
+            std.testing.allocator,
+            "other_module/other/package/other_file",
+            "",
+        );
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("other_content", content);
+    }
+
+    {
+        const file_path = try runfiles.rlocation(
+            std.testing.allocator,
+            "another_module/other/package/other_file",
+            "their_module~1.2.3",
+        );
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("other_content", content);
+    }
+}
