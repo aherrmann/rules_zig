@@ -3,11 +3,13 @@ const log = std.log.scoped(.runfiles);
 
 const discovery = @import("discovery.zig");
 const Directory = @import("Directory.zig");
+const Manifest = @import("Manifest.zig");
 const RepoMapping = @import("RepoMapping.zig");
+const RPath = @import("RPath.zig");
 
 const Self = @This();
 
-directory: Directory,
+implementation: Implementation,
 repo_mapping: ?RepoMapping,
 
 /// Quoting the runfiles design:
@@ -16,28 +18,28 @@ repo_mapping: ?RepoMapping,
 /// > that inspects the environment and/or `argv[0]` to determine the runfiles
 /// > strategy (manifest-based or directory-based; see below), initializes
 /// > runfiles handling and returns a Runfiles object
-///
-/// TODO: The manifest-based strategy is not yet implemented.
 pub fn create(options: discovery.DiscoverOptions) !Self {
-    var directory = discover: {
+    var implementation = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;
         switch (result) {
             .manifest => |path| {
-                _ = path;
-                return error.NotImplemented;
+                defer options.allocator.free(path);
+                var manifest = try Manifest.init(options.allocator, path);
+                break :discover Implementation{ .manifest = manifest };
             },
             .directory => |path| {
                 defer options.allocator.free(path);
-                break :discover try Directory.init(options.allocator, path);
+                var directory = try Directory.init(options.allocator, path);
+                break :discover Implementation{ .directory = directory };
             },
         }
     };
-    errdefer directory.deinit(options.allocator);
+    errdefer implementation.deinit(options.allocator);
 
     var repo_mapping: ?RepoMapping = null;
     {
-        const repo_mapping_path = try directory.rlocationUnmapped(options.allocator, .{
+        const repo_mapping_path = try implementation.rlocationUnmapped(options.allocator, .{
             .repo = "",
             .path = "_repo_mapping",
         });
@@ -50,13 +52,13 @@ pub fn create(options: discovery.DiscoverOptions) !Self {
     }
 
     return Self{
-        .directory = directory,
+        .implementation = implementation,
         .repo_mapping = repo_mapping,
     };
 }
 
 pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
-    self.directory.deinit(allocator);
+    self.implementation.deinit(allocator);
     if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
 }
 
@@ -94,8 +96,32 @@ pub fn rlocation(
             // pattern.
         }
     }
-    return try self.directory.rlocationUnmapped(allocator, .{
+    return try self.implementation.rlocationUnmapped(allocator, .{
         .repo = repo,
         .path = path,
     });
 }
+
+const Implementation = union(discovery.Strategy) {
+    manifest: Manifest,
+    directory: Directory,
+
+    pub fn deinit(self: *Implementation, allocator: std.mem.Allocator) void {
+        switch (self.*) {
+            .manifest => |*manifest| manifest.deinit(allocator),
+            .directory => |*directory| directory.deinit(allocator),
+        }
+    }
+
+    pub fn rlocationUnmapped(
+        self: *const Implementation,
+        allocator: std.mem.Allocator,
+        rpath: RPath,
+    ) ![]const u8 {
+        return switch (self.*) {
+            .manifest => |*manifest| allocator.dupe(u8, manifest.rlocationUnmapped(rpath) orelse
+                return error.RunfilesPathNotFound),
+            .directory => |*directory| directory.rlocationUnmapped(allocator, rpath),
+        };
+    }
+};
