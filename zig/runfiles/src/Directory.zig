@@ -5,6 +5,8 @@
 
 const std = @import("std");
 
+const RPath = @import("RPath.zig");
+
 const Self = @This();
 
 path: []const u8,
@@ -23,14 +25,13 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
 pub fn rlocationUnmapped(
     self: *const Self,
     allocator: std.mem.Allocator,
-    repo: []const u8,
-    rpath: []const u8,
+    rpath: RPath,
 ) ![]const u8 {
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     return try std.fs.path.join(allocator, &[_][]const u8{
         self.path,
-        repo,
-        rpath,
+        rpath.repo,
+        rpath.path,
     });
 }
 
@@ -52,7 +53,10 @@ test "Directory init and unmapped lookup" {
     defer directory.deinit(std.testing.allocator);
 
     {
-        const filepath = try directory.rlocationUnmapped(std.testing.allocator, "", "_repo_mapping");
+        const filepath = try directory.rlocationUnmapped(std.testing.allocator, .{
+            .repo = "",
+            .path = "_repo_mapping",
+        });
         defer std.testing.allocator.free(filepath);
         try std.testing.expect(std.fs.path.isAbsolute(filepath));
         // TODO[AH] test normalized path (no '..', '/' sep, lower-case Windows)
@@ -64,7 +68,10 @@ test "Directory init and unmapped lookup" {
     }
 
     {
-        const filepath = try directory.rlocationUnmapped(std.testing.allocator, "my_workspace", "some/package/some_file");
+        const filepath = try directory.rlocationUnmapped(std.testing.allocator, .{
+            .repo = "my_workspace",
+            .path = "some/package/some_file",
+        });
         defer std.testing.allocator.free(filepath);
         try std.testing.expect(std.fs.path.isAbsolute(filepath));
         // TODO[AH] test normalized path (no '..', '/' sep, lower-case Windows)

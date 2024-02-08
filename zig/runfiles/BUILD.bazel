@@ -4,6 +4,7 @@ _SRCS = [
     "src/Directory.zig",
     "src/discovery.zig",
     "src/RepoMapping.zig",
+    "src/RPath.zig",
     "src/Runfiles.zig",
 ]
 

@@ -11,5 +11,6 @@ test {
     _ = @import("src/Directory.zig");
     _ = @import("src/discovery.zig");
     _ = @import("src/RepoMapping.zig");
+    _ = @import("src/RPath.zig");
     _ = @import("src/Runfiles.zig");
 }

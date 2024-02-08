@@ -2,8 +2,8 @@ const std = @import("std");
 const log = std.log.scoped(.runfiles);
 
 const discovery = @import("discovery.zig");
-const RepoMapping = @import("RepoMapping.zig");
 const Directory = @import("Directory.zig");
+const RepoMapping = @import("RepoMapping.zig");
 
 const Self = @This();
 
@@ -37,7 +37,10 @@ pub fn create(options: discovery.DiscoverOptions) !Self {
 
     var repo_mapping: ?RepoMapping = null;
     {
-        const repo_mapping_path = try directory.rlocationUnmapped(options.allocator, "", "_repo_mapping");
+        const repo_mapping_path = try directory.rlocationUnmapped(options.allocator, .{
+            .repo = "",
+            .path = "_repo_mapping",
+        });
         defer options.allocator.free(repo_mapping_path);
         if (std.fs.cwd().access(repo_mapping_path, .{}) != error.FileNotFound)
             // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
@@ -91,5 +94,8 @@ pub fn rlocation(
             // pattern.
         }
     }
-    return try self.directory.rlocationUnmapped(allocator, repo, path);
+    return try self.directory.rlocationUnmapped(allocator, .{
+        .repo = repo,
+        .path = path,
+    });
 }
