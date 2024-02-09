@@ -72,9 +72,15 @@ pub fn rlocationAlloc(
     rpath: []const u8,
     source: []const u8,
 ) !?[]const u8 {
+    const rpath_ = self.remapRPath(rpath, source);
+    return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
+}
+
+fn remapRPath(self: *const Runfiles, rpath: []const u8, source: []const u8) RPath {
     var rpath_ = RPath.init(rpath);
     if (self.repo_mapping) |repo_mapping| {
-        if (repo_mapping.lookup(.{ .source = source, .target = rpath_.repo })) |mapped|
+        const key = RepoMapping.Key{ .source = source, .target = rpath_.repo };
+        if (repo_mapping.lookup(key)) |mapped|
             rpath_.repo = mapped;
         // NOTE, the spec states that we should fail if no mapping is found
         // and the repo name is not canonical. However, this always fails
@@ -82,7 +88,7 @@ pub fn rlocationAlloc(
         // common runfiles library implementations do not follow this
         // pattern.
     }
-    return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
+    return rpath_;
 }
 
 const Implementation = union(discovery.Strategy) {
