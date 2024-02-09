@@ -72,25 +72,17 @@ pub fn rlocationAlloc(
     rpath: []const u8,
     source: []const u8,
 ) !?[]const u8 {
-    var repo: []const u8 = "";
-    var path: []const u8 = rpath;
-    if (std.mem.indexOfScalar(u8, rpath, '/')) |pos| {
-        repo = rpath[0..pos];
-        path = rpath[pos + 1 ..];
-        if (self.repo_mapping) |repo_mapping| {
-            if (repo_mapping.lookup(.{ .source = source, .target = repo })) |mapped|
-                repo = mapped;
-            // NOTE, the spec states that we should fail if no mapping is found
-            // and the repo name is not canonical. However, this always fails
-            // in WORKSPACE mode and is apparently an issue in the spec and
-            // common runfiles library implementations do not follow this
-            // pattern.
-        }
+    var rpath_ = RPath.init(rpath);
+    if (self.repo_mapping) |repo_mapping| {
+        if (repo_mapping.lookup(.{ .source = source, .target = rpath_.repo })) |mapped|
+            rpath_.repo = mapped;
+        // NOTE, the spec states that we should fail if no mapping is found
+        // and the repo name is not canonical. However, this always fails
+        // in WORKSPACE mode and is apparently an issue in the spec and
+        // common runfiles library implementations do not follow this
+        // pattern.
     }
-    return try self.implementation.rlocationUnmappedAlloc(allocator, .{
-        .repo = repo,
-        .path = path,
-    });
+    return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
 }
 
 const Implementation = union(discovery.Strategy) {
