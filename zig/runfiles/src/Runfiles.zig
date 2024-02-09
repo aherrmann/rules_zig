@@ -87,7 +87,7 @@ pub fn rlocationAlloc(
             // pattern.
         }
     }
-    return try self.implementation.rlocationUnmapped(allocator, .{
+    return try self.implementation.rlocationUnmappedAlloc(allocator, .{
         .repo = repo,
         .path = path,
     });
@@ -104,7 +104,7 @@ const Implementation = union(discovery.Strategy) {
         }
     }
 
-    pub fn rlocationUnmapped(
+    pub fn rlocationUnmappedAlloc(
         self: *const Implementation,
         allocator: std.mem.Allocator,
         rpath: RPath,
@@ -116,7 +116,7 @@ const Implementation = union(discovery.Strategy) {
                 return try allocator.dupe(u8, path);
             },
             .directory => |*directory| {
-                return try directory.rlocationUnmapped(allocator, rpath);
+                return try directory.rlocationUnmappedAlloc(allocator, rpath);
             },
         }
     }
@@ -126,7 +126,7 @@ const Implementation = union(discovery.Strategy) {
         const msg_not_found = "No repository mapping found. " ++
             "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
 
-        const path = try self.rlocationUnmapped(allocator, .{
+        const path = try self.rlocationUnmappedAlloc(allocator, .{
             .repo = "",
             .path = repo_mapping_file_name,
         }) orelse {

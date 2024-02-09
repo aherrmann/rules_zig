@@ -22,7 +22,7 @@ pub fn deinit(self: *Directory, allocator: std.mem.Allocator) void {
     allocator.free(self.path);
 }
 
-pub fn rlocationUnmapped(
+pub fn rlocationUnmappedAlloc(
     self: *const Directory,
     allocator: std.mem.Allocator,
     rpath: RPath,
@@ -53,7 +53,7 @@ test "Directory init and unmapped lookup" {
     defer directory.deinit(std.testing.allocator);
 
     {
-        const filepath = try directory.rlocationUnmapped(std.testing.allocator, .{
+        const filepath = try directory.rlocationUnmappedAlloc(std.testing.allocator, .{
             .repo = "",
             .path = "_repo_mapping",
         });
@@ -68,7 +68,7 @@ test "Directory init and unmapped lookup" {
     }
 
     {
-        const filepath = try directory.rlocationUnmapped(std.testing.allocator, .{
+        const filepath = try directory.rlocationUnmappedAlloc(std.testing.allocator, .{
             .repo = "my_workspace",
             .path = "some/package/some_file",
         });
