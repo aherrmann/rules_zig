@@ -7,23 +7,23 @@ const std = @import("std");
 
 const RPath = @import("RPath.zig");
 
-const Self = @This();
+const Directory = @This();
 
 path: []const u8,
 
-pub fn init(allocator: std.mem.Allocator, path: []const u8) !Self {
+pub fn init(allocator: std.mem.Allocator, path: []const u8) !Directory {
     var absolute = try std.fs.cwd().realpathAlloc(allocator, path);
     errdefer allocator.free(absolute);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     return .{ .path = absolute };
 }
 
-pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
+pub fn deinit(self: *Directory, allocator: std.mem.Allocator) void {
     allocator.free(self.path);
 }
 
 pub fn rlocationUnmapped(
-    self: *const Self,
+    self: *const Directory,
     allocator: std.mem.Allocator,
     rpath: RPath,
 ) ![]const u8 {
@@ -49,7 +49,7 @@ test "Directory init and unmapped lookup" {
     const runfiles_path = try std.fs.path.relative(std.testing.allocator, cwd_path_absolute, runfiles_path_absolute);
     defer std.testing.allocator.free(runfiles_path);
 
-    var directory = try Self.init(std.testing.allocator, runfiles_path);
+    var directory = try Directory.init(std.testing.allocator, runfiles_path);
     defer directory.deinit(std.testing.allocator);
 
     {

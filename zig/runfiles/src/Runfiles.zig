@@ -8,7 +8,7 @@ const Manifest = @import("Manifest.zig");
 const RepoMapping = @import("RepoMapping.zig");
 const RPath = @import("RPath.zig");
 
-const Self = @This();
+const Runfiles = @This();
 
 implementation: Implementation,
 repo_mapping: ?RepoMapping,
@@ -19,7 +19,7 @@ repo_mapping: ?RepoMapping,
 /// > that inspects the environment and/or `argv[0]` to determine the runfiles
 /// > strategy (manifest-based or directory-based; see below), initializes
 /// > runfiles handling and returns a Runfiles object
-pub fn create(options: discovery.DiscoverOptions) !Self {
+pub fn create(options: discovery.DiscoverOptions) !Runfiles {
     var implementation = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;
@@ -52,13 +52,13 @@ pub fn create(options: discovery.DiscoverOptions) !Self {
             log.warn("No repository mapping found. This is likely an error if you are using Bazel version >=7 with bzlmod enabled.", .{});
     }
 
-    return Self{
+    return Runfiles{
         .implementation = implementation,
         .repo_mapping = repo_mapping,
     };
 }
 
-pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
+pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
     self.implementation.deinit(allocator);
     if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
 }
@@ -77,7 +77,7 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
 /// TODO: Path normalization, in particular lower-case and '/' normalization on
 ///   Windows, is not yet implemented.
 pub fn rlocation(
-    self: *const Self,
+    self: *const Runfiles,
     allocator: std.mem.Allocator,
     rpath: []const u8,
     source: []const u8,
@@ -150,7 +150,7 @@ test "Runfiles from manifest" {
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
-    var runfiles = try Self.create(.{
+    var runfiles = try Runfiles.create(.{
         .allocator = std.testing.allocator,
         .manifest = manifest_path,
     });
@@ -236,7 +236,7 @@ test "Runfiles from directory" {
     const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
-    var runfiles = try Self.create(.{
+    var runfiles = try Runfiles.create(.{
         .allocator = std.testing.allocator,
         .directory = directory_path,
     });

@@ -22,13 +22,13 @@ const log = if (builtin.is_test)
 else
     std.log.scoped(.runfiles);
 
-const Self = @This();
+const RepoMapping = @This();
 
 mapping: HashMapUnmanaged,
 content: []const u8,
 
 /// Reads the given file into memory and parses the repo-mapping file format.
-pub fn init(allocator: std.mem.Allocator, file_path: []const u8) !Self {
+pub fn init(allocator: std.mem.Allocator, file_path: []const u8) !RepoMapping {
     const content = std.fs.cwd().readFileAlloc(allocator, file_path, std.math.maxInt(usize)) catch |e| {
         log.err("Failed to open repository mapping ({s}) at '{s}'", .{
             @errorName(e),
@@ -44,7 +44,7 @@ pub fn init(allocator: std.mem.Allocator, file_path: []const u8) !Self {
     };
 }
 
-pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
+pub fn deinit(self: *RepoMapping, allocator: std.mem.Allocator) void {
     self.mapping.deinit(allocator);
     allocator.free(self.content);
 }
@@ -52,7 +52,7 @@ pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
 /// Performs a lookup in the parsed repo-mapping. Returns the given target
 /// repository if no entry is found in the mapping but the target is a
 /// canonical repository name.
-pub fn lookup(self: *const Self, key: Key) ?[]const u8 {
+pub fn lookup(self: *const RepoMapping, key: Key) ?[]const u8 {
     return self.mapping.get(key) orelse {
         const is_canonical = std.mem.indexOfScalar(u8, key.target, '~') != null;
         if (is_canonical)
@@ -198,7 +198,7 @@ test "RepoMapping init from file" {
     );
     const mapping_path = try tmp.dir.realpathAlloc(std.testing.allocator, "_repo_mapping");
     defer std.testing.allocator.free(mapping_path);
-    var repo_mapping = try Self.init(std.testing.allocator, mapping_path);
+    var repo_mapping = try RepoMapping.init(std.testing.allocator, mapping_path);
     defer repo_mapping.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("my_workspace", repo_mapping.mapping.get(.{ .source = "", .target = "my_module" }).?);
     try std.testing.expectEqualStrings("protobuf~3.19.2", repo_mapping.mapping.get(.{ .source = "", .target = "my_protobuf" }).?);
@@ -216,6 +216,6 @@ test "RepoMapping init missing file" {
         "_repo_mapping",
     });
     defer std.testing.allocator.free(missing_path);
-    const result = Self.init(std.testing.allocator, missing_path);
+    const result = RepoMapping.init(std.testing.allocator, missing_path);
     try std.testing.expectError(error.FileNotFound, result);
 }

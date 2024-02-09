@@ -25,12 +25,12 @@ else
 
 const RPath = @import("RPath.zig");
 
-const Self = @This();
+const Manifest = @This();
 
 mapping: HashMapUnmanaged,
 content: []const u8,
 
-pub fn init(allocator: std.mem.Allocator, path: []const u8) !Self {
+pub fn init(allocator: std.mem.Allocator, path: []const u8) !Manifest {
     const content = std.fs.cwd().readFileAlloc(allocator, path, std.math.maxInt(usize)) catch |e| {
         log.err("Failed to open runfiles manifest ({s}) at '{s}'", .{
             @errorName(e),
@@ -46,12 +46,12 @@ pub fn init(allocator: std.mem.Allocator, path: []const u8) !Self {
     };
 }
 
-pub fn deinit(self: *Self, allocator: std.mem.Allocator) void {
+pub fn deinit(self: *Manifest, allocator: std.mem.Allocator) void {
     self.mapping.deinit(allocator);
     allocator.free(self.content);
 }
 
-pub fn rlocationUnmapped(self: *const Self, rpath: RPath) ?[]const u8 {
+pub fn rlocationUnmapped(self: *const Manifest, rpath: RPath) ?[]const u8 {
     return self.mapping.get(rpath);
 }
 
@@ -143,7 +143,7 @@ test "RunfilesManifest init unmapped lookup" {
     const runfiles_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(runfiles_path);
 
-    var manifest = try Self.init(std.testing.allocator, runfiles_path);
+    var manifest = try Manifest.init(std.testing.allocator, runfiles_path);
     defer manifest.deinit(std.testing.allocator);
 
     {
@@ -183,6 +183,6 @@ test "RunfilesManifest init missing file" {
     });
     defer std.testing.allocator.free(missing_path);
 
-    const result = Self.init(std.testing.allocator, missing_path);
+    const result = Manifest.init(std.testing.allocator, missing_path);
     try std.testing.expectError(error.FileNotFound, result);
 }

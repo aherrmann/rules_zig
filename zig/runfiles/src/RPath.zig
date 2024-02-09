@@ -2,7 +2,7 @@
 
 const std = @import("std");
 
-const Self = @This();
+const RPath = @This();
 
 /// The repository name component, i.e. the first component of the path.
 /// This may be an apparent or a canonical repository name.
@@ -12,7 +12,7 @@ repo: []const u8,
 path: []const u8,
 
 pub fn format(
-    self: Self,
+    self: RPath,
     comptime fmt: []const u8,
     options: std.fmt.FormatOptions,
     writer: anytype,
@@ -38,7 +38,7 @@ pub fn format(
 /// Keeps a reference to the given `rpath`, i.e. the `rpath`'s lifetime
 /// must be longer than that of the return `RPath`, and `rpath` should not
 /// be modified during that time.
-pub fn init(rpath: []const u8) Self {
+pub fn init(rpath: []const u8) RPath {
     // TODO[AH] Consider supporting '\' separators as well.
     var iter = std.mem.splitScalar(u8, rpath, '/');
     const head = iter.first();
@@ -64,7 +64,7 @@ pub fn init(rpath: []const u8) Self {
 //   - Normalize to lower-case for Windows.
 
 pub const HashMapContext = struct {
-    pub fn hash(self: @This(), p: Self) u64 {
+    pub fn hash(self: @This(), p: RPath) u64 {
         _ = self;
         var hasher = std.hash.Wyhash.init(0);
         if (p.repo.len > 0) {
@@ -74,7 +74,7 @@ pub const HashMapContext = struct {
         hasher.update(p.path);
         return hasher.final();
     }
-    pub fn eql(self: @This(), a: Self, b: Self) bool {
+    pub fn eql(self: @This(), a: RPath, b: RPath) bool {
         _ = self;
         const eqlRepo = std.hash_map.eqlString(a.repo, b.repo);
         const eqlPath = std.hash_map.eqlString(a.path, b.path);
@@ -85,22 +85,22 @@ pub const HashMapContext = struct {
 test "RPath repo splitting" {
     {
         const input = "my_workspace/some/package/some_file";
-        const expected = Self{
+        const expected = RPath{
             .repo = "my_workspace",
             .path = "some/package/some_file",
         };
-        const actual = Self.init(input);
+        const actual = RPath.init(input);
         try std.testing.expectEqualStrings(expected.repo, actual.repo);
         try std.testing.expectEqualStrings(expected.path, actual.path);
     }
 
     {
         const input = "_repo_mapping";
-        const expected = Self{
+        const expected = RPath{
             .repo = "",
             .path = "_repo_mapping",
         };
-        const actual = Self.init(input);
+        const actual = RPath.init(input);
         try std.testing.expectEqualStrings(expected.repo, actual.repo);
         try std.testing.expectEqualStrings(expected.path, actual.path);
     }
@@ -109,29 +109,29 @@ test "RPath repo splitting" {
 test "RPath HashMapContext" {
     const ctx = HashMapContext{};
     {
-        const a = Self{ .repo = "repo", .path = "path" };
-        const b = Self{ .repo = "repo", .path = "path" };
+        const a = RPath{ .repo = "repo", .path = "path" };
+        const b = RPath{ .repo = "repo", .path = "path" };
         try std.testing.expect(ctx.hash(a) == ctx.hash(b));
         try std.testing.expect(ctx.eql(a, b));
     }
 
     {
-        const a = Self{ .repo = "repo_a", .path = "path" };
-        const b = Self{ .repo = "repo_b", .path = "path" };
+        const a = RPath{ .repo = "repo_a", .path = "path" };
+        const b = RPath{ .repo = "repo_b", .path = "path" };
         try std.testing.expect(ctx.hash(a) != ctx.hash(b));
         try std.testing.expect(!ctx.eql(a, b));
     }
 
     {
-        const a = Self{ .repo = "repo", .path = "path_a" };
-        const b = Self{ .repo = "repo", .path = "path_b" };
+        const a = RPath{ .repo = "repo", .path = "path_a" };
+        const b = RPath{ .repo = "repo", .path = "path_b" };
         try std.testing.expect(ctx.hash(a) != ctx.hash(b));
         try std.testing.expect(!ctx.eql(a, b));
     }
 
     {
-        const a = Self{ .repo = "foo", .path = "" };
-        const b = Self{ .repo = "", .path = "foo" };
+        const a = RPath{ .repo = "foo", .path = "" };
+        const b = RPath{ .repo = "", .path = "foo" };
         try std.testing.expect(ctx.hash(a) != ctx.hash(b));
         try std.testing.expect(!ctx.eql(a, b));
     }
