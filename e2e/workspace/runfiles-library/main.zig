@@ -14,13 +14,13 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
-    var r = try runfiles.Runfiles.create(allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = allocator });
     defer r.deinit(allocator);
 
     const rpath = try getEnvVar(allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer allocator.free(rpath);
 
-    const file_path = try r.rlocation(allocator, rpath, "");
+    const file_path = try r.rlocation(allocator, rpath, "") orelse return error.RLocationNotFound;
     defer allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -33,13 +33,13 @@ pub fn main() !void {
 }
 
 test "read data file" {
-    var r = try runfiles.Runfiles.create(std.testing.allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = std.testing.allocator });
     defer r.deinit(std.testing.allocator);
 
     const rpath = try getEnvVar(std.testing.allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer std.testing.allocator.free(rpath);
 
-    const file_path = try r.rlocation(std.testing.allocator, rpath, "");
+    const file_path = try r.rlocation(std.testing.allocator, rpath, "") orelse return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -52,13 +52,13 @@ test "read data file" {
 }
 
 test "resolve external dependency rpath" {
-    var r = try runfiles.Runfiles.create(std.testing.allocator);
+    var r = try runfiles.Runfiles.create(.{ .allocator = std.testing.allocator });
     defer r.deinit(std.testing.allocator);
 
     const rpath = try getEnvVar(std.testing.allocator, "DEPENDENCY_DATA") orelse return error.EnvVarNotFoundDEPENDENCY_DATA;
     defer std.testing.allocator.free(rpath);
 
-    const file_path = try r.rlocation(std.testing.allocator, rpath, "");
+    const file_path = try r.rlocation(std.testing.allocator, rpath, "") orelse return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});

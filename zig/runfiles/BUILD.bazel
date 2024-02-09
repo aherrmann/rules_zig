@@ -1,7 +1,11 @@
 load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
 
 _SRCS = [
+    "src/Directory.zig",
+    "src/discovery.zig",
+    "src/Manifest.zig",
     "src/RepoMapping.zig",
+    "src/RPath.zig",
     "src/Runfiles.zig",
 ]
 
@@ -16,6 +20,7 @@ zig_test(
     name = "test",
     size = "small",
     srcs = _SRCS,
+    cdeps = ["//zig/lib:libc"],
     main = "runfiles.zig",
 )
 
@@ -25,8 +30,12 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         ":runfiles.zig",
+        ":src/Directory.zig",
+        ":src/Manifest.zig",
+        ":src/RPath.zig",
         ":src/RepoMapping.zig",
         ":src/Runfiles.zig",
+        ":src/discovery.zig",
     ],
     visibility = ["//zig:__pkg__"],
 )
