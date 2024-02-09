@@ -66,6 +66,18 @@ pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
 ///
 /// TODO: Path normalization, in particular lower-case and '/' normalization on
 ///   Windows, is not yet implemented.
+pub fn rlocation(
+    self: *const Runfiles,
+    rpath: []const u8,
+    source: []const u8,
+    out_buffer: []u8,
+) !?[]const u8 {
+    const rpath_ = self.remapRPath(rpath, source);
+    return try self.implementation.rlocationUnmapped(out_buffer, rpath_);
+}
+
+/// Allocating variant of `rlocation`.
+/// The caller owns the returned path.
 pub fn rlocationAlloc(
     self: *const Runfiles,
     allocator: std.mem.Allocator,
