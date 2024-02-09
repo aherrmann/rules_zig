@@ -38,19 +38,7 @@ pub fn create(options: discovery.DiscoverOptions) !Runfiles {
     };
     errdefer implementation.deinit(options.allocator);
 
-    var repo_mapping: ?RepoMapping = null;
-    {
-        const repo_mapping_path = try implementation.rlocationUnmapped(options.allocator, .{
-            .repo = "",
-            .path = "_repo_mapping",
-        });
-        defer options.allocator.free(repo_mapping_path);
-        if (std.fs.cwd().access(repo_mapping_path, .{}) != error.FileNotFound)
-            // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
-            repo_mapping = try RepoMapping.init(options.allocator, repo_mapping_path)
-        else
-            log.warn("No repository mapping found. This is likely an error if you are using Bazel version >=7 with bzlmod enabled.", .{});
-    }
+    var repo_mapping: ?RepoMapping = try loadRepoMapping(options.allocator, &implementation);
 
     return Runfiles{
         .implementation = implementation,
@@ -81,7 +69,7 @@ pub fn rlocation(
     allocator: std.mem.Allocator,
     rpath: []const u8,
     source: []const u8,
-) ![]const u8 {
+) !?[]const u8 {
     var repo: []const u8 = "";
     var path: []const u8 = rpath;
     if (std.mem.indexOfScalar(u8, rpath, '/')) |pos| {
@@ -103,6 +91,28 @@ pub fn rlocation(
     });
 }
 
+fn loadRepoMapping(allocator: std.mem.Allocator, implementation: *const Implementation) !?RepoMapping {
+    // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
+    const msg_not_found = "No repository mapping found. " ++
+        "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
+
+    const path = try implementation.rlocationUnmapped(allocator, .{
+        .repo = "",
+        .path = "_repo_mapping",
+    }) orelse {
+        log.warn(msg_not_found, .{});
+        return null;
+    };
+    defer allocator.free(path);
+
+    if (std.fs.cwd().access(path, .{}) == error.FileNotFound) {
+        log.warn(msg_not_found, .{});
+        return null;
+    }
+
+    return try RepoMapping.init(allocator, path);
+}
+
 const Implementation = union(discovery.Strategy) {
     manifest: Manifest,
     directory: Directory,
@@ -118,12 +128,17 @@ const Implementation = union(discovery.Strategy) {
         self: *const Implementation,
         allocator: std.mem.Allocator,
         rpath: RPath,
-    ) ![]const u8 {
-        return switch (self.*) {
-            .manifest => |*manifest| allocator.dupe(u8, manifest.rlocationUnmapped(rpath) orelse
-                return error.RunfilesPathNotFound),
-            .directory => |*directory| directory.rlocationUnmapped(allocator, rpath),
-        };
+    ) !?[]const u8 {
+        switch (self.*) {
+            .manifest => |*manifest| {
+                const path = manifest.rlocationUnmapped(rpath) orelse
+                    return null;
+                return try allocator.dupe(u8, path);
+            },
+            .directory => |*directory| {
+                return try directory.rlocationUnmapped(allocator, rpath);
+            },
+        }
     }
 };
 
@@ -161,7 +176,8 @@ test "Runfiles from manifest" {
             std.testing.allocator,
             "my_module/some/package/some_file",
             "",
-        );
+        ) orelse
+            return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
@@ -174,7 +190,8 @@ test "Runfiles from manifest" {
             std.testing.allocator,
             "other_module/other/package/other_file",
             "",
-        );
+        ) orelse
+            return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
@@ -187,7 +204,8 @@ test "Runfiles from manifest" {
             std.testing.allocator,
             "another_module/other/package/other_file",
             "their_module~1.2.3",
-        );
+        ) orelse
+            return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
@@ -247,7 +265,8 @@ test "Runfiles from directory" {
             std.testing.allocator,
             "my_module/some/package/some_file",
             "",
-        );
+        ) orelse
+            return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
@@ -260,7 +279,8 @@ test "Runfiles from directory" {
             std.testing.allocator,
             "other_module/other/package/other_file",
             "",
-        );
+        ) orelse
+            return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
@@ -273,7 +293,8 @@ test "Runfiles from directory" {
             std.testing.allocator,
             "another_module/other/package/other_file",
             "their_module~1.2.3",
-        );
+        ) orelse
+            return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);

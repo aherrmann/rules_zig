@@ -8,7 +8,8 @@ pub fn readData(allocator: std.mem.Allocator) ![]const u8 {
 
     const rpath = "runfiles_library_transitive_dependency/data.txt";
 
-    const file_path = try r.rlocation(allocator, rpath, bazel_builtin.current_repository);
+    const file_path = try r.rlocation(allocator, rpath, bazel_builtin.current_repository) orelse
+        return error.RLocationNotFound;
     defer allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
