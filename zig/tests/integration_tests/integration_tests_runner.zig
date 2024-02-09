@@ -282,7 +282,11 @@ test "zig_test forwards env attribute environment" {
 test "runfiles library supports manifest mode" {
     const ctx = try BitContext.init();
 
-    // Build the binary with runfiles manifest.
+    // Build the binary with runfiles manifest but without runfiles directory.
+    // Note, we cannot test the inverse because
+    // > Disabling [`--[no]build_runfile_manifests`] implies `--nobuild_runfile_links`.
+    // See https://bazel.build/docs/user-manual#build-runfile-manifests.
+    // See also https://github.com/bazelbuild/bazel/issues/4177.
     {
         const result = try ctx.exec_bazel(.{
             .argv = &[_][]const u8{
