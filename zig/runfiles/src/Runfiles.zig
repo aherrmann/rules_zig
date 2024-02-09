@@ -68,29 +68,39 @@ pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
 ///   Windows, is not yet implemented.
 pub fn rlocation(
     self: *const Runfiles,
+    rpath: []const u8,
+    source: []const u8,
+    out_buffer: []u8,
+) !?[]const u8 {
+    const rpath_ = self.remapRPath(rpath, source);
+    return try self.implementation.rlocationUnmapped(rpath_, out_buffer);
+}
+
+/// Allocating variant of `rlocation`.
+/// The caller owns the returned path.
+pub fn rlocationAlloc(
+    self: *const Runfiles,
     allocator: std.mem.Allocator,
     rpath: []const u8,
     source: []const u8,
 ) !?[]const u8 {
-    var repo: []const u8 = "";
-    var path: []const u8 = rpath;
-    if (std.mem.indexOfScalar(u8, rpath, '/')) |pos| {
-        repo = rpath[0..pos];
-        path = rpath[pos + 1 ..];
-        if (self.repo_mapping) |repo_mapping| {
-            if (repo_mapping.lookup(.{ .source = source, .target = repo })) |mapped|
-                repo = mapped;
-            // NOTE, the spec states that we should fail if no mapping is found
-            // and the repo name is not canonical. However, this always fails
-            // in WORKSPACE mode and is apparently an issue in the spec and
-            // common runfiles library implementations do not follow this
-            // pattern.
-        }
+    const rpath_ = self.remapRPath(rpath, source);
+    return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
+}
+
+fn remapRPath(self: *const Runfiles, rpath: []const u8, source: []const u8) RPath {
+    var rpath_ = RPath.init(rpath);
+    if (self.repo_mapping) |repo_mapping| {
+        const key = RepoMapping.Key{ .source = source, .target = rpath_.repo };
+        if (repo_mapping.lookup(key)) |mapped|
+            rpath_.repo = mapped;
+        // NOTE, the spec states that we should fail if no mapping is found
+        // and the repo name is not canonical. However, this always fails
+        // in WORKSPACE mode and is apparently an issue in the spec and
+        // common runfiles library implementations do not follow this
+        // pattern.
     }
-    return try self.implementation.rlocationUnmapped(allocator, .{
-        .repo = repo,
-        .path = path,
-    });
+    return rpath_;
 }
 
 const Implementation = union(discovery.Strategy) {
@@ -106,6 +116,27 @@ const Implementation = union(discovery.Strategy) {
 
     pub fn rlocationUnmapped(
         self: *const Implementation,
+        rpath: RPath,
+        out_buffer: []u8,
+    ) !?[]const u8 {
+        switch (self.*) {
+            .manifest => |*manifest| {
+                const path = manifest.rlocationUnmapped(rpath) orelse
+                    return null;
+                if (path.len > out_buffer.len)
+                    return error.NameTooLong;
+                const result = out_buffer[0..path.len];
+                @memcpy(result, path);
+                return result;
+            },
+            .directory => |*directory| {
+                return try directory.rlocationUnmapped(rpath, out_buffer);
+            },
+        }
+    }
+
+    pub fn rlocationUnmappedAlloc(
+        self: *const Implementation,
         allocator: std.mem.Allocator,
         rpath: RPath,
     ) !?[]const u8 {
@@ -116,7 +147,7 @@ const Implementation = union(discovery.Strategy) {
                 return try allocator.dupe(u8, path);
             },
             .directory => |*directory| {
-                return try directory.rlocationUnmapped(allocator, rpath);
+                return try directory.rlocationUnmappedAlloc(allocator, rpath);
             },
         }
     }
@@ -126,7 +157,7 @@ const Implementation = union(discovery.Strategy) {
         const msg_not_found = "No repository mapping found. " ++
             "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
 
-        const path = try self.rlocationUnmapped(allocator, .{
+        const path = try self.rlocationUnmappedAlloc(allocator, .{
             .repo = "",
             .path = repo_mapping_file_name,
         }) orelse {
@@ -175,13 +206,13 @@ test "Runfiles from manifest" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
+        var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         const file_path = try runfiles.rlocation(
-            std.testing.allocator,
             "my_module/some/package/some_file",
             "",
+            &buffer,
         ) orelse
             return error.TestRLocationNotFound;
-        defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
@@ -189,7 +220,7 @@ test "Runfiles from manifest" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "other_module/other/package/other_file",
             "",
@@ -203,7 +234,7 @@ test "Runfiles from manifest" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "another_module/other/package/other_file",
             "their_module~1.2.3",
@@ -264,13 +295,13 @@ test "Runfiles from directory" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
+        var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         const file_path = try runfiles.rlocation(
-            std.testing.allocator,
             "my_module/some/package/some_file",
             "",
+            &buffer,
         ) orelse
             return error.TestRLocationNotFound;
-        defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
@@ -278,7 +309,7 @@ test "Runfiles from directory" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "other_module/other/package/other_file",
             "",
@@ -292,7 +323,7 @@ test "Runfiles from directory" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "another_module/other/package/other_file",
             "their_module~1.2.3",

@@ -24,6 +24,21 @@ pub fn deinit(self: *Directory, allocator: std.mem.Allocator) void {
 
 pub fn rlocationUnmapped(
     self: *const Directory,
+    rpath: RPath,
+    out_buffer: []u8,
+) ![]const u8 {
+    var stream = std.io.fixedBufferStream(out_buffer);
+    // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
+    try stream.writer().writeAll(self.path);
+    if (rpath.repo.len > 0)
+        try stream.writer().print("/{s}", .{rpath.repo});
+    if (rpath.path.len > 0)
+        try stream.writer().print("/{s}", .{rpath.path});
+    return stream.getWritten();
+}
+
+pub fn rlocationUnmappedAlloc(
+    self: *const Directory,
     allocator: std.mem.Allocator,
     rpath: RPath,
 ) ![]const u8 {
@@ -53,7 +68,7 @@ test "Directory init and unmapped lookup" {
     defer directory.deinit(std.testing.allocator);
 
     {
-        const filepath = try directory.rlocationUnmapped(std.testing.allocator, .{
+        const filepath = try directory.rlocationUnmappedAlloc(std.testing.allocator, .{
             .repo = "",
             .path = "_repo_mapping",
         });
@@ -68,7 +83,7 @@ test "Directory init and unmapped lookup" {
     }
 
     {
-        const filepath = try directory.rlocationUnmapped(std.testing.allocator, .{
+        const filepath = try directory.rlocationUnmappedAlloc(std.testing.allocator, .{
             .repo = "my_workspace",
             .path = "some/package/some_file",
         });
