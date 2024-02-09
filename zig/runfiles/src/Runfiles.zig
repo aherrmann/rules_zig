@@ -104,6 +104,27 @@ const Implementation = union(discovery.Strategy) {
         }
     }
 
+    pub fn rlocationUnmapped(
+        self: *const Implementation,
+        out_buffer: []u8,
+        rpath: RPath,
+    ) !?[]const u8 {
+        switch (self.*) {
+            .manifest => |*manifest| {
+                const path = manifest.rlocationUnmapped(rpath) orelse
+                    return null;
+                if (path.len > out_buffer.len)
+                    return error.NameTooLong;
+                const result = out_buffer[0..path.len];
+                @memcpy(result, path);
+                return result;
+            },
+            .directory => |*directory| {
+                return try directory.rlocationUnmapped(out_buffer, rpath);
+            },
+        }
+    }
+
     pub fn rlocationUnmappedAlloc(
         self: *const Implementation,
         allocator: std.mem.Allocator,

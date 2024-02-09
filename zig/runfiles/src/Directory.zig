@@ -22,6 +22,21 @@ pub fn deinit(self: *Directory, allocator: std.mem.Allocator) void {
     allocator.free(self.path);
 }
 
+pub fn rlocationUnmapped(
+    self: *const Directory,
+    rpath: RPath,
+    out_buffer: []u8,
+) ![]const u8 {
+    var stream = std.io.fixedBufferStream(out_buffer);
+    // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
+    try stream.writer().writeAll(self.path);
+    if (rpath.repo.len > 0)
+        try stream.writer().print("/{s}", .{rpath.repo});
+    if (rpath.path.len > 0)
+        try stream.writer().print("/{s}", .{rpath.path});
+    return stream.getWritten();
+}
+
 pub fn rlocationUnmappedAlloc(
     self: *const Directory,
     allocator: std.mem.Allocator,
