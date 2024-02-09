@@ -38,7 +38,7 @@ pub fn create(options: discovery.DiscoverOptions) !Runfiles {
     };
     errdefer implementation.deinit(options.allocator);
 
-    var repo_mapping: ?RepoMapping = try loadRepoMapping(options.allocator, &implementation);
+    var repo_mapping = try implementation.loadRepoMapping(options.allocator);
 
     return Runfiles{
         .implementation = implementation,
@@ -91,28 +91,6 @@ pub fn rlocation(
     });
 }
 
-fn loadRepoMapping(allocator: std.mem.Allocator, implementation: *const Implementation) !?RepoMapping {
-    // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
-    const msg_not_found = "No repository mapping found. " ++
-        "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
-
-    const path = try implementation.rlocationUnmapped(allocator, .{
-        .repo = "",
-        .path = "_repo_mapping",
-    }) orelse {
-        log.warn(msg_not_found, .{});
-        return null;
-    };
-    defer allocator.free(path);
-
-    if (std.fs.cwd().access(path, .{}) == error.FileNotFound) {
-        log.warn(msg_not_found, .{});
-        return null;
-    }
-
-    return try RepoMapping.init(allocator, path);
-}
-
 const Implementation = union(discovery.Strategy) {
     manifest: Manifest,
     directory: Directory,
@@ -139,6 +117,29 @@ const Implementation = union(discovery.Strategy) {
                 return try directory.rlocationUnmapped(allocator, rpath);
             },
         }
+    }
+
+    pub fn loadRepoMapping(self: *const Implementation, allocator: std.mem.Allocator) !?RepoMapping {
+        // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
+        const msg_not_found = "No repository mapping found. " ++
+            "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
+
+        const path = try self.rlocationUnmapped(allocator, .{
+            .repo = "",
+            .path = "_repo_mapping",
+        }) orelse {
+            log.warn(msg_not_found, .{});
+            return null;
+        };
+        defer allocator.free(path);
+
+        return RepoMapping.init(allocator, path) catch |e| switch (e) {
+            error.FileNotFound => {
+                log.warn(msg_not_found, .{});
+                return null;
+            },
+            else => |e_| return e_,
+        };
     }
 };
 
