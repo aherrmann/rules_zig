@@ -206,13 +206,13 @@ test "Runfiles from manifest" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
-        const file_path = try runfiles.rlocationAlloc(
-            std.testing.allocator,
+        var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        const file_path = try runfiles.rlocation(
             "my_module/some/package/some_file",
             "",
+            &buffer,
         ) orelse
             return error.TestRLocationNotFound;
-        defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
@@ -295,13 +295,13 @@ test "Runfiles from directory" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
-        const file_path = try runfiles.rlocationAlloc(
-            std.testing.allocator,
+        var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        const file_path = try runfiles.rlocation(
             "my_module/some/package/some_file",
             "",
+            &buffer,
         ) orelse
             return error.TestRLocationNotFound;
-        defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
         const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
