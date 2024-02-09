@@ -66,7 +66,7 @@ pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
 ///
 /// TODO: Path normalization, in particular lower-case and '/' normalization on
 ///   Windows, is not yet implemented.
-pub fn rlocation(
+pub fn rlocationAlloc(
     self: *const Runfiles,
     allocator: std.mem.Allocator,
     rpath: []const u8,
@@ -175,7 +175,7 @@ test "Runfiles from manifest" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "my_module/some/package/some_file",
             "",
@@ -189,7 +189,7 @@ test "Runfiles from manifest" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "other_module/other/package/other_file",
             "",
@@ -203,7 +203,7 @@ test "Runfiles from manifest" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "another_module/other/package/other_file",
             "their_module~1.2.3",
@@ -264,7 +264,7 @@ test "Runfiles from directory" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "my_module/some/package/some_file",
             "",
@@ -278,7 +278,7 @@ test "Runfiles from directory" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "other_module/other/package/other_file",
             "",
@@ -292,7 +292,7 @@ test "Runfiles from directory" {
     }
 
     {
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles.rlocationAlloc(
             std.testing.allocator,
             "another_module/other/package/other_file",
             "their_module~1.2.3",

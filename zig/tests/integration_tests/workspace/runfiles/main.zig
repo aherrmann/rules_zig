@@ -13,7 +13,7 @@ pub fn main() !void {
 
     const rpath = "__main__/runfiles/data.txt";
 
-    const file_path = try r.rlocation(allocator, rpath, bazel_builtin.current_repository) orelse {
+    const file_path = try r.rlocationAlloc(allocator, rpath, bazel_builtin.current_repository) orelse {
         std.log.err("Runfiles location '{s}' not found", .{rpath});
         return error.RLocationNotFound;
     };
