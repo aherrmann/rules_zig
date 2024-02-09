@@ -73,7 +73,7 @@ pub fn rlocation(
     out_buffer: []u8,
 ) !?[]const u8 {
     const rpath_ = self.remapRPath(rpath, source);
-    return try self.implementation.rlocationUnmapped(out_buffer, rpath_);
+    return try self.implementation.rlocationUnmapped(rpath_, out_buffer);
 }
 
 /// Allocating variant of `rlocation`.
@@ -116,8 +116,8 @@ const Implementation = union(discovery.Strategy) {
 
     pub fn rlocationUnmapped(
         self: *const Implementation,
-        out_buffer: []u8,
         rpath: RPath,
+        out_buffer: []u8,
     ) !?[]const u8 {
         switch (self.*) {
             .manifest => |*manifest| {
@@ -130,7 +130,7 @@ const Implementation = union(discovery.Strategy) {
                 return result;
             },
             .directory => |*directory| {
-                return try directory.rlocationUnmapped(out_buffer, rpath);
+                return try directory.rlocationUnmapped(rpath, out_buffer);
             },
         }
     }
