@@ -29,9 +29,11 @@ zig_test(
     size = "small",
     data = [
         "data.txt",
+        ":binary",
         "@runfiles_library_dependency//:data.txt",
     ],
     env = {
+        "BINARY": "$(rlocationpath :binary)",
         "DATA": "$(rlocationpath data.txt)",
         # Intentionally not using $(rlocation ...) to test repo-mapping.
         "DEPENDENCY_DATA": "runfiles_library_dependency/data.txt",
