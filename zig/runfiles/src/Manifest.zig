@@ -29,6 +29,7 @@ const Manifest = @This();
 
 mapping: HashMapUnmanaged,
 content: []const u8,
+path: []const u8,
 
 pub fn init(allocator: std.mem.Allocator, path: []const u8) !Manifest {
     const content = std.fs.cwd().readFileAlloc(allocator, path, std.math.maxInt(usize)) catch |e| {
@@ -43,12 +44,14 @@ pub fn init(allocator: std.mem.Allocator, path: []const u8) !Manifest {
     return .{
         .mapping = mapping,
         .content = content,
+        .path = try std.fs.cwd().realpathAlloc(allocator, path),
     };
 }
 
 pub fn deinit(self: *Manifest, allocator: std.mem.Allocator) void {
     self.mapping.deinit(allocator);
     allocator.free(self.content);
+    allocator.free(self.path);
 }
 
 pub fn rlocationUnmapped(self: *const Manifest, rpath: RPath) ?[]const u8 {
@@ -145,6 +148,8 @@ test "RunfilesManifest init unmapped lookup" {
 
     var manifest = try Manifest.init(std.testing.allocator, runfiles_path);
     defer manifest.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(runfiles_path, manifest.path);
 
     {
         const filepath = manifest.rlocationUnmapped(.{
