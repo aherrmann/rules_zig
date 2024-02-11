@@ -62,8 +62,6 @@ pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
 /// > Windows) and uses "/" as directory separator on every platform (including
 /// > Windows)
 ///
-/// TODO: Rpath validation is not yet implemented.
-///
 /// TODO: Path normalization, in particular lower-case and '/' normalization on
 ///   Windows, is not yet implemented.
 pub fn rlocation(
@@ -72,6 +70,7 @@ pub fn rlocation(
     source: []const u8,
     out_buffer: []u8,
 ) !?[]const u8 {
+    try validateRPath(rpath);
     const rpath_ = self.remapRPath(rpath, source);
     return try self.implementation.rlocationUnmapped(rpath_, out_buffer);
 }
@@ -84,6 +83,7 @@ pub fn rlocationAlloc(
     rpath: []const u8,
     source: []const u8,
 ) !?[]const u8 {
+    try validateRPath(rpath);
     const rpath_ = self.remapRPath(rpath, source);
     return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
 }
@@ -93,6 +93,21 @@ pub fn rlocationAlloc(
 /// paths.
 pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) !void {
     try self.implementation.environment(output_env);
+}
+
+fn validateRPath(rpath: []const u8) !void {
+    var iter = try std.fs.path.componentIterator(rpath);
+
+    if (iter.root() != null)
+        return error.RPathIsAbsolute;
+
+    while (iter.next()) |component| {
+        if (std.mem.eql(u8, ".", component.name))
+            return error.RPathContainsSelfReference;
+
+        if (std.mem.eql(u8, "..", component.name))
+            return error.RPathContainsUpReference;
+    }
 }
 
 fn remapRPath(self: *const Runfiles, rpath: []const u8, source: []const u8) RPath {
@@ -365,4 +380,15 @@ test "Runfiles from directory" {
         try std.testing.expectEqual(@as(usize, 1), env.count());
         try std.testing.expectEqualStrings(directory_path, env.get(discovery.runfiles_directory_var_name).?);
     }
+}
+
+test "rpath validation" {
+    const r = Runfiles{
+        .implementation = Implementation{ .directory = .{ .path = "/does-not-exist" } },
+        .repo_mapping = null,
+    };
+    var buf: [32]u8 = undefined;
+    try std.testing.expectError(error.RPathIsAbsolute, r.rlocationAlloc(std.testing.allocator, "/absolute/path", ""));
+    try std.testing.expectError(error.RPathContainsSelfReference, r.rlocation("self/reference/./path", "", &buf));
+    try std.testing.expectError(error.RPathContainsUpReference, r.rlocationAlloc(std.testing.allocator, "up/reference/../path", ""));
 }
