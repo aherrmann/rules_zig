@@ -100,7 +100,7 @@ pub fn rlocationAlloc(
 /// Set the required environment variables to discover the same runfiles. Use
 /// this if you invoke another process that needs to resolve runfiles location
 /// paths.
-pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) !void {
+pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) error{OutOfMemory}!void {
     try self.implementation.environment(output_env);
 }
 
