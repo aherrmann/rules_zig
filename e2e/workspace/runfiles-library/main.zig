@@ -76,3 +76,34 @@ test "read data file in dependency Zig package" {
 
     try std.testing.expectEqualStrings("Hello from transitive dependency!\n", content);
 }
+
+test "runfiles in nested binary" {
+    var r = try runfiles.Runfiles.create(.{ .allocator = std.testing.allocator });
+    defer r.deinit(std.testing.allocator);
+
+    const rpath = try getEnvVar(std.testing.allocator, "BINARY") orelse return error.EnvVarNotFoundBINARY;
+    defer std.testing.allocator.free(rpath);
+
+    const binary_path = try r.rlocationAlloc(std.testing.allocator, rpath, "") orelse return error.RLocationNotFound;
+    defer std.testing.allocator.free(binary_path);
+
+    var env = std.process.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    const data_rpath = try getEnvVar(std.testing.allocator, "DATA") orelse return error.EnvVarNotFoundBINARY;
+    defer std.testing.allocator.free(data_rpath);
+    try env.put("DATA", data_rpath);
+    try r.environment(&env);
+
+    const result = try std.ChildProcess.exec(.{
+        .allocator = std.testing.allocator,
+        .argv = &[_][]const u8{binary_path},
+        .env_map = &env,
+    });
+    defer std.testing.allocator.free(result.stdout);
+    defer std.testing.allocator.free(result.stderr);
+
+    std.log.warn("stderr: {s}", .{result.stderr});
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
+}
