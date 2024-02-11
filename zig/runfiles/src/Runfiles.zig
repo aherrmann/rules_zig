@@ -15,13 +15,17 @@ pub const repo_mapping_file_name = "_repo_mapping";
 implementation: Implementation,
 repo_mapping: ?RepoMapping,
 
+pub const CreateError = error{
+    RunfilesNotFound,
+} || discovery.DiscoverError || Manifest.InitError || Directory.InitError || RepoMapping.InitError;
+
 /// Quoting the runfiles design:
 ///
 /// > Every language's library will have a similar interface: a Create method
 /// > that inspects the environment and/or `argv[0]` to determine the runfiles
 /// > strategy (manifest-based or directory-based; see below), initializes
 /// > runfiles handling and returns a Runfiles object
-pub fn create(options: discovery.DiscoverOptions) !Runfiles {
+pub fn create(options: discovery.DiscoverOptions) CreateError!Runfiles {
     var implementation = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;
@@ -53,6 +57,11 @@ pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
     if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
 }
 
+pub const RLocationError = error{
+    NoSpaceLeft,
+    NameTooLong,
+} || ValidationError;
+
 /// Quoting the runfiles design:
 ///
 /// > Every language's library will have a similar interface: an
@@ -69,7 +78,7 @@ pub fn rlocation(
     rpath: []const u8,
     source: []const u8,
     out_buffer: []u8,
-) !?[]const u8 {
+) RLocationError!?[]const u8 {
     try validateRPath(rpath);
     const rpath_ = self.remapRPath(rpath, source);
     return try self.implementation.rlocationUnmapped(rpath_, out_buffer);
@@ -82,7 +91,7 @@ pub fn rlocationAlloc(
     allocator: std.mem.Allocator,
     rpath: []const u8,
     source: []const u8,
-) !?[]const u8 {
+) (error{OutOfMemory} || RLocationError)!?[]const u8 {
     try validateRPath(rpath);
     const rpath_ = self.remapRPath(rpath, source);
     return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
@@ -94,6 +103,12 @@ pub fn rlocationAlloc(
 pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) !void {
     try self.implementation.environment(output_env);
 }
+
+pub const ValidationError = error{
+    RPathIsAbsolute,
+    RPathContainsSelfReference,
+    RPathContainsUpReference,
+};
 
 fn validateRPath(rpath: []const u8) !void {
     var iter = try std.fs.path.componentIterator(rpath);
