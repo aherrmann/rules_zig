@@ -31,7 +31,9 @@ mapping: HashMapUnmanaged,
 content: []const u8,
 path: []const u8,
 
-pub fn init(allocator: std.mem.Allocator, path: []const u8) !Manifest {
+pub const InitError = ParseError || std.mem.Allocator.Error || std.os.RealPathError || std.os.OpenError || std.os.PReadError;
+
+pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Manifest {
     const content = std.fs.cwd().readFileAlloc(allocator, path, std.math.maxInt(usize)) catch |e| {
         log.err("Failed to open runfiles manifest ({s}) at '{s}'", .{
             @errorName(e),
@@ -58,7 +60,11 @@ pub fn rlocationUnmapped(self: *const Manifest, rpath: RPath) ?[]const u8 {
     return self.mapping.get(rpath);
 }
 
-fn parse(allocator: std.mem.Allocator, content: []const u8) !HashMapUnmanaged {
+const ParseError = error{
+    OutOfMemory,
+};
+
+fn parse(allocator: std.mem.Allocator, content: []const u8) ParseError!HashMapUnmanaged {
     var result: HashMapUnmanaged = .{};
     errdefer result.deinit(allocator);
     var lines = std.mem.tokenizeAny(u8, content, "\r\n");
