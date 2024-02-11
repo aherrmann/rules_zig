@@ -27,8 +27,10 @@ const RepoMapping = @This();
 mapping: HashMapUnmanaged,
 content: []const u8,
 
+pub const InitError = ParseError || std.os.RealPathError || std.os.OpenError || std.os.PReadError;
+
 /// Reads the given file into memory and parses the repo-mapping file format.
-pub fn init(allocator: std.mem.Allocator, file_path: []const u8) !RepoMapping {
+pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoMapping {
     const content = std.fs.cwd().readFileAlloc(allocator, file_path, std.math.maxInt(usize)) catch |e| {
         log.err("Failed to open repository mapping ({s}) at '{s}'", .{
             @errorName(e),
@@ -62,7 +64,12 @@ pub fn lookup(self: *const RepoMapping, key: Key) ?[]const u8 {
     };
 }
 
-fn parse(allocator: std.mem.Allocator, content: []const u8, file_path: []const u8) !HashMapUnmanaged {
+const ParseError = error{
+    MalformedRepoMapping,
+    OutOfMemory,
+};
+
+fn parse(allocator: std.mem.Allocator, content: []const u8, file_path: []const u8) ParseError!HashMapUnmanaged {
     var result: HashMapUnmanaged = .{};
     errdefer result.deinit(allocator);
     var line_count: usize = 1;
