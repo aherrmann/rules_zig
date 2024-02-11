@@ -11,7 +11,9 @@ const Directory = @This();
 
 path: []const u8,
 
-pub fn init(allocator: std.mem.Allocator, path: []const u8) !Directory {
+pub const InitError = std.mem.Allocator.Error || std.os.RealPathError || std.os.OpenError;
+
+pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Directory {
     var absolute = try std.fs.cwd().realpathAlloc(allocator, path);
     errdefer allocator.free(absolute);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
@@ -26,7 +28,7 @@ pub fn rlocationUnmapped(
     self: *const Directory,
     rpath: RPath,
     out_buffer: []u8,
-) ![]const u8 {
+) error{NoSpaceLeft}![]const u8 {
     var stream = std.io.fixedBufferStream(out_buffer);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     try stream.writer().writeAll(self.path);
@@ -41,7 +43,7 @@ pub fn rlocationUnmappedAlloc(
     self: *const Directory,
     allocator: std.mem.Allocator,
     rpath: RPath,
-) ![]const u8 {
+) error{OutOfMemory}![]const u8 {
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     return try std.fs.path.join(allocator, &[_][]const u8{
         self.path,

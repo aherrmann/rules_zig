@@ -42,6 +42,13 @@ pub const DiscoverOptions = struct {
     argv0: ?[]const u8 = null,
 };
 
+pub const DiscoverError = error{
+    OutOfMemory,
+    InvalidCmdLine,
+    InvalidUtf8,
+    MissingArg0,
+};
+
 /// The unified runfiles discovery strategy is to:
 /// * check if `RUNFILES_MANIFEST_FILE` or `RUNFILES_DIR` envvars are set, and
 ///   again initialize a `Runfiles` object accordingly; otherwise
@@ -52,7 +59,7 @@ pub const DiscoverOptions = struct {
 /// * assume the binary has no runfiles.
 ///
 /// The caller has to free the path contained in the returned location.
-pub fn discoverRunfiles(options: DiscoverOptions) !?Location {
+pub fn discoverRunfiles(options: DiscoverOptions) DiscoverError!?Location {
     if (options.manifest) |value|
         return .{ .manifest = try options.allocator.dupe(u8, value) };
 
@@ -68,7 +75,7 @@ pub fn discoverRunfiles(options: DiscoverOptions) !?Location {
     var iter = try std.process.argsWithAllocator(options.allocator);
     defer iter.deinit();
     const argv0 = options.argv0 orelse iter.next() orelse
-        return error.Argv0Unavailable;
+        return error.MissingArg0;
 
     var buffer = std.ArrayList(u8).init(options.allocator);
     defer buffer.deinit();
