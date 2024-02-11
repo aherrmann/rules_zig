@@ -88,6 +88,13 @@ pub fn rlocationAlloc(
     return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
 }
 
+/// Set the required environment variables to discover the same runfiles. Use
+/// this if you invoke another process that needs to resolve runfiles location
+/// paths.
+pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) !void {
+    try self.implementation.environment(output_env);
+}
+
 fn remapRPath(self: *const Runfiles, rpath: []const u8, source: []const u8) RPath {
     var rpath_ = RPath.init(rpath);
     if (self.repo_mapping) |repo_mapping| {
@@ -149,6 +156,13 @@ const Implementation = union(discovery.Strategy) {
             .directory => |*directory| {
                 return try directory.rlocationUnmappedAlloc(allocator, rpath);
             },
+        }
+    }
+
+    pub fn environment(self: *const Implementation, output_env: *std.process.EnvMap) !void {
+        switch (self.*) {
+            .manifest => |*manifest| try output_env.put(discovery.runfiles_manifest_var_name, manifest.path),
+            .directory => |*directory| try output_env.put(discovery.runfiles_directory_var_name, directory.path),
         }
     }
 
