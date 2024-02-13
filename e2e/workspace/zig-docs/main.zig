@@ -1,3 +1,5 @@
+//!zig-autodoc-guide: guide.md
+
 const std = @import("std");
 const hello_world = @import("hello_world");
 
