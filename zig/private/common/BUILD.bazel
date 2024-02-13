@@ -38,6 +38,24 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_docs",
+    srcs = ["zig_docs.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        ":bazel_builtin",
+        ":cdeps",
+        ":csrcs",
+        ":location_expansion",
+        ":zig_cache",
+        ":zig_lib_dir",
+        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_settings_info",
+        "//zig/private/providers:zig_target_info",
+        "@bazel_skylib//lib:paths",
+    ],
+)
+
+bzl_library(
     name = "cdeps",
     srcs = ["cdeps.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -103,6 +121,7 @@ filegroup(
         ":location_expansion.bzl",
         ":zig_build.bzl",
         ":zig_cache.bzl",
+        ":zig_docs.bzl",
         ":zig_lib_dir.bzl",
         ":zig_target_triple.bzl",
     ],

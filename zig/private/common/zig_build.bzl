@@ -49,6 +49,11 @@ ATTRS = {
         doc = "Other files required to build the target, e.g. files embedded using `@embedFile`.",
         mandatory = False,
     ),
+    "extra_docs": attr.label_list(
+        allow_files = True,
+        doc = "Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.",
+        mandatory = False,
+    ),
     "csrcs": attr.label_list(
         allow_files = ZIG_C_SOURCE_EXTENSIONS,
         doc = "C source files required to build the target.",
