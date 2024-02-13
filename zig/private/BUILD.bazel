@@ -24,6 +24,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:zig_build",
+        "//zig/private/common:zig_docs",
     ],
 )
 
@@ -50,6 +51,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:zig_build",
+        "//zig/private/common:zig_docs",
     ],
 )
 
@@ -59,6 +61,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:zig_build",
+        "//zig/private/common:zig_docs",
     ],
 )
 
@@ -68,6 +71,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:zig_build",
+        "//zig/private/common:zig_docs",
     ],
 )
 
