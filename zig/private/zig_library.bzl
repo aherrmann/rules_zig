@@ -9,6 +9,7 @@ load(
 load(
     "//zig/private/common:zig_docs.bzl",
     "zig_docs_impl",
+    DOCS_ATTRS = "ATTRS",
 )
 
 DOC = """\
@@ -37,7 +38,7 @@ zig_library(
 ```
 """
 
-ATTRS = COMMON_ATTRS
+ATTRS = COMMON_ATTRS | DOCS_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 

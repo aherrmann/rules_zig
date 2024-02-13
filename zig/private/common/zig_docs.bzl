@@ -24,6 +24,14 @@ load(
     "zig_target_platform",
 )
 
+ATTRS = {
+    "extra_docs": attr.label_list(
+        allow_files = True,
+        doc = "Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.",
+        mandatory = False,
+    ),
+}
+
 def zig_docs_impl(ctx, *, kind):
     """Common implementation of Zig documentation generation.
 
@@ -59,6 +67,7 @@ def zig_docs_impl(ctx, *, kind):
     direct_inputs.append(ctx.file.main)
     direct_inputs.extend(ctx.files.srcs)
     direct_inputs.extend(ctx.files.extra_srcs)
+    direct_inputs.extend(ctx.files.extra_docs)
     args.add(ctx.file.main)
 
     location_targets = ctx.attr.data
