@@ -1,0 +1,94 @@
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@aspect_bazel_lib//lib:directory_path.bzl", "make_directory_path")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_library",
+    "zig_package",
+    "zig_test",
+)
+
+zig_package(
+    name = "hello_world",
+    main = "hello_world.zig",
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    deps = [":hello_world"],
+)
+
+zig_library(
+    name = "library",
+    main = "main.zig",
+    deps = [":hello_world"],
+)
+
+zig_test(
+    name = "test",
+    size = "small",
+    main = "main.zig",
+    deps = [":hello_world"],
+)
+
+filegroup(
+    name = "binary-docs",
+    srcs = [":binary"],
+    output_group = "zig_docs",
+)
+
+filegroup(
+    name = "library-docs",
+    srcs = [":library"],
+    output_group = "zig_docs",
+)
+
+filegroup(
+    name = "test-docs",
+    testonly = True,
+    srcs = [":test"],
+    output_group = "zig_docs",
+)
+
+copy_file(
+    name = "binary-docs-index-copy",
+    src = make_directory_path(
+        name = "binary-docs-index",
+        directory = ":binary-docs",
+        path = "index.html",
+    ),
+    out = "binary-docs-index-copy.html",
+)
+
+copy_file(
+    name = "library-docs-index-copy",
+    src = make_directory_path(
+        name = "library-docs-index",
+        directory = ":library-docs",
+        path = "index.html",
+    ),
+    out = "library-docs-index-copy.html",
+)
+
+copy_file(
+    name = "test-docs-index-copy",
+    testonly = True,
+    src = make_directory_path(
+        name = "test-docs-index",
+        testonly = True,
+        directory = ":test-docs",
+        path = "index.html",
+    ),
+    out = "test-docs-index-copy.html",
+)
+
+build_test(
+    name = "zig-docs",
+    targets = [
+        ":binary-docs-index-copy",
+        ":library-docs-index-copy",
+        ":test-docs-index-copy",
+    ],
+)
