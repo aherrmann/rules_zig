@@ -6,6 +6,10 @@ load(
     COMMON_ATTRS = "ATTRS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
 )
+load(
+    "//zig/private/common:zig_docs.bzl",
+    "zig_docs_impl",
+)
 
 DOC = """\
 Builds a Zig library.
@@ -36,7 +40,7 @@ TOOLCHAINS = COMMON_TOOLCHAINS
 
 def _zig_library_impl(ctx):
     build = zig_build_impl(ctx, kind = "zig_library")
-    docs = zig_build_impl(ctx, kind = "zig_docs")
+    docs = zig_docs_impl(ctx, kind = "zig_library")
     return build + docs
 
 zig_library = rule(

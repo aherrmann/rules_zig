@@ -152,13 +152,12 @@ def zig_build_impl(ctx, *, kind):
     direct_inputs = []
     transitive_inputs = []
 
-    if kind != "zig_docs":
-        zig_collect_data(
-            data = ctx.attr.data,
-            deps = ctx.attr.deps + ctx.attr.cdeps,
-            transitive_data = transitive_data,
-            transitive_runfiles = transitive_runfiles,
-        )
+    zig_collect_data(
+        data = ctx.attr.data,
+        deps = ctx.attr.deps + ctx.attr.cdeps,
+        transitive_data = transitive_data,
+        transitive_runfiles = transitive_runfiles,
+    )
 
     args = ctx.actions.args()
     args.use_param_file("@%s")
@@ -189,14 +188,6 @@ def zig_build_impl(ctx, *, kind):
         args.add(dynamic.basename, format = "-fsoname=%s")
 
         files = depset([dynamic])
-    elif kind == "zig_docs":
-        output = ctx.actions.declare_directory(ctx.label.name + ".docs")
-        outputs.append(output)
-        args.add(output.path, format = "-femit-docs=%s")
-        args.add("-fno-emit-bin")
-        args.add("-fno-emit-implib")
-
-        files = depset([output])
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
@@ -254,7 +245,7 @@ def zig_build_impl(ctx, *, kind):
 
     zig_cache_output(
         actions = ctx.actions,
-        name = ctx.label.name + "-" + kind,
+        name = ctx.label.name,
         outputs = outputs,
         args = args,
     )
@@ -291,10 +282,6 @@ def zig_build_impl(ctx, *, kind):
         arguments = ["build-lib", "-dynamic", args]
         mnemonic = "ZigBuildSharedLib"
         progress_message = "Building %{input} as Zig shared library %{output}"
-    elif kind == "zig_docs":
-        arguments = ["build-lib", args]
-        mnemonic = "ZigBuildDocs"
-        progress_message = "Building %{input} as Zig documentation %{output}"
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
@@ -311,18 +298,17 @@ def zig_build_impl(ctx, *, kind):
 
     providers = []
 
-    if kind != "zig_docs":
-        default = DefaultInfo(
-            executable = executable,
-            files = files,
-            runfiles = zig_create_runfiles(
-                ctx_runfiles = ctx.runfiles,
-                direct_data = direct_data,
-                transitive_data = transitive_data,
-                transitive_runfiles = transitive_runfiles,
-            ),
-        )
-        providers.append(default)
+    default = DefaultInfo(
+        executable = executable,
+        files = files,
+        runfiles = zig_create_runfiles(
+            ctx_runfiles = ctx.runfiles,
+            direct_data = direct_data,
+            transitive_data = transitive_data,
+            transitive_runfiles = transitive_runfiles,
+        ),
+    )
+    providers.append(default)
 
     if kind in ["zig_binary", "zig_test"]:
         run_environment = RunEnvironmentInfo(
@@ -336,11 +322,5 @@ def zig_build_impl(ctx, *, kind):
             inherited_environment = getattr(ctx.attr, "env_inherit", []),
         )
         providers.append(run_environment)
-
-    if kind == "zig_docs":
-        output_group = OutputGroupInfo(
-            zig_docs = files,
-        )
-        providers.append(output_group)
 
     return providers

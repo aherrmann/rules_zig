@@ -7,6 +7,10 @@ load(
     COMMON_ATTRS = "ATTRS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
 )
+load(
+    "//zig/private/common:zig_docs.bzl",
+    "zig_docs_impl",
+)
 
 DOC = """\
 Builds a Zig test.
@@ -37,7 +41,7 @@ TOOLCHAINS = COMMON_TOOLCHAINS
 
 def _zig_test_impl(ctx):
     build = zig_build_impl(ctx, kind = "zig_test")
-    docs = zig_build_impl(ctx, kind = "zig_docs")
+    docs = zig_docs_impl(ctx, kind = "zig_test")
     return build + docs
 
 zig_test = rule(
