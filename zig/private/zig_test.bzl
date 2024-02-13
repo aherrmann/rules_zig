@@ -36,7 +36,9 @@ ATTRS = COMMON_ATTRS | TEST_ATTRS
 TOOLCHAINS = COMMON_TOOLCHAINS
 
 def _zig_test_impl(ctx):
-    return zig_build_impl(ctx, kind = "zig_test")
+    build = zig_build_impl(ctx, kind = "zig_test")
+    docs = zig_build_impl(ctx, kind = "zig_docs")
+    return build + docs
 
 zig_test = rule(
     _zig_test_impl,

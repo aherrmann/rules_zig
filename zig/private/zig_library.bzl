@@ -35,7 +35,9 @@ ATTRS = COMMON_ATTRS
 TOOLCHAINS = COMMON_TOOLCHAINS
 
 def _zig_library_impl(ctx):
-    return zig_build_impl(ctx, kind = "zig_library")
+    build = zig_build_impl(ctx, kind = "zig_library")
+    docs = zig_build_impl(ctx, kind = "zig_docs")
+    return build + docs
 
 zig_library = rule(
     _zig_library_impl,
