@@ -16,12 +16,14 @@ zig_package(
 
 zig_binary(
     name = "binary",
+    extra_docs = ["guide.md"],
     main = "main.zig",
     deps = [":hello_world"],
 )
 
 zig_library(
     name = "library",
+    extra_docs = ["guide.md"],
     main = "main.zig",
     deps = [":hello_world"],
 )
@@ -29,6 +31,7 @@ zig_library(
 zig_test(
     name = "test",
     size = "small",
+    extra_docs = ["guide.md"],
     main = "main.zig",
     deps = [":hello_world"],
 )
