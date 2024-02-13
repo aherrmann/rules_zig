@@ -1,4 +1,7 @@
-//!zig-autodoc-guide: guide.md
+// TODO[AH] The `../` prefix is necessary for Zig to find the guide.
+//   That may be a bug in Zig autodoc, looking at strace it attempts to open
+//   `zig-docs/guide.md` from within the `zig-docs` directory.
+//!zig-autodoc-guide: ../guide.md
 
 const std = @import("std");
 const hello_world = @import("hello_world");
