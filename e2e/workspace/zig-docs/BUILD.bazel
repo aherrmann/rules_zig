@@ -6,6 +6,7 @@ load(
     "zig_binary",
     "zig_library",
     "zig_package",
+    "zig_shared_library",
     "zig_test",
 )
 
@@ -28,6 +29,13 @@ zig_library(
     deps = [":hello_world"],
 )
 
+zig_shared_library(
+    name = "shared-library",
+    extra_docs = ["guide.md"],
+    main = "main.zig",
+    deps = [":hello_world"],
+)
+
 zig_test(
     name = "test",
     size = "small",
@@ -45,6 +53,12 @@ filegroup(
 filegroup(
     name = "library-docs",
     srcs = [":library"],
+    output_group = "zig_docs",
+)
+
+filegroup(
+    name = "shared-library-docs",
+    srcs = [":shared-library"],
     output_group = "zig_docs",
 )
 
@@ -76,6 +90,16 @@ copy_file(
 )
 
 copy_file(
+    name = "shared-library-docs-index-copy",
+    src = make_directory_path(
+        name = "shared-library-docs-index",
+        directory = ":shared-library-docs",
+        path = "index.html",
+    ),
+    out = "shared-library-docs-index-copy.html",
+)
+
+copy_file(
     name = "test-docs-index-copy",
     testonly = True,
     src = make_directory_path(
@@ -92,6 +116,7 @@ build_test(
     targets = [
         ":binary-docs-index-copy",
         ":library-docs-index-copy",
+        ":shared-library-docs-index-copy",
         ":test-docs-index-copy",
     ],
 )
