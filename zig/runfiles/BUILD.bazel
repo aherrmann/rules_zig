@@ -1,4 +1,9 @@
-load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_library",
+    "zig_package",
+    "zig_test",
+)
 
 _SRCS = [
     "src/Directory.zig",
@@ -22,6 +27,21 @@ zig_test(
     srcs = _SRCS,
     cdeps = ["//zig/lib:libc"],
     main = "runfiles.zig",
+)
+
+# Only used for documentation generation.
+zig_library(
+    name = "lib",
+    srcs = _SRCS,
+    main = "runfiles.zig",
+    tags = ["manual"],
+)
+
+filegroup(
+    name = "docs",
+    srcs = [":lib"],
+    output_group = "zig_docs",
+    visibility = ["//visibility:public"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.
