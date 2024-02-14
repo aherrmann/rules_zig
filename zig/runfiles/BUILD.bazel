@@ -26,6 +26,7 @@ zig_test(
     size = "small",
     srcs = _SRCS,
     cdeps = ["//zig/lib:libc"],
+    data = ["test-data.txt"],
     main = "runfiles.zig",
 )
 
