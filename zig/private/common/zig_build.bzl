@@ -199,6 +199,8 @@ def zig_build_impl(ctx, *, kind):
     direct_inputs.append(ctx.file.main)
     direct_inputs.extend(ctx.files.srcs)
     direct_inputs.extend(ctx.files.extra_srcs)
+
+    args.add_all(["--main-pkg-path", "."])
     args.add(ctx.file.main)
 
     location_targets = ctx.attr.data
