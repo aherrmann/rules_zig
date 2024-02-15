@@ -15,17 +15,41 @@ pub const repo_mapping_file_name = "_repo_mapping";
 implementation: Implementation,
 repo_mapping: ?RepoMapping,
 
+pub const CreateOptions = discovery.DiscoverOptions;
+
 pub const CreateError = error{
     RunfilesNotFound,
 } || discovery.DiscoverError || Manifest.InitError || Directory.InitError || RepoMapping.InitError;
 
-/// Quoting the runfiles design:
+/// Performs runfiles discovery to determine the runfiles strategy and
+/// location, and creates the runfiles object.
+///
+/// You must invoke `deinit` passing the same allocator to free resources.
+///
+/// Quoting the [runfiles design][runfiles-design] for further details:
 ///
 /// > Every language's library will have a similar interface: a Create method
 /// > that inspects the environment and/or `argv[0]` to determine the runfiles
 /// > strategy (manifest-based or directory-based; see below), initializes
-/// > runfiles handling and returns a Runfiles object
-pub fn create(options: discovery.DiscoverOptions) CreateError!Runfiles {
+/// > runfiles handling and returns a Runfiles object.
+///
+/// > Runfiles strategies:
+/// >
+/// > * Manifest-based: reads the runfiles manifest file to look up runfiles.
+/// > * Directory-based: appends the runfile's path to the runfiles root. The
+/// >   client is responsible for checking that the resulting path exists.
+///
+/// > The unified runfiles discovery strategy is to:
+/// > * check if `RUNFILES_MANIFEST_FILE` or `RUNFILES_DIR` envvars are set,
+///     and again initialize a Runfiles object accordingly; otherwise
+/// > * check if the `argv[0] + ".runfiles_manifest"` file or the
+/// >   `argv[0] + ".runfiles"` directory exists (keeping in mind that argv[0]
+/// >   may not include the `".exe"` suffix on Windows), and if so, initialize
+/// >   a manifest- or directory-based Runfiles object; otherwise
+/// > * assume the binary has no runfiles.
+///
+/// [runfiles-design]: https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
+pub fn create(options: CreateOptions) CreateError!Runfiles {
     var implementation = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
             return error.RunfilesNotFound;
@@ -52,6 +76,7 @@ pub fn create(options: discovery.DiscoverOptions) CreateError!Runfiles {
     };
 }
 
+/// You must pass the same allocator as to `create`.
 pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
     self.implementation.deinit(allocator);
     if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
@@ -62,7 +87,21 @@ pub const RLocationError = error{
     NameTooLong,
 } || ValidationError;
 
-/// Quoting the runfiles design:
+/// Resolves the given runfiles location path `rpath`,
+/// and returns an absolute path to the item.
+/// Note, the returned path may point to a non-existing file.
+/// Returns `null` under the manifest based strategy
+/// if the runfiles path was not found.
+///
+/// Prefer to use Bazel's `$(rlocationpath ...)` expansion in your
+/// `BUILD.bazel` file to obtain a runfiles path.
+///
+/// The runfiles path is subject to repository mapping and will be resolved
+/// relative to the given `source` repository name.
+/// Use the automatically generated `bazel_builtin` module to obtain the
+/// current repository name.
+///
+/// Quoting the [runfiles design][runfiles-design] for further details:
 ///
 /// > Every language's library will have a similar interface: an
 /// > Rlocation(string) method that expects a runfiles-root-relative path
@@ -73,6 +112,8 @@ pub const RLocationError = error{
 ///
 /// TODO: Path normalization, in particular lower-case and '/' normalization on
 ///   Windows, is not yet implemented.
+///
+/// [runfiles-design]: https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
 pub fn rlocation(
     self: *const Runfiles,
     rpath: []const u8,

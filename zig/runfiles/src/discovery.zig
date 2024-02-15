@@ -32,7 +32,7 @@ pub const Location = union(Strategy) {
 };
 
 pub const DiscoverOptions = struct {
-    /// Used to allocate intermediate data and the final location.
+    /// Used during runfiles discovery.
     allocator: std.mem.Allocator,
     /// User override for the `RUNFILES_MANIFEST_FILE` variable.
     manifest: ?[]const u8 = null,
