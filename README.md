@@ -148,3 +148,8 @@ Examples can be found among the end-to-end tests under
 
 Generated API documentation for the provided rules is available in
 [`./docs/rules.md`](./docs/rules.md).
+
+## Runfiles Library Documentation
+
+Documentation for the Zig runfiles library can be found in
+[`./zig/runfiles/guide.md`](./zig/runfiles/guide.md).

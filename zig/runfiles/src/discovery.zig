@@ -9,6 +9,7 @@ pub const runfiles_manifest_var_name = "RUNFILES_MANIFEST_FILE";
 pub const runfiles_directory_var_name = "RUNFILES_DIR";
 pub const runfiles_manifest_suffix = ".runfiles_manifest";
 pub const runfiles_directory_suffix = ".runfiles";
+pub const repo_mapping_file_name = "_repo_mapping";
 
 /// * Manifest-based: reads the runfiles manifest file to look up runfiles.
 /// * Directory-based: appends the runfile's path to the runfiles root.
@@ -32,7 +33,7 @@ pub const Location = union(Strategy) {
 };
 
 pub const DiscoverOptions = struct {
-    /// Used to allocate intermediate data and the final location.
+    /// Used during runfiles discovery.
     allocator: std.mem.Allocator,
     /// User override for the `RUNFILES_MANIFEST_FILE` variable.
     manifest: ?[]const u8 = null,
