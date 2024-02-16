@@ -23,7 +23,8 @@ test {
 test Runfiles {
     var allocator = std.testing.allocator;
 
-    var r = try Runfiles.create(.{ .allocator = allocator });
+    var r = try Runfiles.create(.{ .allocator = allocator }) orelse
+        return error.RunfilesNotFound;
     defer r.deinit(allocator);
 
     // Runfiles paths have the form `WORKSPACE/PACKAGE/FILE`.

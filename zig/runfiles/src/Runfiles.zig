@@ -17,12 +17,11 @@ repo_mapping: ?RepoMapping,
 
 pub const CreateOptions = discovery.DiscoverOptions;
 
-pub const CreateError = error{
-    RunfilesNotFound,
-} || discovery.DiscoverError || Manifest.InitError || Directory.InitError || RepoMapping.InitError;
+pub const CreateError = discovery.DiscoverError || Manifest.InitError || Directory.InitError || RepoMapping.InitError;
 
 /// Performs runfiles discovery to determine the runfiles strategy and
-/// location, and creates the runfiles object.
+/// location, and creates the runfiles object. Returns `null` if no runfiles
+/// where found.
 ///
 /// You must invoke `deinit` passing the same allocator to free resources.
 ///
@@ -49,10 +48,10 @@ pub const CreateError = error{
 /// > * assume the binary has no runfiles.
 ///
 /// [runfiles-design]: https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
-pub fn create(options: CreateOptions) CreateError!Runfiles {
+pub fn create(options: CreateOptions) CreateError!?Runfiles {
     var implementation = discover: {
         const result = try discovery.discoverRunfiles(options) orelse
-            return error.RunfilesNotFound;
+            return null;
         switch (result) {
             .manifest => |path| {
                 defer options.allocator.free(path);
@@ -287,7 +286,8 @@ test "Runfiles from manifest" {
     var runfiles = try Runfiles.create(.{
         .allocator = std.testing.allocator,
         .manifest = manifest_path,
-    });
+    }) orelse
+        return error.RunfilesNotFound;
     defer runfiles.deinit(std.testing.allocator);
 
     {
@@ -384,7 +384,8 @@ test "Runfiles from directory" {
     var runfiles = try Runfiles.create(.{
         .allocator = std.testing.allocator,
         .directory = directory_path,
-    });
+    }) orelse
+        return error.RunfilesNotFound;
     defer runfiles.deinit(std.testing.allocator);
 
     {

@@ -3,7 +3,8 @@ const runfiles = @import("runfiles");
 const bazel_builtin = @import("bazel_builtin");
 
 pub fn readData(allocator: std.mem.Allocator) ![]const u8 {
-    var r = try runfiles.Runfiles.create(.{ .allocator = allocator });
+    var r = try runfiles.Runfiles.create(.{ .allocator = allocator }) orelse
+        return error.RunfilesNotFound;
     defer r.deinit(allocator);
 
     const rpath = "runfiles_library_transitive_dependency/data.txt";
