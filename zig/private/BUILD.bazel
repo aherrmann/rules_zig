@@ -119,11 +119,18 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
 )
 
+bzl_library(
+    name = "cc_linkopts",
+    srcs = ["cc_linkopts.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":cc_linkopts.bzl",
         ":resolved_target_toolchain.bzl",
         ":resolved_toolchain.bzl",
         ":settings.bzl",

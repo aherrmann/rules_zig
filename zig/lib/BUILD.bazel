@@ -19,13 +19,15 @@ zig_binary(
 ```
 """
 
-cc_library(
+load("//zig/private:cc_linkopts.bzl", "cc_linkopts")
+
+cc_linkopts(
     name = "libc",
     linkopts = ["-lc"],
     visibility = ["//visibility:public"],
 )
 
-cc_library(
+cc_linkopts(
     name = "libc++",
     linkopts = ["-lc++"],
     visibility = ["//visibility:public"],
