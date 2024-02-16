@@ -10,8 +10,6 @@ const RPath = @import("RPath.zig");
 
 const Runfiles = @This();
 
-pub const repo_mapping_file_name = "_repo_mapping";
-
 implementation: Implementation,
 repo_mapping: ?RepoMapping,
 
@@ -243,7 +241,7 @@ const Implementation = union(discovery.Strategy) {
 
         const path = try self.rlocationUnmappedAlloc(allocator, .{
             .repo = "",
-            .path = repo_mapping_file_name,
+            .path = discovery.repo_mapping_file_name,
         }) orelse {
             log.warn(msg_not_found, .{});
             return null;
