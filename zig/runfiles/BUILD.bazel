@@ -51,6 +51,7 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":guide.md",
         ":runfiles.zig",
         ":src/Directory.zig",
         ":src/Manifest.zig",
@@ -58,6 +59,7 @@ filegroup(
         ":src/RepoMapping.zig",
         ":src/Runfiles.zig",
         ":src/discovery.zig",
+        ":test-data.txt",
     ],
     visibility = ["//zig:__pkg__"],
 )
