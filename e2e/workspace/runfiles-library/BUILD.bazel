@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_test")
 
@@ -45,9 +46,15 @@ zig_test(
     ],
 )
 
+build_test(
+    name = "runfiles-docs-build-test",
+    targets = ["@rules_zig//zig/runfiles:docs"],
+)
+
 test_suite(
     name = "runfiles-library",
     tests = [
+        ":runfiles-docs-build-test",
         ":test",
         "@runfiles_library_dependency//:test",
     ],
