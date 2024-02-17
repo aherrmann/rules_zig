@@ -12,7 +12,7 @@ zig_test(
 )
 
 zig_module(
-    name = "package_with_data",
+    name = "module_with_data",
     data = ["@runfiles_library_transitive_dependency//:data.txt"],
     main = "main.zig",
     visibility = ["//visibility:public"],
