@@ -21,7 +21,10 @@ pub fn main() !void {
     const rpath = try getEnvVar(allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer allocator.free(rpath);
 
-    const file_path = try r.rlocationAlloc(allocator, rpath, "") orelse return error.RLocationNotFound;
+    const file_path = try r
+        .withSourceRepo("")
+        .rlocationAlloc(allocator, rpath) orelse
+        return error.RLocationNotFound;
     defer allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -41,7 +44,10 @@ test "read data file" {
     const rpath = try getEnvVar(std.testing.allocator, "DATA") orelse return error.EnvVarNotFoundDATA;
     defer std.testing.allocator.free(rpath);
 
-    const file_path = try r.rlocationAlloc(std.testing.allocator, rpath, "") orelse return error.RLocationNotFound;
+    const file_path = try r
+        .withSourceRepo("")
+        .rlocationAlloc(std.testing.allocator, rpath) orelse
+        return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -61,7 +67,10 @@ test "resolve external dependency rpath" {
     const rpath = try getEnvVar(std.testing.allocator, "DEPENDENCY_DATA") orelse return error.EnvVarNotFoundDEPENDENCY_DATA;
     defer std.testing.allocator.free(rpath);
 
-    const file_path = try r.rlocationAlloc(std.testing.allocator, rpath, "") orelse return error.RLocationNotFound;
+    const file_path = try r
+        .withSourceRepo("")
+        .rlocationAlloc(std.testing.allocator, rpath) orelse
+        return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
     var file = try std.fs.cwd().openFile(file_path, .{});
@@ -88,7 +97,10 @@ test "runfiles in nested binary" {
     const rpath = try getEnvVar(std.testing.allocator, "BINARY") orelse return error.EnvVarNotFoundBINARY;
     defer std.testing.allocator.free(rpath);
 
-    const binary_path = try r.rlocationAlloc(std.testing.allocator, rpath, "") orelse return error.RLocationNotFound;
+    const binary_path = try r
+        .withSourceRepo("")
+        .rlocationAlloc(std.testing.allocator, rpath) orelse
+        return error.RLocationNotFound;
     defer std.testing.allocator.free(binary_path);
 
     var env = std.process.EnvMap.init(std.testing.allocator);
