@@ -94,7 +94,7 @@ pub const RLocationError = error{
 /// `BUILD.bazel` file to obtain a runfiles path.
 ///
 /// The runfiles path is subject to repository mapping and will be resolved
-/// relative to the given `source` repository name.
+/// relative to the given source repository name `source_repo`.
 /// Use the automatically generated `bazel_builtin` module to obtain the
 /// current repository name.
 ///
@@ -114,11 +114,11 @@ pub const RLocationError = error{
 pub fn rlocation(
     self: *const Runfiles,
     rpath: []const u8,
-    source: []const u8,
+    source_repo: []const u8,
     out_buffer: []u8,
 ) RLocationError!?[]const u8 {
     try validateRPath(rpath);
-    const rpath_ = self.remapRPath(rpath, source);
+    const rpath_ = self.remapRPath(rpath, source_repo);
     return try self.implementation.rlocationUnmapped(rpath_, out_buffer);
 }
 
@@ -128,10 +128,10 @@ pub fn rlocationAlloc(
     self: *const Runfiles,
     allocator: std.mem.Allocator,
     rpath: []const u8,
-    source: []const u8,
+    source_repo: []const u8,
 ) (error{OutOfMemory} || RLocationError)!?[]const u8 {
     try validateRPath(rpath);
-    const rpath_ = self.remapRPath(rpath, source);
+    const rpath_ = self.remapRPath(rpath, source_repo);
     return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
 }
 
