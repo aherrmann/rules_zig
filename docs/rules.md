@@ -35,7 +35,7 @@ zig_binary(
         "utils.zig",  # to support `@import("utils.zig")`.
     ],
     deps = [
-        ":my-package",  # to support `@import("my-package")`.
+        ":my-module",  # to support `@import("my-module")`.
     ],
 )
 ```
@@ -46,7 +46,7 @@ zig_binary(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_binary-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_binary-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -267,7 +267,7 @@ zig_library(
         "utils.zig",  # to support `@import("utils.zig")`.
     ],
     deps = [
-        ":my-package",  # to support `@import("my-package")`.
+        ":my-module",  # to support `@import("my-module")`.
     ],
 )
 ```
@@ -278,7 +278,7 @@ zig_library(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_library-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -298,13 +298,13 @@ zig_library(
 zig_module(<a href="#zig_module-name">name</a>, <a href="#zig_module-deps">deps</a>, <a href="#zig_module-srcs">srcs</a>, <a href="#zig_module-data">data</a>, <a href="#zig_module-extra_srcs">extra_srcs</a>, <a href="#zig_module-main">main</a>)
 </pre>
 
-Defines a Zig package.
+Defines a Zig module.
 
-A Zig package is a collection of Zig sources with a main source file
-that defines the package's entry point.
+A Zig module is a collection of Zig sources with a main source file
+that defines the module's entry point.
 
 This rule does not perform compilation by itself.
-Instead, packages are compiled at the use-site.
+Instead, modules are compiled at the use-site.
 Zig performs whole program compilation.
 
 **EXAMPLE**
@@ -313,13 +313,13 @@ Zig performs whole program compilation.
 load("@rules_zig//zig:defs.bzl", "zig_module")
 
 zig_module(
-    name = "my-package",
+    name = "my-module",
     main = "main.zig",
     srcs = [
         "utils.zig",  # to support `@import("utils.zig")`.
     ],
     deps = [
-        ":other-package",  # to support `@import("other-package")`.
+        ":other-module",  # to support `@import("other-module")`.
     ],
 )
 ```
@@ -330,10 +330,10 @@ zig_module(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_module-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_module-deps"></a>deps |  Other packages required when building the package.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-srcs"></a>srcs |  Other Zig source files required when building the package, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-data"></a>data |  Files required by the package during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-extra_srcs"></a>extra_srcs |  Other files required when building the package, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-deps"></a>deps |  Other modules required when building the module.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-srcs"></a>srcs |  Other Zig source files required when building the module, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-extra_srcs"></a>extra_srcs |  Other files required when building the module, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_module-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
@@ -362,7 +362,7 @@ zig_shared_library(
         "utils.zig",  # to support `@import("utils.zig")`.
     ],
     deps = [
-        ":my-package",  # to support `@import("my-package")`.
+        ":my-module",  # to support `@import("my-module")`.
     ],
 )
 ```
@@ -373,7 +373,7 @@ zig_shared_library(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_shared_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_shared_library-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_shared_library-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -413,7 +413,7 @@ zig_test(
         "utils.zig",  # to support `@import("utils.zig")`.
     ],
     deps = [
-        ":my-package",  # to support `@import("my-package")`.
+        ":my-module",  # to support `@import("my-module")`.
     ],
 )
 ```
@@ -424,7 +424,7 @@ zig_test(
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_test-deps"></a>deps |  Packages required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_test-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
