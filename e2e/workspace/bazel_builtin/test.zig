@@ -1,6 +1,6 @@
 const std = @import("std");
 const bazel_builtin = @import("bazel_builtin");
-const package = @import("package");
+const module = @import("module");
 
 test "bazel_builtin exposes label" {
     try std.testing.expectEqualStrings("test", bazel_builtin.current_target);
@@ -8,6 +8,6 @@ test "bazel_builtin exposes label" {
     try std.testing.expectEqualStrings("", bazel_builtin.current_repository);
 }
 
-test "bazel_builtin in package dependency" {
-    try package.testPackage();
+test "bazel_builtin in module dependency" {
+    try module.testModule();
 }
