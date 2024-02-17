@@ -3,5 +3,5 @@ load("@rules_zig//zig:defs.bzl", "zig_module")
 zig_module(
     name = "io",
     main = "io.zig",
-    visibility = ["//transitive-zig-packages-binary/hello-world:__pkg__"],
+    visibility = ["//zig-module-binary:__pkg__"],
 )

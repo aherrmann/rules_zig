@@ -5,8 +5,7 @@ zig_binary(
     name = "binary",
     main = "main.zig",
     deps = [
-        "//zig-package-binary/data",
-        "//zig-package-binary/io",
+        "//transitive-zig-modules-binary/hello-world",
     ],
 )
 

@@ -7,5 +7,5 @@ zig_module(
         "data/world.zig",
     ],
     main = "data.zig",
-    visibility = ["//zig-package-binary:__pkg__"],
+    visibility = ["//zig-module-binary:__pkg__"],
 )
