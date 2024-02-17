@@ -1,6 +1,6 @@
 """Generate the `bazel_builtin` package."""
 
-load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
+load("//zig/private/providers:zig_module_info.bzl", "ZigPackageInfo")
 
 ATTRS = {
     "_bazel_builtin_template": attr.label(

@@ -1,6 +1,6 @@
-load("@rules_zig//zig:defs.bzl", "zig_package")
+load("@rules_zig//zig:defs.bzl", "zig_module")
 
-zig_package(
+zig_module(
     name = "data",
     srcs = [
         "data/hello.zig",

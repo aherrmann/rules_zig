@@ -13,14 +13,14 @@ load(
     _zig_configure_test = "zig_configure_test",
 )
 load("//zig/private:zig_library.bzl", _zig_library = "zig_library")
-load("//zig/private:zig_package.bzl", _zig_package = "zig_package")
+load("//zig/private:zig_module.bzl", _zig_module = "zig_module")
 load("//zig/private:zig_shared_library.bzl", _zig_shared_library = "zig_shared_library")
 load("//zig/private:zig_test.bzl", _zig_test = "zig_test")
 
 zig_binary = _zig_binary
 zig_library = _zig_library
 zig_shared_library = _zig_shared_library
-zig_package = _zig_package
+zig_module = _zig_module
 zig_test = _zig_test
 zig_configure = _zig_configure
 zig_configure_binary = _zig_configure_binary

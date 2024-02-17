@@ -11,8 +11,8 @@ load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
-    "//zig/private/providers:zig_package_info.bzl",
-    "zig_package_dependencies",
+    "//zig/private/providers:zig_module_info.bzl",
+    "zig_module_dependencies",
 )
 load(
     "//zig/private/providers:zig_settings_info.bzl",
@@ -91,7 +91,7 @@ def zig_docs_impl(ctx, *, kind):
 
     bazel_builtin = bazel_builtin_package(ctx)
 
-    zig_package_dependencies(
+    zig_module_dependencies(
         deps = ctx.attr.deps,
         extra_deps = [bazel_builtin],
         inputs = transitive_inputs,

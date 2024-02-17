@@ -5,9 +5,9 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load(
-    "//zig/private/providers:zig_package_info.bzl",
+    "//zig/private/providers:zig_module_info.bzl",
     "ZigPackageInfo",
-    "zig_package_dependencies",
+    "zig_module_dependencies",
 )
 
 def _mock_args():
@@ -68,7 +68,7 @@ def _single_package_test_impl(ctx):
     transitive_inputs = []
     args = _mock_args()
 
-    zig_package_dependencies(
+    zig_module_dependencies(
         deps = [ctx.attr.pkg],
         inputs = transitive_inputs,
         args = args,
@@ -89,7 +89,7 @@ def _single_package_test_impl(ctx):
         env,
         expected,
         args.get_args(),
-        "zig_package_dependencies should generate the expected arguments.",
+        "zig_module_dependencies should generate the expected arguments.",
     )
 
     bazel_builtin_file = [
@@ -103,7 +103,7 @@ def _single_package_test_impl(ctx):
         env,
         sets.make([package.main] + package.srcs + bazel_builtin_file),
         sets.make(inputs.to_list()),
-        "zig_package_dependencies should capture all package files.",
+        "zig_module_dependencies should capture all package files.",
     )
 
     return unittest.end(env)
@@ -121,7 +121,7 @@ def _nested_packages_test_impl(ctx):
     transitive_inputs = []
     args = _mock_args()
 
-    zig_package_dependencies(
+    zig_module_dependencies(
         deps = [dep for dep in ctx.attr.pkgs if dep.label.name == "a"],
         inputs = transitive_inputs,
         args = args,
@@ -164,7 +164,7 @@ def _nested_packages_test_impl(ctx):
         env,
         expected,
         args.get_args(),
-        "zig_package_dependencies should unfold the transitive dependency graph onto the command-line.",
+        "zig_module_dependencies should unfold the transitive dependency graph onto the command-line.",
     )
 
     inputs = depset(transitive = transitive_inputs)
@@ -176,7 +176,7 @@ def _nested_packages_test_impl(ctx):
             for src in [pkg.main] + pkg.srcs + bazel_builtins[pkg.name].file
         ]),
         sets.make(inputs.to_list()),
-        "zig_package_dependencies should capture all package files.",
+        "zig_module_dependencies should capture all package files.",
     )
 
     return unittest.end(env)

@@ -1,6 +1,6 @@
-load("@rules_zig//zig:defs.bzl", "zig_package")
+load("@rules_zig//zig:defs.bzl", "zig_module")
 
-zig_package(
+zig_module(
     name = "a",
     main = "a.zig",
     visibility = ["//zig/tests:__pkg__"],
@@ -11,34 +11,34 @@ zig_package(
     ],
 )
 
-zig_package(
+zig_module(
     name = "b",
     main = "b.zig",
     visibility = ["//zig/tests:__pkg__"],
     deps = [":e"],
 )
 
-zig_package(
+zig_module(
     name = "c",
     main = "c.zig",
     visibility = ["//zig/tests:__pkg__"],
     deps = [":e"],
 )
 
-zig_package(
+zig_module(
     name = "d",
     main = "d.zig",
     visibility = ["//zig/tests:__pkg__"],
     deps = [":f"],
 )
 
-zig_package(
+zig_module(
     name = "e",
     main = "e.zig",
     visibility = ["//zig/tests:__pkg__"],
 )
 
-zig_package(
+zig_module(
     name = "f",
     main = "f.zig",
     visibility = ["//zig/tests:__pkg__"],

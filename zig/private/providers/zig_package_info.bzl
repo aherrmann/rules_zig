@@ -1,4 +1,4 @@
-"""Defines providers for the zig_package rule."""
+"""Defines providers for the zig_module rule."""
 
 DOC = """\
 Information about a Zig package.
@@ -24,7 +24,7 @@ ZigPackageInfo = provider(
     doc = DOC,
 )
 
-def zig_package_dependencies(*, deps, extra_deps = [], inputs, args):
+def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig package dependencies.
 
     Args:

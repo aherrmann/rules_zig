@@ -1,4 +1,4 @@
-load("@rules_zig//zig:defs.bzl", "zig_package", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_module", "zig_test")
 
 zig_test(
     name = "direct-data",
@@ -7,7 +7,7 @@ zig_test(
     main = "direct-data.zig",
 )
 
-zig_package(
+zig_module(
     name = "direct-package",
     data = ["data.txt"],
     main = "direct-package.zig",
@@ -20,7 +20,7 @@ zig_test(
     deps = [":direct-package"],
 )
 
-zig_package(
+zig_module(
     name = "indirect-package",
     main = "indirect-package.zig",
     deps = [":direct-package"],

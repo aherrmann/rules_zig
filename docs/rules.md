@@ -290,12 +290,12 @@ zig_library(
 | <a id="zig_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
-<a id="zig_package"></a>
+<a id="zig_module"></a>
 
-## zig_package
+## zig_module
 
 <pre>
-zig_package(<a href="#zig_package-name">name</a>, <a href="#zig_package-deps">deps</a>, <a href="#zig_package-srcs">srcs</a>, <a href="#zig_package-data">data</a>, <a href="#zig_package-extra_srcs">extra_srcs</a>, <a href="#zig_package-main">main</a>)
+zig_module(<a href="#zig_module-name">name</a>, <a href="#zig_module-deps">deps</a>, <a href="#zig_module-srcs">srcs</a>, <a href="#zig_module-data">data</a>, <a href="#zig_module-extra_srcs">extra_srcs</a>, <a href="#zig_module-main">main</a>)
 </pre>
 
 Defines a Zig package.
@@ -310,9 +310,9 @@ Zig performs whole program compilation.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_package")
+load("@rules_zig//zig:defs.bzl", "zig_module")
 
-zig_package(
+zig_module(
     name = "my-package",
     main = "main.zig",
     srcs = [
@@ -329,12 +329,12 @@ zig_package(
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig_package-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_package-deps"></a>deps |  Other packages required when building the package.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_package-srcs"></a>srcs |  Other Zig source files required when building the package, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_package-data"></a>data |  Files required by the package during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_package-extra_srcs"></a>extra_srcs |  Other files required when building the package, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_package-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_module-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_module-deps"></a>deps |  Other packages required when building the package.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-srcs"></a>srcs |  Other Zig source files required when building the package, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-data"></a>data |  Files required by the package during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-extra_srcs"></a>extra_srcs |  Other files required when building the package, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
 <a id="zig_shared_library"></a>

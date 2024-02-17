@@ -1,4 +1,4 @@
-"""Implementation of the zig_package rule."""
+"""Implementation of the zig_module rule."""
 
 load(
     "//zig/private/common:bazel_builtin.bzl",
@@ -7,7 +7,7 @@ load(
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
-load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
+load("//zig/private/providers:zig_module_info.bzl", "ZigPackageInfo")
 
 DOC = """\
 Defines a Zig package.
@@ -22,9 +22,9 @@ Zig performs whole program compilation.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_package")
+load("@rules_zig//zig:defs.bzl", "zig_module")
 
-zig_package(
+zig_module(
     name = "my-package",
     main = "main.zig",
     srcs = [
@@ -65,7 +65,7 @@ ATTRS = {
     ),
 } | BAZEL_BUILTIN_ATTRS
 
-def _zig_package_impl(ctx):
+def _zig_module_impl(ctx):
     transitive_data = []
     transitive_runfiles = []
 
@@ -127,8 +127,8 @@ def _zig_package_impl(ctx):
 
     return [default, package]
 
-zig_package = rule(
-    _zig_package_impl,
+zig_module = rule(
+    _zig_module_impl,
     attrs = ATTRS,
     doc = DOC,
     toolchains = ["//zig:toolchain_type"],

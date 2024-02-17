@@ -31,7 +31,7 @@ bzl_library(
         ":zig_cache",
         ":zig_lib_dir",
         ":zig_target_triple",
-        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
     ],
@@ -48,7 +48,7 @@ bzl_library(
         ":location_expansion",
         ":zig_cache",
         ":zig_lib_dir",
-        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
         "@bazel_skylib//lib:paths",
@@ -73,7 +73,7 @@ bzl_library(
     name = "bazel_builtin",
     srcs = ["bazel_builtin.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_package_info"],
+    deps = ["//zig/private/providers:zig_module_info"],
 )
 
 bzl_library(
