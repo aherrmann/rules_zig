@@ -82,7 +82,7 @@ def _test_multiple_sources_binary(name):
     )
     return [":" + name]
 
-def _package_binary_test_impl(ctx):
+def _module_binary_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
@@ -104,8 +104,8 @@ def _package_binary_test_impl(ctx):
 
     return analysistest.end(env)
 
-_package_binary_test = analysistest.make(
-    _package_binary_test_impl,
+_module_binary_test = analysistest.make(
+    _module_binary_test_impl,
     attrs = {
         "main": attr.label(
             allow_single_file = True,
@@ -114,11 +114,11 @@ _package_binary_test = analysistest.make(
     },
 )
 
-def _test_package_binary(name):
-    _package_binary_test(
+def _test_module_binary(name):
+    _module_binary_test(
         name = name,
-        target_under_test = "//zig/tests/package-binary:binary",
-        main = "//zig/tests/package-binary:main.zig",
+        target_under_test = "//zig/tests/module-binary:binary",
+        main = "//zig/tests/module-binary:main.zig",
         size = "small",
     )
     return [":" + name]
@@ -197,7 +197,7 @@ def rules_test_suite(name):
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
-    tests += _test_package_binary(name = "package_binary_test")
+    tests += _test_module_binary(name = "module_binary_test")
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
     native.test_suite(
         name = name,
