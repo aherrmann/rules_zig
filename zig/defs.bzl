@@ -29,11 +29,12 @@ zig_configure_test = _zig_configure_test
 def zig_package(*, name, **kwargs):
     """Alias for `zig_module`.
 
-    Deprecated: The `zig_package` rule is deprecated, use `zig_module` instead.
-
     Args:
       name: string, a unique name for the rule.
       **kwargs: keyword arguments to forward to `zig_module`.
+
+    Deprecated:
+      The `zig_package` rule is deprecated, use `zig_module` instead.
     """
     target = native.package_relative_label(name)
     package = native.package_relative_label("__pkg__")
