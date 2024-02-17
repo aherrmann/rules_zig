@@ -29,7 +29,7 @@ zig_configure_test = _zig_configure_test
 def zig_package(**kwargs):
     """Alias for `zig_module`.
 
-    The `zig_package` rule is deprecated, use `zig_module` instead.
+    Deprecated: The `zig_package` rule is deprecated, use `zig_module` instead.
     """
 
     # buildifier: disable=print
