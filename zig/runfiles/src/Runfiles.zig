@@ -79,60 +79,93 @@ pub fn deinit(self: *Runfiles, allocator: std.mem.Allocator) void {
     if (self.repo_mapping) |*repo_mapping| repo_mapping.deinit(allocator);
 }
 
-pub const RLocationError = error{
-    NoSpaceLeft,
-    NameTooLong,
-} || ValidationError;
+pub const WithSourceRepo = struct {
+    runfiles: *const Runfiles,
+    source_repo: []const u8,
 
-/// Resolves the given runfiles location path `rpath`,
-/// and returns an absolute path to the item.
-/// Note, the returned path may point to a non-existing file.
-/// Returns `null` under the manifest based strategy
-/// if the runfiles path was not found.
-///
-/// Prefer to use Bazel's `$(rlocationpath ...)` expansion in your
-/// `BUILD.bazel` file to obtain a runfiles path.
-///
-/// The runfiles path is subject to repository mapping and will be resolved
+    pub const RLocationError = error{
+        NoSpaceLeft,
+        NameTooLong,
+    } || ValidationError;
+
+    /// Resolves the given runfiles location path `rpath`,
+    /// and returns an absolute path to the item.
+    /// Note, the returned path may point to a non-existing file.
+    /// Returns `null` under the manifest based strategy
+    /// if the runfiles path was not found.
+    ///
+    /// Prefer to use Bazel's `$(rlocationpath ...)` expansion in your
+    /// `BUILD.bazel` file to obtain a runfiles path.
+    ///
+    /// Quoting the [runfiles design][runfiles-design] for further details:
+    ///
+    /// > Every language's library will have a similar interface: an
+    /// > Rlocation(string) method that expects a runfiles-root-relative path
+    /// > (case-sensitive on Linux/macOS, case-insensitive on Windows) and returns
+    /// > the absolute path of the file, which is normalized (and lowercase on
+    /// > Windows) and uses "/" as directory separator on every platform (including
+    /// > Windows)
+    ///
+    /// TODO: Path normalization, in particular lower-case and '/' normalization on
+    ///   Windows, is not yet implemented.
+    ///
+    /// [runfiles-design]: https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
+    pub fn rlocation(
+        self: WithSourceRepo,
+        rpath: []const u8,
+        out_buffer: []u8,
+    ) RLocationError!?[]const u8 {
+        try validateRPath(rpath);
+        const rpath_ = self.runfiles.remapRPath(rpath, self.source_repo);
+        return try self.runfiles.implementation.rlocationUnmapped(rpath_, out_buffer);
+    }
+
+    /// Allocating variant of `rlocation`.
+    /// The caller owns the returned path.
+    pub fn rlocationAlloc(
+        self: WithSourceRepo,
+        allocator: std.mem.Allocator,
+        rpath: []const u8,
+    ) (error{OutOfMemory} || RLocationError)!?[]const u8 {
+        try validateRPath(rpath);
+        const rpath_ = self.runfiles.remapRPath(rpath, self.source_repo);
+        return try self.runfiles.implementation.rlocationUnmappedAlloc(allocator, rpath_);
+    }
+
+    pub const ValidationError = error{
+        RPathIsAbsolute,
+        RPathContainsSelfReference,
+        RPathContainsUpReference,
+    };
+
+    fn validateRPath(rpath: []const u8) !void {
+        var iter = try std.fs.path.componentIterator(rpath);
+
+        if (iter.root() != null)
+            return error.RPathIsAbsolute;
+
+        while (iter.next()) |component| {
+            if (std.mem.eql(u8, ".", component.name))
+                return error.RPathContainsSelfReference;
+
+            if (std.mem.eql(u8, "..", component.name))
+                return error.RPathContainsUpReference;
+        }
+    }
+};
+
+/// Runfiles path lookup is subject to repository mapping and will be resolved
 /// relative to the given source repository name `source_repo`.
 /// Use the automatically generated `bazel_builtin` module to obtain the
 /// current repository name.
 ///
-/// Quoting the [runfiles design][runfiles-design] for further details:
-///
-/// > Every language's library will have a similar interface: an
-/// > Rlocation(string) method that expects a runfiles-root-relative path
-/// > (case-sensitive on Linux/macOS, case-insensitive on Windows) and returns
-/// > the absolute path of the file, which is normalized (and lowercase on
-/// > Windows) and uses "/" as directory separator on every platform (including
-/// > Windows)
-///
-/// TODO: Path normalization, in particular lower-case and '/' normalization on
-///   Windows, is not yet implemented.
-///
-/// [runfiles-design]: https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
-pub fn rlocation(
-    self: *const Runfiles,
-    rpath: []const u8,
-    source_repo: []const u8,
-    out_buffer: []u8,
-) RLocationError!?[]const u8 {
-    try validateRPath(rpath);
-    const rpath_ = self.remapRPath(rpath, source_repo);
-    return try self.implementation.rlocationUnmapped(rpath_, out_buffer);
-}
-
-/// Allocating variant of `rlocation`.
-/// The caller owns the returned path.
-pub fn rlocationAlloc(
-    self: *const Runfiles,
-    allocator: std.mem.Allocator,
-    rpath: []const u8,
-    source_repo: []const u8,
-) (error{OutOfMemory} || RLocationError)!?[]const u8 {
-    try validateRPath(rpath);
-    const rpath_ = self.remapRPath(rpath, source_repo);
-    return try self.implementation.rlocationUnmappedAlloc(allocator, rpath_);
+/// The returned `WithSourceRepo` holds a reference to `self` and
+/// `source_repo`.
+pub fn withSourceRepo(self: *const Runfiles, source_repo: []const u8) WithSourceRepo {
+    return .{
+        .runfiles = self,
+        .source_repo = source_repo,
+    };
 }
 
 /// Set the required environment variables to discover the same runfiles. Use
@@ -140,27 +173,6 @@ pub fn rlocationAlloc(
 /// paths.
 pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) error{OutOfMemory}!void {
     try self.implementation.environment(output_env);
-}
-
-pub const ValidationError = error{
-    RPathIsAbsolute,
-    RPathContainsSelfReference,
-    RPathContainsUpReference,
-};
-
-fn validateRPath(rpath: []const u8) !void {
-    var iter = try std.fs.path.componentIterator(rpath);
-
-    if (iter.root() != null)
-        return error.RPathIsAbsolute;
-
-    while (iter.next()) |component| {
-        if (std.mem.eql(u8, ".", component.name))
-            return error.RPathContainsSelfReference;
-
-        if (std.mem.eql(u8, "..", component.name))
-            return error.RPathContainsUpReference;
-    }
 }
 
 fn remapRPath(self: *const Runfiles, rpath: []const u8, source: []const u8) RPath {
@@ -290,9 +302,10 @@ test "Runfiles from manifest" {
 
     {
         var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles
+            .withSourceRepo("")
+            .rlocation(
             "my_module/some/package/some_file",
-            "",
             &buffer,
         ) orelse
             return error.TestRLocationNotFound;
@@ -303,10 +316,11 @@ test "Runfiles from manifest" {
     }
 
     {
-        const file_path = try runfiles.rlocationAlloc(
+        const file_path = try runfiles
+            .withSourceRepo("")
+            .rlocationAlloc(
             std.testing.allocator,
             "other_module/other/package/other_file",
-            "",
         ) orelse
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
@@ -317,10 +331,11 @@ test "Runfiles from manifest" {
     }
 
     {
-        const file_path = try runfiles.rlocationAlloc(
+        const file_path = try runfiles
+            .withSourceRepo("their_module~1.2.3")
+            .rlocationAlloc(
             std.testing.allocator,
             "another_module/other/package/other_file",
-            "their_module~1.2.3",
         ) orelse
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
@@ -388,9 +403,10 @@ test "Runfiles from directory" {
 
     {
         var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-        const file_path = try runfiles.rlocation(
+        const file_path = try runfiles
+            .withSourceRepo("")
+            .rlocation(
             "my_module/some/package/some_file",
-            "",
             &buffer,
         ) orelse
             return error.TestRLocationNotFound;
@@ -401,10 +417,11 @@ test "Runfiles from directory" {
     }
 
     {
-        const file_path = try runfiles.rlocationAlloc(
+        const file_path = try runfiles
+            .withSourceRepo("")
+            .rlocationAlloc(
             std.testing.allocator,
             "other_module/other/package/other_file",
-            "",
         ) orelse
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
@@ -415,10 +432,11 @@ test "Runfiles from directory" {
     }
 
     {
-        const file_path = try runfiles.rlocationAlloc(
+        const file_path = try runfiles
+            .withSourceRepo("their_module~1.2.3")
+            .rlocationAlloc(
             std.testing.allocator,
             "another_module/other/package/other_file",
-            "their_module~1.2.3",
         ) orelse
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
@@ -438,12 +456,13 @@ test "Runfiles from directory" {
 }
 
 test "rpath validation" {
-    const r = Runfiles{
+    const r_ = Runfiles{
         .implementation = Implementation{ .directory = .{ .path = "/does-not-exist" } },
         .repo_mapping = null,
     };
+    const r = r_.withSourceRepo("");
     var buf: [32]u8 = undefined;
-    try std.testing.expectError(error.RPathIsAbsolute, r.rlocationAlloc(std.testing.allocator, "/absolute/path", ""));
-    try std.testing.expectError(error.RPathContainsSelfReference, r.rlocation("self/reference/./path", "", &buf));
-    try std.testing.expectError(error.RPathContainsUpReference, r.rlocationAlloc(std.testing.allocator, "up/reference/../path", ""));
+    try std.testing.expectError(error.RPathIsAbsolute, r.rlocationAlloc(std.testing.allocator, "/absolute/path"));
+    try std.testing.expectError(error.RPathContainsSelfReference, r.rlocation("self/reference/./path", &buf));
+    try std.testing.expectError(error.RPathContainsUpReference, r.rlocationAlloc(std.testing.allocator, "up/reference/../path"));
 }

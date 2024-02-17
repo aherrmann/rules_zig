@@ -68,9 +68,9 @@ Follow the steps below to use this runfiles library in a Zig target.
 
 3. Create a `runfiles.Runfiles` object using `runfiles.Runfiles.create`.
 
-   See `runfiles.Runfiles` doctest for a worked example.
+4. Define the source repository using `runfiles.Runfiles.withSourceRepo`.
 
-4. Use `runfiles.Runfiles.rlocation` or `runfiles.Runfiles.rlocationAlloc`
-   to look up a runfile path.
+5. Use `runfiles.Runfiles.WithSourceRepo.rlocation` or
+   `runfiles.Runfiles.WithSourceRepo.rlocationAlloc` to look up a runfile path.
 
    See `runfiles.Runfiles` doctest for a worked example.

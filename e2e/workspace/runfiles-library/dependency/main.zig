@@ -3,13 +3,15 @@ const runfiles = @import("runfiles");
 const bazel_builtin = @import("bazel_builtin");
 
 pub fn readData(allocator: std.mem.Allocator) ![]const u8 {
-    var r = try runfiles.Runfiles.create(.{ .allocator = allocator }) orelse
+    var r_ = try runfiles.Runfiles.create(.{ .allocator = allocator }) orelse
         return error.RunfilesNotFound;
-    defer r.deinit(allocator);
+    defer r_.deinit(allocator);
+
+    const r = r_.withSourceRepo(bazel_builtin.current_repository);
 
     const rpath = "runfiles_library_transitive_dependency/data.txt";
 
-    const file_path = try r.rlocationAlloc(allocator, rpath, bazel_builtin.current_repository) orelse
+    const file_path = try r.rlocationAlloc(allocator, rpath) orelse
         return error.RLocationNotFound;
     defer allocator.free(file_path);
 

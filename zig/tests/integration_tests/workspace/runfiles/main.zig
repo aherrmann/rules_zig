@@ -8,13 +8,15 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
-    var r = try runfiles.Runfiles.create(.{ .allocator = allocator }) orelse
+    var r_ = try runfiles.Runfiles.create(.{ .allocator = allocator }) orelse
         return error.RunfilesNotFound;
-    defer r.deinit(allocator);
+    defer r_.deinit(allocator);
+
+    const r = r_.withSourceRepo(bazel_builtin.current_repository);
 
     const rpath = "__main__/runfiles/data.txt";
 
-    const file_path = try r.rlocationAlloc(allocator, rpath, bazel_builtin.current_repository) orelse {
+    const file_path = try r.rlocationAlloc(allocator, rpath) orelse {
         std.log.err("Runfiles location '{s}' not found", .{rpath});
         return error.RLocationNotFound;
     };

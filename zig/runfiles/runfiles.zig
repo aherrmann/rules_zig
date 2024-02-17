@@ -25,21 +25,23 @@ test {
 test Runfiles {
     var allocator = std.testing.allocator;
 
-    var r = try Runfiles.create(.{ .allocator = allocator }) orelse
+    var r_ = try Runfiles.create(.{ .allocator = allocator }) orelse
         return error.RunfilesNotFound;
-    defer r.deinit(allocator);
+    defer r_.deinit(allocator);
+
+    // Runfiles lookup is subject to repository remapping. You must pass the
+    // name of the repository relative to which the runfiles path is valid.
+    // Use the auto-generated `bazel_builtin` module to obtain it.
+    const source_repo = @import("bazel_builtin").current_repository;
+    const r = r_.withSourceRepo(source_repo);
 
     // Runfiles paths have the form `WORKSPACE/PACKAGE/FILE`.
     // Use `$(rlocationpath ...)` expansion in your `BUILD.bazel` file to
     // obtain one. You can forward it to your executable using the `env` or
     // `args` attribute, or by embedding it in a generated file.
     const rpath = "rules_zig/zig/runfiles/test-data.txt";
-    // Runfiles lookup is subject to repository remapping. You must pass the
-    // name of the repository relative to which the runfiles path is valid.
-    // Use the auto-generated `bazel_builtin` module to obtain it.
-    const source = @import("bazel_builtin").current_repository;
 
-    const allocated_path = try r.rlocationAlloc(allocator, rpath, source) orelse
+    const allocated_path = try r.rlocationAlloc(allocator, rpath) orelse
         // Runfiles path lookup may return `null`.
         return error.RPathNotFound;
     defer allocator.free(allocated_path);
