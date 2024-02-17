@@ -6,14 +6,14 @@ exports_files(
 )
 
 bzl_library(
-    name = "zig_package",
-    srcs = ["zig_package.bzl"],
+    name = "zig_module",
+    srcs = ["zig_module.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:bazel_builtin",
         "//zig/private/common:data",
         "//zig/private/common:filetypes",
-        "//zig/private/providers:zig_package_info",
+        "//zig/private/providers:zig_module_info",
     ],
 )
 
@@ -139,7 +139,7 @@ filegroup(
         ":zig_binary.bzl",
         ":zig_configure.bzl",
         ":zig_library.bzl",
-        ":zig_package.bzl",
+        ":zig_module.bzl",
         ":zig_shared_library.bzl",
         ":zig_target_toolchain.bzl",
         ":zig_test.bzl",

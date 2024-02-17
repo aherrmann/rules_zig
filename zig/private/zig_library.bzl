@@ -32,7 +32,7 @@ zig_library(
         "utils.zig",  # to support `@import("utils.zig")`.
     ],
     deps = [
-        ":my-package",  # to support `@import("my-package")`.
+        ":my-module",  # to support `@import("my-module")`.
     ],
 )
 ```

@@ -5,12 +5,12 @@ load(
     "@rules_zig//zig:defs.bzl",
     "zig_binary",
     "zig_library",
-    "zig_package",
+    "zig_module",
     "zig_shared_library",
     "zig_test",
 )
 
-zig_package(
+zig_module(
     name = "hello_world",
     main = "hello_world.zig",
 )

@@ -1,0 +1,11 @@
+load("@rules_zig//zig:defs.bzl", "zig_module")
+
+zig_module(
+    name = "data",
+    srcs = [
+        "data/hello.zig",
+        "data/world.zig",
+    ],
+    main = "data.zig",
+    visibility = ["//zig-module-binary:__pkg__"],
+)

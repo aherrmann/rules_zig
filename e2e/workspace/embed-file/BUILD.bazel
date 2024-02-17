@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_package", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_module", "zig_test")
 
 zig_binary(
     name = "binary",
@@ -21,17 +21,17 @@ zig_test(
     main = "main.zig",
 )
 
-zig_package(
-    name = "package",
+zig_module(
+    name = "module",
     extra_srcs = ["message.txt"],
-    main = "package.zig",
+    main = "module.zig",
 )
 
 zig_test(
-    name = "test-with-package",
+    name = "test-with-module",
     size = "small",
-    main = "test-with-package.zig",
-    deps = [":package"],
+    main = "test-with-module.zig",
+    deps = [":module"],
 )
 
 build_test(
@@ -40,7 +40,7 @@ build_test(
         ":binary",
         ":library",
         ":test",
-        ":test-with-package",
+        ":test-with-module",
     ],
 )
 

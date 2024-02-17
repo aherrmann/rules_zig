@@ -42,7 +42,7 @@ zig_test(
     main = "main.zig",
     deps = [
         "@rules_zig//zig/runfiles",
-        "@runfiles_library_dependency//:package_with_data",
+        "@runfiles_library_dependency//:module_with_data",
     ],
 )
 

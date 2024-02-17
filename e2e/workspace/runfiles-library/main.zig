@@ -82,8 +82,8 @@ test "resolve external dependency rpath" {
     try std.testing.expectEqualStrings("Hello from dependency!\n", content);
 }
 
-test "read data file in dependency Zig package" {
-    const content = try @import("package_with_data").readData(std.testing.allocator);
+test "read data file in dependency Zig module" {
+    const content = try @import("module_with_data").readData(std.testing.allocator);
     defer std.testing.allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello from transitive dependency!\n", content);

@@ -1,0 +1,7 @@
+load("@rules_zig//zig:defs.bzl", "zig_module")
+
+zig_module(
+    name = "io",
+    main = "io.zig",
+    visibility = ["//zig-module-binary:__pkg__"],
+)

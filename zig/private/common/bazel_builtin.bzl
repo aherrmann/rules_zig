@@ -1,6 +1,6 @@
-"""Generate the `bazel_builtin` package."""
+"""Generate the `bazel_builtin` module."""
 
-load("//zig/private/providers:zig_package_info.bzl", "ZigPackageInfo")
+load("//zig/private/providers:zig_module_info.bzl", "ZigModuleInfo")
 
 ATTRS = {
     "_bazel_builtin_template": attr.label(
@@ -9,14 +9,14 @@ ATTRS = {
     ),
 }
 
-def bazel_builtin_package(ctx):
-    """Generate a `bazel_builtin` package for the current target.
+def bazel_builtin_module(ctx):
+    """Generate a `bazel_builtin` module for the current target.
 
     Args:
       ctx: Bazel rule context object.
 
     Returns:
-      ZigPackageInfo provider.
+      ZigModuleInfo provider.
     """
     repo_name = ctx.label.repo_name if hasattr(ctx.label, "repo_name") else ctx.label.workspace_name
     package_name = ctx.label.package
@@ -41,7 +41,7 @@ def bazel_builtin_package(ctx):
         is_executable = False,
     )
 
-    package = ZigPackageInfo(
+    module = ZigModuleInfo(
         name = "bazel_builtin",
         canonical_name = name,
         main = main,
@@ -53,4 +53,4 @@ def bazel_builtin_package(ctx):
         all_srcs = depset(direct = [main]),
     )
 
-    return package
+    return module
