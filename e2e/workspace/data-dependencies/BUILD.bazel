@@ -8,27 +8,27 @@ zig_test(
 )
 
 zig_module(
-    name = "direct-package",
+    name = "direct-module",
     data = ["data.txt"],
-    main = "direct-package.zig",
+    main = "direct-module.zig",
 )
 
 zig_test(
-    name = "direct-package-data",
+    name = "direct-module-data",
     size = "small",
-    main = "direct-package-data.zig",
-    deps = [":direct-package"],
+    main = "direct-module-data.zig",
+    deps = [":direct-module"],
 )
 
 zig_module(
-    name = "indirect-package",
-    main = "indirect-package.zig",
-    deps = [":direct-package"],
+    name = "indirect-module",
+    main = "indirect-module.zig",
+    deps = [":direct-module"],
 )
 
 zig_test(
-    name = "indirect-package-data",
+    name = "indirect-module-data",
     size = "small",
-    main = "indirect-package-data.zig",
-    deps = [":indirect-package"],
+    main = "indirect-module-data.zig",
+    deps = [":indirect-module"],
 )
