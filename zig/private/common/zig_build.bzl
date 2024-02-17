@@ -20,7 +20,7 @@ load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_module_info.bzl",
-    "ZigPackageInfo",
+    "ZigModuleInfo",
     "zig_module_dependencies",
 )
 load(
@@ -66,7 +66,7 @@ ATTRS = {
     "deps": attr.label_list(
         doc = "Packages required to build the target.",
         mandatory = False,
-        providers = [ZigPackageInfo],
+        providers = [ZigModuleInfo],
     ),
     "cdeps": attr.label_list(
         doc = """\

@@ -19,7 +19,7 @@ FIELDS = {
     "all_srcs": "depset of File, All source files required when depending on the package.",
 }
 
-ZigPackageInfo = provider(
+ZigModuleInfo = provider(
     fields = FIELDS,
     doc = DOC,
 )
@@ -28,8 +28,8 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig package dependencies.
 
     Args:
-      deps: List of Target, Considers the targets that have a ZigPackageInfo provider.
-      extra_deps: List of ZigPackageInfo.
+      deps: List of Target, Considers the targets that have a ZigModuleInfo provider.
+      extra_deps: List of ZigModuleInfo.
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
@@ -37,9 +37,9 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     names = []
 
     packages = [
-        dep[ZigPackageInfo]
+        dep[ZigModuleInfo]
         for dep in deps
-        if ZigPackageInfo in dep
+        if ZigModuleInfo in dep
     ] + extra_deps
 
     for package in packages:

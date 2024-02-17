@@ -7,7 +7,7 @@ load(
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
-load("//zig/private/providers:zig_module_info.bzl", "ZigPackageInfo")
+load("//zig/private/providers:zig_module_info.bzl", "ZigModuleInfo")
 
 DOC = """\
 Defines a Zig package.
@@ -56,7 +56,7 @@ ATTRS = {
     "deps": attr.label_list(
         doc = "Other packages required when building the package.",
         mandatory = False,
-        providers = [ZigPackageInfo],
+        providers = [ZigModuleInfo],
     ),
     "data": attr.label_list(
         allow_files = True,
@@ -93,9 +93,9 @@ def _zig_module_impl(ctx):
     bazel_builtin = bazel_builtin_package(ctx)
 
     packages = [
-        dep[ZigPackageInfo]
+        dep[ZigModuleInfo]
         for dep in ctx.attr.deps
-        if ZigPackageInfo in dep
+        if ZigModuleInfo in dep
     ] + [bazel_builtin]
 
     for package in packages:
@@ -106,7 +106,7 @@ def _zig_module_impl(ctx):
         all_mods.append(package.all_mods)
         all_srcs.append(package.all_srcs)
 
-    package = ZigPackageInfo(
+    package = ZigModuleInfo(
         name = ctx.label.name,
         canonical_name = ctx.label.name,
         main = ctx.file.main,

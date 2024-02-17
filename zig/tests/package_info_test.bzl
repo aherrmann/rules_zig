@@ -1,4 +1,4 @@
-"""Unit tests for ZigPackageInfo functions.
+"""Unit tests for ZigModuleInfo functions.
 """
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -6,7 +6,7 @@ load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load(
     "//zig/private/providers:zig_module_info.bzl",
-    "ZigPackageInfo",
+    "ZigModuleInfo",
     "zig_module_dependencies",
 )
 
@@ -74,7 +74,7 @@ def _single_package_test_impl(ctx):
         args = args,
     )
 
-    package = ctx.attr.pkg[ZigPackageInfo]
+    package = ctx.attr.pkg[ZigModuleInfo]
 
     expected = []
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.pkg.label))
@@ -111,7 +111,7 @@ def _single_package_test_impl(ctx):
 _single_package_test = unittest.make(
     _single_package_test_impl,
     attrs = {
-        "pkg": attr.label(providers = [ZigPackageInfo]),
+        "pkg": attr.label(providers = [ZigModuleInfo]),
     },
 )
 
@@ -128,7 +128,7 @@ def _nested_packages_test_impl(ctx):
     )
 
     pkgs = {
-        pkg.label.name: pkg[ZigPackageInfo]
+        pkg.label.name: pkg[ZigModuleInfo]
         for pkg in ctx.attr.pkgs
     }
 
@@ -184,7 +184,7 @@ def _nested_packages_test_impl(ctx):
 _nested_packages_test = unittest.make(
     _nested_packages_test_impl,
     attrs = {
-        "pkgs": attr.label_list(providers = [ZigPackageInfo]),
+        "pkgs": attr.label_list(providers = [ZigModuleInfo]),
     },
 )
 
