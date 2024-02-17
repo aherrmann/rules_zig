@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":config_test.bzl", "config_test_suite")
 load(":mode_test.bzl", "mode_test_suite")
-load(":package_info_test.bzl", "package_info_test_suite")
+load(":module_info_test.bzl", "module_info_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
 load(":target_platform_test.bzl", "target_platform_test_suite")
 load(":target_triple_test.bzl", "target_triple_test_suite")
@@ -12,7 +12,7 @@ config_test_suite(name = "config_test")
 
 mode_test_suite(name = "mode_test")
 
-package_info_test_suite(name = "package_info_test")
+module_info_test_suite(name = "module_info_test")
 
 rules_test_suite(name = "rules_test")
 

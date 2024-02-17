@@ -62,7 +62,7 @@ def _bazel_builtin_mod_flags(ctx, label):
 def _bazel_builtin_dep(label):
     return "bazel_builtin={}".format(_bazel_builtin_name(label))
 
-def _single_package_test_impl(ctx):
+def _single_module_test_impl(ctx):
     env = unittest.begin(ctx)
 
     transitive_inputs = []
@@ -74,16 +74,16 @@ def _single_package_test_impl(ctx):
         args = args,
     )
 
-    package = ctx.attr.pkg[ZigModuleInfo]
+    module = ctx.attr.pkg[ZigModuleInfo]
 
     expected = []
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.pkg.label))
     expected.extend(["--mod", "{name}:{deps}:{src}".format(
-        name = package.name,
+        name = module.name,
         deps = _bazel_builtin_dep(ctx.attr.pkg.label),
-        src = package.main.path,
+        src = module.main.path,
     )])
-    expected.extend(["--deps", package.name])
+    expected.extend(["--deps", module.name])
 
     asserts.equals(
         env,
@@ -94,28 +94,28 @@ def _single_package_test_impl(ctx):
 
     bazel_builtin_file = [
         file
-        for file in package.all_srcs.to_list()
+        for file in module.all_srcs.to_list()
         if file.path == _bazel_builtin_file_name(ctx, ctx.attr.pkg.label)
     ]
 
     inputs = depset(transitive = transitive_inputs)
     asserts.set_equals(
         env,
-        sets.make([package.main] + package.srcs + bazel_builtin_file),
+        sets.make([module.main] + module.srcs + bazel_builtin_file),
         sets.make(inputs.to_list()),
-        "zig_module_dependencies should capture all package files.",
+        "zig_module_dependencies should capture all module files.",
     )
 
     return unittest.end(env)
 
-_single_package_test = unittest.make(
-    _single_package_test_impl,
+_single_module_test = unittest.make(
+    _single_module_test_impl,
     attrs = {
         "pkg": attr.label(providers = [ZigModuleInfo]),
     },
 )
 
-def _nested_packages_test_impl(ctx):
+def _nested_modules_test_impl(ctx):
     env = unittest.begin(ctx)
 
     transitive_inputs = []
@@ -176,35 +176,35 @@ def _nested_packages_test_impl(ctx):
             for src in [pkg.main] + pkg.srcs + bazel_builtins[pkg.name].file
         ]),
         sets.make(inputs.to_list()),
-        "zig_module_dependencies should capture all package files.",
+        "zig_module_dependencies should capture all module files.",
     )
 
     return unittest.end(env)
 
-_nested_packages_test = unittest.make(
-    _nested_packages_test_impl,
+_nested_modules_test = unittest.make(
+    _nested_modules_test_impl,
     attrs = {
         "pkgs": attr.label_list(providers = [ZigModuleInfo]),
     },
 )
 
-def package_info_test_suite(name):
+def module_info_test_suite(name):
     unittest.suite(
         name,
-        lambda name: _single_package_test(
+        lambda name: _single_module_test(
             name = name,
-            pkg = "//zig/tests/multiple-sources-package:data",
+            pkg = "//zig/tests/multiple-sources-module:data",
             size = "small",
         ),
-        lambda name: _nested_packages_test(
+        lambda name: _nested_modules_test(
             name = name,
             pkgs = [
-                "//zig/tests/nested-packages:a",
-                "//zig/tests/nested-packages:b",
-                "//zig/tests/nested-packages:c",
-                "//zig/tests/nested-packages:d",
-                "//zig/tests/nested-packages:e",
-                "//zig/tests/nested-packages:f",
+                "//zig/tests/nested-modules:a",
+                "//zig/tests/nested-modules:b",
+                "//zig/tests/nested-modules:c",
+                "//zig/tests/nested-modules:d",
+                "//zig/tests/nested-modules:e",
+                "//zig/tests/nested-modules:f",
             ],
             size = "small",
         ),
