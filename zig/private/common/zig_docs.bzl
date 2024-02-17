@@ -3,7 +3,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//zig/private/common:bazel_builtin.bzl",
-    "bazel_builtin_package",
+    "bazel_builtin_module",
 )
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
@@ -89,7 +89,7 @@ def zig_docs_impl(ctx, *, kind):
         args = args,
     )
 
-    bazel_builtin = bazel_builtin_package(ctx)
+    bazel_builtin = bazel_builtin_module(ctx)
 
     zig_module_dependencies(
         deps = ctx.attr.deps,

@@ -1,4 +1,4 @@
-"""Generate the `bazel_builtin` package."""
+"""Generate the `bazel_builtin` module."""
 
 load("//zig/private/providers:zig_module_info.bzl", "ZigModuleInfo")
 
@@ -9,8 +9,8 @@ ATTRS = {
     ),
 }
 
-def bazel_builtin_package(ctx):
-    """Generate a `bazel_builtin` package for the current target.
+def bazel_builtin_module(ctx):
+    """Generate a `bazel_builtin` module for the current target.
 
     Args:
       ctx: Bazel rule context object.
@@ -41,7 +41,7 @@ def bazel_builtin_package(ctx):
         is_executable = False,
     )
 
-    package = ZigModuleInfo(
+    module = ZigModuleInfo(
         name = "bazel_builtin",
         canonical_name = name,
         main = main,
@@ -53,4 +53,4 @@ def bazel_builtin_package(ctx):
         all_srcs = depset(direct = [main]),
     )
 
-    return package
+    return module

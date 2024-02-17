@@ -3,7 +3,7 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//zig/private/common:bazel_builtin.bzl",
-    "bazel_builtin_package",
+    "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
@@ -64,7 +64,7 @@ ATTRS = {
         mandatory = False,
     ),
     "deps": attr.label_list(
-        doc = "Packages required to build the target.",
+        doc = "modules required to build the target.",
         mandatory = False,
         providers = [ZigModuleInfo],
     ),
@@ -220,7 +220,7 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    bazel_builtin = bazel_builtin_package(ctx)
+    bazel_builtin = bazel_builtin_module(ctx)
 
     zig_module_dependencies(
         deps = ctx.attr.deps,
