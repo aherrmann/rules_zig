@@ -200,7 +200,8 @@ def zig_build_impl(ctx, *, kind):
     direct_inputs.extend(ctx.files.srcs)
     direct_inputs.extend(ctx.files.extra_srcs)
 
-    args.add_all(["--main-pkg-path", "."])
+    if zigtoolchaininfo.zig_version.startswith("0.11."):
+        args.add_all(["--main-pkg-path", "."])
     args.add(ctx.file.main)
 
     location_targets = ctx.attr.data
