@@ -21,6 +21,7 @@ jobs:
           OLD_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
           bazel run //util:update_zig_versions
           [ -z "$(git status --porcelain=v1 zig/private/versions.bzl 2>/dev/null)" ] || {
+            # Pick the first non-pre-release version.
             NEW_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
             BRANCH="zig-update-$NEW_VERSION"
             git switch -c "$BRANCH"

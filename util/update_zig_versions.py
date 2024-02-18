@@ -99,8 +99,11 @@ def generate_bzl_content(url, data, unsupported_versions, supported_platforms):
     content.append("TOOL_VERSIONS = {")
 
     for version, platforms in sorted(data.items(), key=lambda x: _parse_semver(x[0]), reverse=True):
-        if version in unsupported_versions or version == "master":
+        if version in unsupported_versions:
             continue
+
+        if version == "master":
+            version = platforms["version"]
 
         content.append('    "{}": {{'.format(version))
 
