@@ -24,6 +24,51 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
+def zig_module_info(*, name, canonical_name, main, srcs, extra_srcs, deps):
+    """Create `ZigModuleInfo` for a new Zig module.
+
+    Args:
+      name: string, The import name of the module.
+      canonical_name: string, The canonical name may differ from the import name via remapping.
+      main: File, The main source file of the module.
+      srcs: list of File, Other Zig source files that belong to the module.
+      extra_srcs: list of File, Other files that belong to the module.
+      deps: list of ZigModuleInfo, Import dependencies of this module.
+
+    Returns:
+      `ZigModuleInfo`
+    """
+    imports = []
+    mods_transitive = []
+    srcs_transitive = []
+
+    for dep in deps:
+        if dep.canonical_name != dep.name:
+            imports.append("{}={}".format(dep.name, dep.canonical_name))
+        else:
+            imports.append(dep.name)
+
+        mods_transitive.append(dep.all_mods)
+        srcs_transitive.append(dep.all_srcs)
+
+    mod_direct = "{name}:{imports}:{src}".format(
+        name = canonical_name,
+        imports = ",".join(imports),
+        src = main.path,
+    )
+    all_mods = depset(direct = [mod_direct], transitive = mods_transitive)
+    all_srcs = depset(direct = [main] + srcs + extra_srcs, transitive = srcs_transitive)
+    module = ZigModuleInfo(
+        name = name,
+        canonical_name = canonical_name,
+        main = main,
+        srcs = srcs,
+        all_mods = all_mods,
+        all_srcs = all_srcs,
+    )
+
+    return module
+
 def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig module dependencies.
 
