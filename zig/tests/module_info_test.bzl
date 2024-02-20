@@ -69,19 +69,19 @@ def _single_module_test_impl(ctx):
     args = _mock_args()
 
     zig_module_dependencies(
-        deps = [ctx.attr.pkg],
+        deps = [ctx.attr.mod],
         inputs = transitive_inputs,
         args = args,
     )
 
-    module = ctx.attr.pkg[ZigModuleInfo]
+    module = ctx.attr.mod[ZigModuleInfo]
 
     expected = []
-    expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.pkg.label))
+    expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.mod.label))
     expected.extend(["--mod", "{name}:{deps}:{src}".format(
         name = module.name,
-        deps = _bazel_builtin_dep(ctx.attr.pkg.label),
-        src = ctx.file.pkg_main.path,
+        deps = _bazel_builtin_dep(ctx.attr.mod.label),
+        src = ctx.file.mod_main.path,
     )])
     expected.extend(["--deps", module.name])
 
@@ -95,13 +95,13 @@ def _single_module_test_impl(ctx):
     bazel_builtin_file = [
         file
         for file in module.all_srcs.to_list()
-        if file.path == _bazel_builtin_file_name(ctx, ctx.attr.pkg.label)
+        if file.path == _bazel_builtin_file_name(ctx, ctx.attr.mod.label)
     ]
 
     inputs = depset(transitive = transitive_inputs)
     asserts.set_equals(
         env,
-        sets.make([ctx.file.pkg_main] + ctx.files.pkg_srcs + bazel_builtin_file),
+        sets.make([ctx.file.mod_main] + ctx.files.mod_srcs + bazel_builtin_file),
         sets.make(inputs.to_list()),
         "zig_module_dependencies should capture all module files.",
     )
@@ -111,9 +111,9 @@ def _single_module_test_impl(ctx):
 _single_module_test = unittest.make(
     _single_module_test_impl,
     attrs = {
-        "pkg": attr.label(providers = [ZigModuleInfo]),
-        "pkg_main": attr.label(allow_single_file = True),
-        "pkg_srcs": attr.label_list(allow_files = True),
+        "mod": attr.label(providers = [ZigModuleInfo]),
+        "mod_main": attr.label(allow_single_file = True),
+        "mod_srcs": attr.label_list(allow_files = True),
     },
 )
 
@@ -124,47 +124,47 @@ def _nested_modules_test_impl(ctx):
     args = _mock_args()
 
     zig_module_dependencies(
-        deps = [dep for dep in ctx.attr.pkgs if dep.label.name == "a"],
+        deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
         inputs = transitive_inputs,
         args = args,
     )
 
-    pkgs = {
-        pkg.label.name: pkg[ZigModuleInfo]
-        for pkg in ctx.attr.pkgs
+    mods = {
+        mod.label.name: mod[ZigModuleInfo]
+        for mod in ctx.attr.mods
     }
 
-    pkg_mains = {
-        pkg.label.name: main
-        for (pkg, main) in zip(ctx.attr.pkgs, ctx.files.pkg_mains)
+    mod_mains = {
+        mod.label.name: main
+        for (mod, main) in zip(ctx.attr.mods, ctx.files.mod_mains)
     }
 
     bazel_builtins = {
-        pkg.label.name: struct(
-            mod_flags = _bazel_builtin_mod_flags(ctx, pkg.label),
-            dep = _bazel_builtin_dep(pkg.label),
+        mod.label.name: struct(
+            mod_flags = _bazel_builtin_mod_flags(ctx, mod.label),
+            dep = _bazel_builtin_dep(mod.label),
             file = [
                 file
-                for file in pkgs[pkg.label.name].all_srcs.to_list()
-                if file.path == _bazel_builtin_file_name(ctx, pkg.label)
+                for file in mods[mod.label.name].all_srcs.to_list()
+                if file.path == _bazel_builtin_file_name(ctx, mod.label)
             ],
         )
-        for pkg in ctx.attr.pkgs
+        for mod in ctx.attr.mods
     }
 
     expected = []
     expected.extend(bazel_builtins["e"].mod_flags)
-    expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, pkg_mains["e"].path)])
+    expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, mod_mains["e"].path)])
     expected.extend(bazel_builtins["b"].mod_flags)
-    expected.extend(["--mod", "b:e,{}:{}".format(bazel_builtins["b"].dep, pkg_mains["b"].path)])
+    expected.extend(["--mod", "b:e,{}:{}".format(bazel_builtins["b"].dep, mod_mains["b"].path)])
     expected.extend(bazel_builtins["c"].mod_flags)
-    expected.extend(["--mod", "c:e,{}:{}".format(bazel_builtins["c"].dep, pkg_mains["c"].path)])
+    expected.extend(["--mod", "c:e,{}:{}".format(bazel_builtins["c"].dep, mod_mains["c"].path)])
     expected.extend(bazel_builtins["f"].mod_flags)
-    expected.extend(["--mod", "f:e,{}:{}".format(bazel_builtins["f"].dep, pkg_mains["f"].path)])
+    expected.extend(["--mod", "f:e,{}:{}".format(bazel_builtins["f"].dep, mod_mains["f"].path)])
     expected.extend(bazel_builtins["d"].mod_flags)
-    expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, pkg_mains["d"].path)])
+    expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, mod_mains["d"].path)])
     expected.extend(bazel_builtins["a"].mod_flags)
-    expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, pkg_mains["a"].path)])
+    expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, mod_mains["a"].path)])
     expected.extend(["--deps", "a"])
 
     asserts.equals(
@@ -179,8 +179,8 @@ def _nested_modules_test_impl(ctx):
         env,
         sets.make([
             src
-            for pkg in pkgs.values()
-            for src in [pkg_mains[pkg.name]] + bazel_builtins[pkg.name].file
+            for mod in mods.values()
+            for src in [mod_mains[mod.name]] + bazel_builtins[mod.name].file
         ]),
         sets.make(inputs.to_list()),
         "zig_module_dependencies should capture all module files.",
@@ -191,8 +191,8 @@ def _nested_modules_test_impl(ctx):
 _nested_modules_test = unittest.make(
     _nested_modules_test_impl,
     attrs = {
-        "pkgs": attr.label_list(providers = [ZigModuleInfo]),
-        "pkg_mains": attr.label_list(allow_files = True),
+        "mods": attr.label_list(providers = [ZigModuleInfo]),
+        "mod_mains": attr.label_list(allow_files = True),
     },
 )
 
@@ -201,9 +201,9 @@ def module_info_test_suite(name):
         name,
         lambda name: _single_module_test(
             name = name,
-            pkg = "//zig/tests/multiple-sources-module:data",
-            pkg_main = "//zig/tests/multiple-sources-module:data.zig",
-            pkg_srcs = [
+            mod = "//zig/tests/multiple-sources-module:data",
+            mod_main = "//zig/tests/multiple-sources-module:data.zig",
+            mod_srcs = [
                 "//zig/tests/multiple-sources-module:data/hello.zig",
                 "//zig/tests/multiple-sources-module:data/world.zig",
             ],
@@ -211,7 +211,7 @@ def module_info_test_suite(name):
         ),
         lambda name: _nested_modules_test(
             name = name,
-            pkgs = [
+            mods = [
                 "//zig/tests/nested-modules:a",
                 "//zig/tests/nested-modules:b",
                 "//zig/tests/nested-modules:c",
@@ -219,7 +219,7 @@ def module_info_test_suite(name):
                 "//zig/tests/nested-modules:e",
                 "//zig/tests/nested-modules:f",
             ],
-            pkg_mains = [
+            mod_mains = [
                 "//zig/tests/nested-modules:a.zig",
                 "//zig/tests/nested-modules:b.zig",
                 "//zig/tests/nested-modules:c.zig",
