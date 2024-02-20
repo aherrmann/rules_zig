@@ -81,7 +81,7 @@ def _single_module_test_impl(ctx):
     expected.extend(["--mod", "{name}:{deps}:{src}".format(
         name = module.name,
         deps = _bazel_builtin_dep(ctx.attr.pkg.label),
-        src = module.main.path,
+        src = ctx.file.pkg_main.path,
     )])
     expected.extend(["--deps", module.name])
 
@@ -101,7 +101,7 @@ def _single_module_test_impl(ctx):
     inputs = depset(transitive = transitive_inputs)
     asserts.set_equals(
         env,
-        sets.make([module.main] + module.srcs + bazel_builtin_file),
+        sets.make([ctx.file.pkg_main] + ctx.files.pkg_srcs + bazel_builtin_file),
         sets.make(inputs.to_list()),
         "zig_module_dependencies should capture all module files.",
     )
@@ -112,6 +112,8 @@ _single_module_test = unittest.make(
     _single_module_test_impl,
     attrs = {
         "pkg": attr.label(providers = [ZigModuleInfo]),
+        "pkg_main": attr.label(allow_single_file = True),
+        "pkg_srcs": attr.label_list(allow_files = True),
     },
 )
 
@@ -132,6 +134,11 @@ def _nested_modules_test_impl(ctx):
         for pkg in ctx.attr.pkgs
     }
 
+    pkg_mains = {
+        pkg.label.name: main
+        for (pkg, main) in zip(ctx.attr.pkgs, ctx.files.pkg_mains)
+    }
+
     bazel_builtins = {
         pkg.label.name: struct(
             mod_flags = _bazel_builtin_mod_flags(ctx, pkg.label),
@@ -147,17 +154,17 @@ def _nested_modules_test_impl(ctx):
 
     expected = []
     expected.extend(bazel_builtins["e"].mod_flags)
-    expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, pkgs["e"].main.path)])
+    expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, pkg_mains["e"].path)])
     expected.extend(bazel_builtins["b"].mod_flags)
-    expected.extend(["--mod", "b:e,{}:{}".format(bazel_builtins["b"].dep, pkgs["b"].main.path)])
+    expected.extend(["--mod", "b:e,{}:{}".format(bazel_builtins["b"].dep, pkg_mains["b"].path)])
     expected.extend(bazel_builtins["c"].mod_flags)
-    expected.extend(["--mod", "c:e,{}:{}".format(bazel_builtins["c"].dep, pkgs["c"].main.path)])
+    expected.extend(["--mod", "c:e,{}:{}".format(bazel_builtins["c"].dep, pkg_mains["c"].path)])
     expected.extend(bazel_builtins["f"].mod_flags)
-    expected.extend(["--mod", "f:e,{}:{}".format(bazel_builtins["f"].dep, pkgs["f"].main.path)])
+    expected.extend(["--mod", "f:e,{}:{}".format(bazel_builtins["f"].dep, pkg_mains["f"].path)])
     expected.extend(bazel_builtins["d"].mod_flags)
-    expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, pkgs["d"].main.path)])
+    expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, pkg_mains["d"].path)])
     expected.extend(bazel_builtins["a"].mod_flags)
-    expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, pkgs["a"].main.path)])
+    expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, pkg_mains["a"].path)])
     expected.extend(["--deps", "a"])
 
     asserts.equals(
@@ -173,7 +180,7 @@ def _nested_modules_test_impl(ctx):
         sets.make([
             src
             for pkg in pkgs.values()
-            for src in [pkg.main] + pkg.srcs + bazel_builtins[pkg.name].file
+            for src in [pkg_mains[pkg.name]] + bazel_builtins[pkg.name].file
         ]),
         sets.make(inputs.to_list()),
         "zig_module_dependencies should capture all module files.",
@@ -185,6 +192,7 @@ _nested_modules_test = unittest.make(
     _nested_modules_test_impl,
     attrs = {
         "pkgs": attr.label_list(providers = [ZigModuleInfo]),
+        "pkg_mains": attr.label_list(allow_files = True),
     },
 )
 
@@ -194,6 +202,11 @@ def module_info_test_suite(name):
         lambda name: _single_module_test(
             name = name,
             pkg = "//zig/tests/multiple-sources-module:data",
+            pkg_main = "//zig/tests/multiple-sources-module:data.zig",
+            pkg_srcs = [
+                "//zig/tests/multiple-sources-module:data/hello.zig",
+                "//zig/tests/multiple-sources-module:data/world.zig",
+            ],
             size = "small",
         ),
         lambda name: _nested_modules_test(
@@ -205,6 +218,14 @@ def module_info_test_suite(name):
                 "//zig/tests/nested-modules:d",
                 "//zig/tests/nested-modules:e",
                 "//zig/tests/nested-modules:f",
+            ],
+            pkg_mains = [
+                "//zig/tests/nested-modules:a.zig",
+                "//zig/tests/nested-modules:b.zig",
+                "//zig/tests/nested-modules:c.zig",
+                "//zig/tests/nested-modules:d.zig",
+                "//zig/tests/nested-modules:e.zig",
+                "//zig/tests/nested-modules:f.zig",
             ],
             size = "small",
         ),
