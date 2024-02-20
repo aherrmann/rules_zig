@@ -7,7 +7,11 @@ load(
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
-load("//zig/private/providers:zig_module_info.bzl", "ZigModuleInfo")
+load(
+    "//zig/private/providers:zig_module_info.bzl",
+    "ZigModuleInfo",
+    "zig_module_info",
+)
 
 DOC = """\
 Defines a Zig module.
@@ -85,11 +89,6 @@ def _zig_module_impl(ctx):
         ),
     )
 
-    srcs = [ctx.file.main] + ctx.files.srcs + ctx.files.extra_srcs
-    dep_names = []
-    all_mods = []
-    all_srcs = []
-
     bazel_builtin = bazel_builtin_module(ctx)
 
     modules = [
@@ -98,31 +97,13 @@ def _zig_module_impl(ctx):
         if ZigModuleInfo in dep
     ] + [bazel_builtin]
 
-    for module in modules:
-        if module.canonical_name != module.name:
-            dep_names.append("{}={}".format(module.name, module.canonical_name))
-        else:
-            dep_names.append(module.name)
-        all_mods.append(module.all_mods)
-        all_srcs.append(module.all_srcs)
-
-    module = ZigModuleInfo(
+    module = zig_module_info(
         name = ctx.label.name,
         canonical_name = ctx.label.name,
         main = ctx.file.main,
         srcs = ctx.files.srcs,
-        all_mods = depset(
-            direct = ["{name}:{deps}:{src}".format(
-                name = ctx.label.name,
-                deps = ",".join(dep_names),
-                src = ctx.file.main.path,
-            )],
-            transitive = all_mods,
-        ),
-        all_srcs = depset(
-            direct = srcs,
-            transitive = all_srcs,
-        ),
+        extra_srcs = ctx.files.extra_srcs,
+        deps = modules,
     )
 
     return [default, module]
