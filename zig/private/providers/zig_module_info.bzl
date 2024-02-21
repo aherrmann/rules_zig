@@ -13,7 +13,7 @@ instead the Zig compiler performs whole program compilation.
 FIELDS = {
     "name": "string, The import name of the module.",
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
-    "all_mods": "depset of string, All module CLI specifications required when depending on the module.",
+    "all_args": "depset of struct, All module CLI specifications required when depending on the module, to be rendered.",
     "all_srcs": "depset of File, All source files required when depending on the module.",
 }
 
@@ -36,34 +36,61 @@ def zig_module_info(*, name, canonical_name, main, srcs, extra_srcs, deps):
     Returns:
       `ZigModuleInfo`
     """
-    imports = []
-    mods_transitive = []
+    args_transitive = []
     srcs_transitive = []
 
     for dep in deps:
-        if dep.canonical_name != dep.name:
-            imports.append("{}={}".format(dep.name, dep.canonical_name))
-        else:
-            imports.append(dep.name)
-
-        mods_transitive.append(dep.all_mods)
+        args_transitive.append(dep.all_args)
         srcs_transitive.append(dep.all_srcs)
 
-    mod_direct = "{name}:{imports}:{src}".format(
-        name = canonical_name,
-        imports = ",".join(imports),
-        src = main.path,
+    arg_direct = _module_args(
+        canonical_name = canonical_name,
+        main = main,
+        deps = deps,
     )
-    all_mods = depset(direct = [mod_direct], transitive = mods_transitive)
-    all_srcs = depset(direct = [main] + srcs + extra_srcs, transitive = srcs_transitive)
+    srcs_direct = [main] + srcs + extra_srcs
+
+    all_args = depset(direct = [arg_direct], transitive = args_transitive)
+    all_srcs = depset(direct = srcs_direct, transitive = srcs_transitive)
     module = ZigModuleInfo(
         name = name,
         canonical_name = canonical_name,
-        all_mods = all_mods,
+        all_args = all_args,
         all_srcs = all_srcs,
     )
 
     return module
+
+def _dep_arg(dep):
+    if dep.canonical_name != dep.name:
+        return struct(name = dep.name, canonical_name = dep.canonical_name)
+    else:
+        return struct(name = dep.name)
+
+def _module_args(*, canonical_name, main, deps):
+    return struct(
+        name = canonical_name,
+        main = main.path,
+        deps = tuple([_dep_arg(dep) for dep in deps]),
+    )
+
+def _render_args(args):
+    deps = []
+    for dep in args.deps:
+        dep_spec = dep.name
+
+        if hasattr(dep, "canonical_name"):
+            dep_spec += "=" + dep.canonical_name
+
+        deps.append(dep_spec)
+
+    spec = "{name}:{deps}:{main}".format(
+        name = args.name,
+        main = args.main,
+        deps = ",".join(deps),
+    )
+
+    return ["--mod", spec]
 
 def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig module dependencies.
@@ -74,7 +101,7 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
-    mods = []
+    transitive_args = []
     names = []
 
     modules = [
@@ -88,8 +115,9 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
             names.append("{}={}".format(module.name, module.canonical_name))
         else:
             names.append(module.name)
-        mods.append(module.all_mods)
+
+        transitive_args.append(module.all_args)
         inputs.append(module.all_srcs)
 
-    args.add_all(depset(transitive = mods), before_each = "--mod")
+    args.add_all(depset(transitive = transitive_args), map_each = _render_args)
     args.add_joined("--deps", names, join_with = ",")

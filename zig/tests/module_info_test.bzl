@@ -13,12 +13,25 @@ load(
 def _mock_args():
     self_args = []
 
-    def add_all(args, *, before_each = None):
+    def add_all(args, *, map_each = None):
         if type(args) == "depset":
             args = args.to_list()
+
+        if map_each != None:
+            mapped = []
+
+            for arg in args:
+                result = map_each(arg)
+                if result == None or result == []:
+                    continue
+                if type(result) == "list":
+                    mapped.extend(result)
+                else:
+                    mapped.append(result)
+
+            args = mapped
+
         for arg in args:
-            if before_each:
-                self_args.append(before_each)
             if type(arg) == "File":
                 self_args.append(arg.path)
             else:
