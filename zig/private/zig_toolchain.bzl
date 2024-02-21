@@ -47,6 +47,10 @@ ATTRS = {
         doc = "Absolute path to an existing Zig library for the target platform or a the path to a hermetically downloaded Zig library relative to the Zig executable.",
         mandatory = False,
     ),
+    "zig_version": attr.string(
+        doc = "The Zig toolchain's version.",
+        mandatory = True,
+    ),
 }
 
 # Avoid using non-normalized paths (workspace/../other_workspace/path)
@@ -74,9 +78,12 @@ def _zig_toolchain_impl(ctx):
     elif not ctx.attr.zig_lib and not paths.is_absolute(ctx.attr.zig_lib_path):
         fail("zig_lib_path must be absolute if zig_lib is not set.")
 
+    # TODO[AH] validate Zig version
+
     zig_files = []
     zig_exe_path = ctx.attr.zig_exe_path
     zig_lib_path = ctx.attr.zig_lib_path
+    zig_version = ctx.attr.zig_version
 
     if ctx.attr.zig_exe:
         zig_files = ctx.attr.zig_exe.files.to_list() + ctx.files.zig_lib
@@ -96,6 +103,7 @@ def _zig_toolchain_impl(ctx):
         zig_exe_path = zig_exe_path,
         zig_lib_path = zig_lib_path,
         zig_files = zig_files,
+        zig_version = zig_version,
     )
 
     # Export all the providers inside our ToolchainInfo
