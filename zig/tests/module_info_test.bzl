@@ -107,7 +107,7 @@ def _single_module_test_impl(ctx):
 
     bazel_builtin_file = [
         file
-        for file in module.all_srcs.to_list()
+        for file in module.transitive_inputs.to_list()
         if file.path == _bazel_builtin_file_name(ctx, ctx.attr.mod.label)
     ]
 
@@ -158,7 +158,7 @@ def _nested_modules_test_impl(ctx):
             dep = _bazel_builtin_dep(mod.label),
             file = [
                 file
-                for file in mods[mod.label.name].all_srcs.to_list()
+                for file in mods[mod.label.name].transitive_inputs.to_list()
                 if file.path == _bazel_builtin_file_name(ctx, mod.label)
             ],
         )
