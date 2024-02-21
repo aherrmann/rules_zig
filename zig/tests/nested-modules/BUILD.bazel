@@ -1,5 +1,17 @@
 load("@rules_zig//zig:defs.bzl", "zig_module")
 
+exports_files(
+    [
+        "a.zig",
+        "b.zig",
+        "c.zig",
+        "d.zig",
+        "e.zig",
+        "f.zig",
+    ],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
 zig_module(
     name = "a",
     main = "a.zig",

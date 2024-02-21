@@ -1,5 +1,14 @@
 load("@rules_zig//zig:defs.bzl", "zig_module")
 
+exports_files(
+    [
+        "data.zig",
+        "data/hello.zig",
+        "data/world.zig",
+    ],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
 zig_module(
     name = "data",
     srcs = [

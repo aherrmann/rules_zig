@@ -13,16 +13,85 @@ instead the Zig compiler performs whole program compilation.
 FIELDS = {
     "name": "string, The import name of the module.",
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
-    "main": "File, The main source file of the module.",
-    "srcs": "list of File, Other Zig source files that belong to the module.",
-    "all_mods": "depset of string, All module CLI specifications required when depending on the module.",
-    "all_srcs": "depset of File, All source files required when depending on the module.",
+    "transitive_args": "depset of struct, All module CLI specifications required when depending on the module, including transitive dependencies, to be rendered.",
+    "transitive_inputs": "depset of File, All build inputs files required when depending on the module, including transitive dependencies.",
 }
 
 ZigModuleInfo = provider(
     fields = FIELDS,
     doc = DOC,
 )
+
+def zig_module_info(*, name, canonical_name, main, srcs, extra_srcs, deps):
+    """Create `ZigModuleInfo` for a new Zig module.
+
+    Args:
+      name: string, The import name of the module.
+      canonical_name: string, The canonical name may differ from the import name via remapping.
+      main: File, The main source file of the module.
+      srcs: list of File, Other Zig source files that belong to the module.
+      extra_srcs: list of File, Other files that belong to the module.
+      deps: list of ZigModuleInfo, Import dependencies of this module.
+
+    Returns:
+      `ZigModuleInfo`
+    """
+    args_transitive = []
+    srcs_transitive = []
+
+    for dep in deps:
+        args_transitive.append(dep.transitive_args)
+        srcs_transitive.append(dep.transitive_inputs)
+
+    arg_direct = _module_args(
+        canonical_name = canonical_name,
+        main = main,
+        deps = deps,
+    )
+    srcs_direct = [main] + srcs + extra_srcs
+
+    transitive_args = depset(direct = [arg_direct], transitive = args_transitive)
+    transitive_inputs = depset(direct = srcs_direct, transitive = srcs_transitive)
+    module = ZigModuleInfo(
+        name = name,
+        canonical_name = canonical_name,
+        transitive_args = transitive_args,
+        transitive_inputs = transitive_inputs,
+    )
+
+    return module
+
+def _dep_arg(dep):
+    if dep.canonical_name != dep.name:
+        return struct(name = dep.name, canonical_name = dep.canonical_name)
+    else:
+        return struct(name = dep.name)
+
+def _module_args(*, canonical_name, main, deps):
+    return struct(
+        name = canonical_name,
+        main = main.path,
+        deps = tuple([_dep_arg(dep) for dep in deps]),
+    )
+
+def _render_dep(dep):
+    dep_spec = dep.name
+
+    if hasattr(dep, "canonical_name") and dep.canonical_name != dep.name:
+        dep_spec += "=" + dep.canonical_name
+
+    return dep_spec
+
+def _render_args(args):
+    deps = [_render_dep(dep) for dep in args.deps]
+
+    spec = "{name}:{deps}:{main}".format(
+        name = args.name,
+        main = args.main,
+        deps = ",".join(deps),
+    )
+
+    return ["--mod", spec]
 
 def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig module dependencies.
@@ -33,8 +102,8 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
-    mods = []
-    names = []
+    transitive_args = []
+    deps_args = []
 
     modules = [
         dep[ZigModuleInfo]
@@ -43,12 +112,9 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     ] + extra_deps
 
     for module in modules:
-        if module.canonical_name != module.name:
-            names.append("{}={}".format(module.name, module.canonical_name))
-        else:
-            names.append(module.name)
-        mods.append(module.all_mods)
-        inputs.append(module.all_srcs)
+        deps_args.append(_render_dep(module))
+        transitive_args.append(module.transitive_args)
+        inputs.append(module.transitive_inputs)
 
-    args.add_all(depset(transitive = mods), before_each = "--mod")
-    args.add_joined("--deps", names, join_with = ",")
+    args.add_all(depset(transitive = transitive_args), map_each = _render_args)
+    args.add_joined("--deps", deps_args, join_with = ",")

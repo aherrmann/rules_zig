@@ -1,6 +1,9 @@
 """Generate the `bazel_builtin` module."""
 
-load("//zig/private/providers:zig_module_info.bzl", "ZigModuleInfo")
+load(
+    "//zig/private/providers:zig_module_info.bzl",
+    "zig_module_info",
+)
 
 ATTRS = {
     "_bazel_builtin_template": attr.label(
@@ -41,16 +44,13 @@ def bazel_builtin_module(ctx):
         is_executable = False,
     )
 
-    module = ZigModuleInfo(
+    module = zig_module_info(
         name = "bazel_builtin",
         canonical_name = name,
         main = main,
         srcs = [],
-        all_mods = depset(direct = ["{name}::{src}".format(
-            name = name,
-            src = main.path,
-        )]),
-        all_srcs = depset(direct = [main]),
+        extra_srcs = [],
+        deps = [],
     )
 
     return module
