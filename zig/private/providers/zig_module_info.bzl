@@ -74,15 +74,16 @@ def _module_args(*, canonical_name, main, deps):
         deps = tuple([_dep_arg(dep) for dep in deps]),
     )
 
+def _render_dep(dep):
+    dep_spec = dep.name
+
+    if hasattr(dep, "canonical_name") and dep.canonical_name != dep.name:
+        dep_spec += "=" + dep.canonical_name
+
+    return dep_spec
+
 def _render_args(args):
-    deps = []
-    for dep in args.deps:
-        dep_spec = dep.name
-
-        if hasattr(dep, "canonical_name"):
-            dep_spec += "=" + dep.canonical_name
-
-        deps.append(dep_spec)
+    deps = [_render_dep(dep) for dep in args.deps]
 
     spec = "{name}:{deps}:{main}".format(
         name = args.name,
@@ -102,7 +103,7 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
     transitive_args = []
-    names = []
+    deps_args = []
 
     modules = [
         dep[ZigModuleInfo]
@@ -111,13 +112,9 @@ def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
     ] + extra_deps
 
     for module in modules:
-        if module.canonical_name != module.name:
-            names.append("{}={}".format(module.name, module.canonical_name))
-        else:
-            names.append(module.name)
-
+        deps_args.append(_render_dep(module))
         transitive_args.append(module.all_args)
         inputs.append(module.all_srcs)
 
     args.add_all(depset(transitive = transitive_args), map_each = _render_args)
-    args.add_joined("--deps", names, join_with = ",")
+    args.add_joined("--deps", deps_args, join_with = ",")
