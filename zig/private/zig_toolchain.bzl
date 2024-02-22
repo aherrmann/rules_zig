@@ -60,6 +60,25 @@ def _to_manifest_path(ctx, file):
     else:
         return ctx.workspace_name + "/" + file.short_path
 
+def _validate_zig_version(ctx, *, zig_exe_path, zig_files, zig_version):
+    output = ctx.actions.declare_file(ctx.label.name + ".version_validation")
+    ctx.actions.run_shell(
+        outputs = [output],
+        tools = zig_files,
+        arguments = [zig_exe_path, zig_version, output.path],
+        command = "\n".join([
+            'actual_version="$($1 version)"',
+            "if [[ $actual_version != $2 ]]; then",
+            '  echo "Zig SDK version mismatch. Expected \'$2\' but got \'$1\'." >&2',
+            "  exit 1",
+            "fi",
+            'touch "$3"',
+        ]),
+        mnemonic = "ZigVersionValidation",
+        progress_message = "validate Zig SDK version for toolchain %{label}",
+    )
+    return output
+
 def _zig_toolchain_impl(ctx):
     if ctx.attr.zig_exe and ctx.attr.zig_exe_path:
         fail("Can only set one of zig_exe or zig_exe_path but both were set.")
@@ -78,8 +97,6 @@ def _zig_toolchain_impl(ctx):
     elif not ctx.attr.zig_lib and not paths.is_absolute(ctx.attr.zig_lib_path):
         fail("zig_lib_path must be absolute if zig_lib is not set.")
 
-    # TODO[AH] validate Zig version
-
     zig_files = []
     zig_exe_path = ctx.attr.zig_exe_path
     zig_lib_path = ctx.attr.zig_lib_path
@@ -90,15 +107,29 @@ def _zig_toolchain_impl(ctx):
         zig_exe_path = _to_manifest_path(ctx, zig_files[0])
         zig_lib_path = paths.join(paths.dirname(zig_exe_path), ctx.attr.zig_lib_path)
 
+    validation = _validate_zig_version(
+        ctx,
+        zig_exe_path = zig_exe_path,
+        zig_files = zig_files,
+        zig_version = zig_version,
+    )
+
+    # Validation actions of transitive dependencies do not seem to be picked up
+    # by Bazel. So, we need to make the validation output an input of Zig SDK
+    # using actions to ensure that it takes place.
+    zig_files.append(validation)
+
     # Make the $(tool_BIN) variable available in places like genrules.
     # See https://docs.bazel.build/versions/main/be/make-variables.html#custom_variables
     template_variables = platform_common.TemplateVariableInfo({
         "ZIG_BIN": zig_exe_path,
     })
+
     default = DefaultInfo(
-        files = depset(zig_files),
+        files = depset(direct = zig_files),
         runfiles = ctx.runfiles(files = zig_files),
     )
+
     zigtoolchaininfo = ZigToolchainInfo(
         zig_exe_path = zig_exe_path,
         zig_lib_path = zig_lib_path,
@@ -113,10 +144,12 @@ def _zig_toolchain_impl(ctx):
         template_variables = template_variables,
         default = default,
     )
+
     return [
         default,
         toolchain_info,
         template_variables,
+        OutputGroupInfo(_validation = depset(direct = [validation])),
     ]
 
 zig_toolchain = rule(
