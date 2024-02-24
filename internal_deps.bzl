@@ -40,9 +40,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "rules_multirun",
-        sha256 = "9cd384e42b2da00104f0e18f25e66285aa21f64b573c667638a7a213206885ab",
-        strip_prefix = "rules_multirun-0.6.1",
-        url = "https://github.com/keith/rules_multirun/archive/refs/tags/0.6.1.tar.gz",
+        sha256 = "7b699b3922919d727e7f5aa868286e59cc69fa6aa14f6c3e54a4674010bd1582",
+        strip_prefix = "rules_multirun-0.7.0",
+        url = "https://github.com/keith/rules_multirun/archive/refs/tags/0.7.0.tar.gz",
     )
 
     http_archive(
