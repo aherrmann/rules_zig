@@ -97,6 +97,7 @@ def zig_docs_impl(ctx, *, kind):
         extra_deps = [bazel_builtin],
         inputs = transitive_inputs,
         args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
     zig_cdeps(

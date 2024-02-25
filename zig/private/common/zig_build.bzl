@@ -228,6 +228,7 @@ def zig_build_impl(ctx, *, kind):
         extra_deps = [bazel_builtin],
         inputs = transitive_inputs,
         args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
     zig_cdeps(
