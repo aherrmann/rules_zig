@@ -93,15 +93,17 @@ def _render_args(args):
 
     return ["--mod", spec]
 
-def zig_module_dependencies(*, deps, extra_deps = [], inputs, args):
+def zig_module_dependencies(*, zig_version, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags for Zig module dependencies.
 
     Args:
+      zig_version: string, The version of the Zig SDK.
       deps: List of Target, Considers the targets that have a ZigModuleInfo provider.
       extra_deps: List of ZigModuleInfo.
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
+    _ = zig_version  # @unused
     transitive_args = []
     deps_args = []
 
