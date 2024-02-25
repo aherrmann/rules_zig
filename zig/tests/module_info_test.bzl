@@ -91,13 +91,13 @@ def _single_module_test_impl(ctx):
     module = ctx.attr.mod[ZigModuleInfo]
 
     expected = []
+    expected.extend(["--deps", module.name])
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.mod.label))
     expected.extend(["--mod", "{name}:{deps}:{src}".format(
         name = module.name,
         deps = _bazel_builtin_dep(ctx.attr.mod.label),
         src = ctx.file.mod_main.path,
     )])
-    expected.extend(["--deps", module.name])
 
     asserts.equals(
         env,
@@ -168,6 +168,7 @@ def _nested_modules_test_impl(ctx):
     }
 
     expected = []
+    expected.extend(["--deps", "a"])
     expected.extend(bazel_builtins["e"].mod_flags)
     expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, mod_mains["e"].path)])
     expected.extend(bazel_builtins["b"].mod_flags)
@@ -180,7 +181,6 @@ def _nested_modules_test_impl(ctx):
     expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, mod_mains["d"].path)])
     expected.extend(bazel_builtins["a"].mod_flags)
     expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, mod_mains["a"].path)])
-    expected.extend(["--deps", "a"])
 
     asserts.equals(
         env,
