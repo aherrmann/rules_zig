@@ -67,14 +67,17 @@ def _zig_repo_impl(repository_ctx):
 load("@rules_zig//zig:toolchain.bzl", "zig_toolchain")
 zig_toolchain(
     name = "zig_toolchain",
-    zig_exe = select({
+    zig_exe = select({{
         "@bazel_tools//src/conditions:host_windows": "zig.exe",
         "//conditions:default": "zig",
-    }),
+    }}),
     zig_lib = glob(["lib/**"]),
     zig_lib_path = "lib",
+    zig_version = "{zig_version}",
 )
-"""
+""".format(
+        zig_version = repository_ctx.attr.zig_version,
+    )
 
     # Base BUILD file for this repository
     repository_ctx.file("BUILD.bazel", build_content)
