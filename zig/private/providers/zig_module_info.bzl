@@ -134,5 +134,5 @@ def zig_module_dependencies(*, zig_version, deps, extra_deps = [], inputs, args)
     if zig_version.startswith("0.11."):
         render_args = _render_args_0_11
 
-    args.add_all(depset(transitive = transitive_args), map_each = render_args)
     args.add_joined("--deps", deps_args, join_with = ",")
+    args.add_all(depset(transitive = transitive_args), map_each = render_args)
