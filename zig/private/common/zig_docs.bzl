@@ -69,7 +69,7 @@ def zig_docs_impl(ctx, *, kind):
     direct_inputs.extend(ctx.files.extra_srcs)
     direct_inputs.extend(ctx.files.extra_docs)
 
-    if zigtoolchaininfo.zig_version.startswith("0.11"):
+    if zigtoolchaininfo.zig_version.startswith("0.11."):
         args.add_all(["--main-pkg-path", "."])
     args.add(ctx.file.main)
 
