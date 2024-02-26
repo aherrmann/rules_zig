@@ -196,57 +196,6 @@ def zig_build_impl(ctx, *, kind):
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
-    direct_inputs.append(ctx.file.main)
-    direct_inputs.extend(ctx.files.srcs)
-    direct_inputs.extend(ctx.files.extra_srcs)
-
-    if zigtoolchaininfo.zig_version.startswith("0.11."):
-        args.add_all(["--main-pkg-path", "."])
-    args.add(ctx.file.main)
-
-    location_targets = ctx.attr.data
-
-    copts = location_expansion(
-        ctx = ctx,
-        targets = location_targets,
-        outputs = outputs,
-        attribute_name = "copts",
-        strings = ctx.attr.copts,
-    )
-
-    zig_csrcs(
-        copts = copts,
-        csrcs = ctx.files.csrcs,
-        inputs = direct_inputs,
-        args = args,
-    )
-
-    bazel_builtin = bazel_builtin_module(ctx)
-
-    zig_module_dependencies(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
-        inputs = transitive_inputs,
-        args = args,
-        zig_version = zigtoolchaininfo.zig_version,
-    )
-
-    zig_cdeps(
-        cdeps = ctx.attr.cdeps,
-        output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
-        os = zigtargetinfo.triple.os,
-        direct_inputs = direct_inputs,
-        transitive_inputs = transitive_inputs,
-        args = args,
-        data = direct_data,
-    )
-
-    zig_linker_script(
-        linker_script = ctx.file.linker_script,
-        inputs = direct_inputs,
-        args = args,
-    )
-
     zig_lib_dir(
         zigtoolchaininfo = zigtoolchaininfo,
         args = args,
@@ -265,6 +214,57 @@ def zig_build_impl(ctx, *, kind):
     zig_target_platform(
         target = zigtargetinfo,
         args = args,
+    )
+
+    location_targets = ctx.attr.data
+
+    copts = location_expansion(
+        ctx = ctx,
+        targets = location_targets,
+        outputs = outputs,
+        attribute_name = "copts",
+        strings = ctx.attr.copts,
+    )
+
+    zig_csrcs(
+        copts = copts,
+        csrcs = ctx.files.csrcs,
+        inputs = direct_inputs,
+        args = args,
+    )
+
+    zig_cdeps(
+        cdeps = ctx.attr.cdeps,
+        output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
+        os = zigtargetinfo.triple.os,
+        direct_inputs = direct_inputs,
+        transitive_inputs = transitive_inputs,
+        args = args,
+        data = direct_data,
+    )
+
+    zig_linker_script(
+        linker_script = ctx.file.linker_script,
+        inputs = direct_inputs,
+        args = args,
+    )
+
+    direct_inputs.append(ctx.file.main)
+    direct_inputs.extend(ctx.files.srcs)
+    direct_inputs.extend(ctx.files.extra_srcs)
+
+    if zigtoolchaininfo.zig_version.startswith("0.11."):
+        args.add_all(["--main-pkg-path", "."])
+    args.add(ctx.file.main)
+
+    bazel_builtin = bazel_builtin_module(ctx)
+
+    zig_module_dependencies(
+        deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
+        inputs = transitive_inputs,
+        args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
     inputs = depset(
