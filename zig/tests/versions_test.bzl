@@ -4,11 +4,11 @@ See https://bazel.build/rules/testing#testing-starlark-utilities
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private:versions.bzl", "TOOL_VERSIONS")
+load("//zig/private:versions.bzl", "LATEST_RELEASE")
 
 def _smoke_test_impl(ctx):
     env = unittest.begin(ctx)
-    asserts.equals(env, "0.11.0", TOOL_VERSIONS.keys()[0])
+    asserts.equals(env, "0.11.0", LATEST_RELEASE)
     return unittest.end(env)
 
 _smoke_test = unittest.make(_smoke_test_impl)

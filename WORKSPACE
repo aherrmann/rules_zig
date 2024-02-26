@@ -15,11 +15,11 @@ rules_zig_dependencies()
 
 # Use the latest known Zig SDK version for testing
 # buildifier: disable=bzl-visibility
-load("//zig/private:versions.bzl", "TOOL_VERSIONS")
+load("//zig/private:versions.bzl", "LATEST_RELEASE")
 
 zig_register_toolchains(
     name = "zig",
-    zig_version = TOOL_VERSIONS.keys()[0],
+    zig_version = LATEST_RELEASE,
 )
 
 # rules_python dependencies
