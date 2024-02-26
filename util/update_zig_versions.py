@@ -98,9 +98,14 @@ def generate_bzl_content(url, data, unsupported_versions, supported_platforms):
     content = [_HEADER.format(url = url)]
     content.append("TOOL_VERSIONS = {")
 
+    latest_release = None
+
     for version, platforms in sorted(data.items(), key=lambda x: _parse_semver(x[0]), reverse=True):
         if version in unsupported_versions:
             continue
+
+        if latest_release is None and version != "master":
+            latest_release = version
 
         if version == "master":
             version = platforms["version"]
@@ -119,6 +124,9 @@ def generate_bzl_content(url, data, unsupported_versions, supported_platforms):
         content.append('    },')
 
     content.append('}\n')
+
+    if latest_release is not None:
+        content.append('LATEST_RELEASE = "{}"\n'.format(latest_release))
 
     return '\n'.join(content)
 
