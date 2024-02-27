@@ -119,7 +119,9 @@ def zig_docs_impl(ctx, *, kind):
 
     if zigtoolchaininfo.zig_version.startswith("0.11."):
         args.add_all(["--main-pkg-path", "."])
-    args.add(ctx.file.main)
+        args.add(ctx.file.main)
+    else:
+        args.add(ctx.file.main, format = "-M=%s")
 
     bazel_builtin = bazel_builtin_module(ctx)
 
