@@ -79,7 +79,8 @@ def _bazel_builtin_dep(label):
 def _single_module_test_impl(ctx):
     env = unittest.begin(ctx)
 
-    transitive_inputs = []
+    module = ctx.attr.mod[ZigModuleInfo]
+
     args = _mock_args()
 
     zig_module_dependencies(
@@ -88,6 +89,19 @@ def _single_module_test_impl(ctx):
         zig_version = "0.11.0",
     )
 
+    expected = []
+    expected.extend(["--deps", module.name])
+
+    asserts.equals(
+        env,
+        expected,
+        args.get_args(),
+        "zig_module_dependencies should generate the expected arguments.",
+    )
+
+    transitive_inputs = []
+    args = _mock_args()
+
     zig_module_specifications(
         deps = [ctx.attr.mod],
         inputs = transitive_inputs,
@@ -95,10 +109,7 @@ def _single_module_test_impl(ctx):
         zig_version = "0.11.0",
     )
 
-    module = ctx.attr.mod[ZigModuleInfo]
-
     expected = []
-    expected.extend(["--deps", module.name])
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.mod.label))
     expected.extend(["--mod", "{name}:{deps}:{src}".format(
         name = module.name,
@@ -110,7 +121,7 @@ def _single_module_test_impl(ctx):
         env,
         expected,
         args.get_args(),
-        "zig_module_dependencies/specifications should generate the expected arguments.",
+        "zig_module_specifications should generate the expected arguments.",
     )
 
     bazel_builtin_file = [
@@ -124,7 +135,7 @@ def _single_module_test_impl(ctx):
         env,
         sets.make([ctx.file.mod_main] + ctx.files.mod_srcs + bazel_builtin_file),
         sets.make(inputs.to_list()),
-        "zig_module_dependencies/specifications should capture all module files.",
+        "zig_module_specifications should capture all module files.",
     )
 
     return unittest.end(env)
@@ -140,22 +151,6 @@ _single_module_test = unittest.make(
 
 def _nested_modules_test_impl(ctx):
     env = unittest.begin(ctx)
-
-    transitive_inputs = []
-    args = _mock_args()
-
-    zig_module_dependencies(
-        deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
-        args = args,
-        zig_version = "0.11.0",
-    )
-
-    zig_module_specifications(
-        deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
-        inputs = transitive_inputs,
-        args = args,
-        zig_version = "0.11.0",
-    )
 
     mods = {
         mod.label.name: mod[ZigModuleInfo]
@@ -180,8 +175,35 @@ def _nested_modules_test_impl(ctx):
         for mod in ctx.attr.mods
     }
 
+    args = _mock_args()
+
+    zig_module_dependencies(
+        deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
+        args = args,
+        zig_version = "0.11.0",
+    )
+
     expected = []
     expected.extend(["--deps", "a"])
+
+    asserts.equals(
+        env,
+        expected,
+        args.get_args(),
+        "zig_module_dependencies should emit the direct dependencies onto the command-line.",
+    )
+
+    transitive_inputs = []
+    args = _mock_args()
+
+    zig_module_specifications(
+        deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
+        inputs = transitive_inputs,
+        args = args,
+        zig_version = "0.11.0",
+    )
+
+    expected = []
     expected.extend(bazel_builtins["e"].mod_flags)
     expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, mod_mains["e"].path)])
     expected.extend(bazel_builtins["b"].mod_flags)
@@ -199,7 +221,7 @@ def _nested_modules_test_impl(ctx):
         env,
         expected,
         args.get_args(),
-        "zig_module_dependencies/specifications should unfold the transitive dependency graph onto the command-line.",
+        "zig_module_specifications should unfold the transitive dependency graph onto the command-line.",
     )
 
     inputs = depset(transitive = transitive_inputs)
@@ -211,7 +233,7 @@ def _nested_modules_test_impl(ctx):
             for src in [mod_mains[mod.name]] + bazel_builtins[mod.name].file
         ]),
         sets.make(inputs.to_list()),
-        "zig_module_dependencies/specifications should capture all module files.",
+        "zig_module_specifications should capture all module files.",
     )
 
     return unittest.end(env)
