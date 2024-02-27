@@ -127,7 +127,10 @@ def zig_module_dependencies(*, zig_version, deps, extra_deps = [], args):
     for module in modules:
         deps_args.append(_render_dep(module))
 
-    args.add_joined("--deps", deps_args, join_with = ",")
+    if zig_version.startswith("0.11."):
+        args.add_joined("--deps", deps_args, join_with = ",")
+    else:
+        args.add_all(deps_args, before_each = "--dep")
 
 def zig_module_specifications(*, zig_version, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags to build Zig modules.
