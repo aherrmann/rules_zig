@@ -22,6 +22,7 @@ load(
     "//zig/private/providers:zig_module_info.bzl",
     "ZigModuleInfo",
     "zig_module_dependencies",
+    "zig_module_specifications",
 )
 load(
     "//zig/private/providers:zig_settings_info.bzl",
@@ -260,6 +261,13 @@ def zig_build_impl(ctx, *, kind):
     bazel_builtin = bazel_builtin_module(ctx)
 
     zig_module_dependencies(
+        deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
+        args = args,
+        zig_version = zigtoolchaininfo.zig_version,
+    )
+
+    zig_module_specifications(
         deps = ctx.attr.deps,
         extra_deps = [bazel_builtin],
         inputs = transitive_inputs,

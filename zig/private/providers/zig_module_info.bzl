@@ -106,17 +106,16 @@ def _render_args(args):
 
     return rendered
 
-def zig_module_dependencies(*, zig_version, deps, extra_deps = [], inputs, args):
-    """Collect inputs and flags for Zig module dependencies.
+def zig_module_dependencies(*, zig_version, deps, extra_deps = [], args):
+    """Collect flags for the Zig main module to depend on other modules.
 
     Args:
       zig_version: string, The version of the Zig SDK.
       deps: List of Target, Considers the targets that have a ZigModuleInfo provider.
       extra_deps: List of ZigModuleInfo.
-      inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
-    transitive_args = []
+    _ = zig_version  # @unused
     deps_args = []
 
     modules = [
@@ -127,6 +126,28 @@ def zig_module_dependencies(*, zig_version, deps, extra_deps = [], inputs, args)
 
     for module in modules:
         deps_args.append(_render_dep(module))
+
+    args.add_joined("--deps", deps_args, join_with = ",")
+
+def zig_module_specifications(*, zig_version, deps, extra_deps = [], inputs, args):
+    """Collect inputs and flags to build Zig modules.
+
+    Args:
+      zig_version: string, The version of the Zig SDK.
+      deps: List of Target, Considers the targets that have a ZigModuleInfo provider.
+      extra_deps: List of ZigModuleInfo.
+      inputs: List of depset of File; mutable, Append the needed inputs to this list.
+      args: Args; mutable, Append the needed Zig compiler flags to this object.
+    """
+    transitive_args = []
+
+    modules = [
+        dep[ZigModuleInfo]
+        for dep in deps
+        if ZigModuleInfo in dep
+    ] + extra_deps
+
+    for module in modules:
         transitive_args.append(module.transitive_args)
         inputs.append(module.transitive_inputs)
 
@@ -134,5 +155,4 @@ def zig_module_dependencies(*, zig_version, deps, extra_deps = [], inputs, args)
     if zig_version.startswith("0.11."):
         render_args = _render_args_0_11
 
-    args.add_joined("--deps", deps_args, join_with = ",")
     args.add_all(depset(transitive = transitive_args), map_each = render_args)
