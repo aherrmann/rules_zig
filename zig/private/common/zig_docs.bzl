@@ -130,7 +130,7 @@ def zig_docs_impl(ctx, *, kind):
         args.add_all(["--main-pkg-path", "."])
         args.add(ctx.file.main)
     else:
-        args.add(ctx.file.main, format = "-M=%s")
+        args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
 
     zig_module_specifications(
         deps = ctx.attr.deps,
