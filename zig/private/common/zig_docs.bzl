@@ -117,12 +117,6 @@ def zig_docs_impl(ctx, *, kind):
     direct_inputs.extend(ctx.files.extra_srcs)
     direct_inputs.extend(ctx.files.extra_docs)
 
-    if zigtoolchaininfo.zig_version.startswith("0.11."):
-        args.add_all(["--main-pkg-path", "."])
-        args.add(ctx.file.main)
-    else:
-        args.add(ctx.file.main, format = "-M=%s")
-
     bazel_builtin = bazel_builtin_module(ctx)
 
     zig_module_dependencies(
@@ -131,6 +125,12 @@ def zig_docs_impl(ctx, *, kind):
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
     )
+
+    if zigtoolchaininfo.zig_version.startswith("0.11."):
+        args.add_all(["--main-pkg-path", "."])
+        args.add(ctx.file.main)
+    else:
+        args.add(ctx.file.main, format = "-M=%s")
 
     zig_module_specifications(
         deps = ctx.attr.deps,
