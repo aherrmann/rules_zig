@@ -15,7 +15,7 @@ pub fn main() !void {
 fn printMachineType(allocator: std.mem.Allocator, binary_path: []const u8) !void {
     const content = try std.fs.cwd().readFileAlloc(allocator, binary_path, 1048576);
 
-    var coff = try std.coff.Coff.init(content);
+    var coff = try std.coff.Coff.init(content, false);
 
     try std.io.getStdOut().writer().print("{s}\n", .{@tagName(coff.getCoffHeader().machine)});
 }
