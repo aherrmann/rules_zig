@@ -207,16 +207,6 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    zig_settings(
-        settings = ctx.attr._settings[ZigSettingsInfo],
-        args = args,
-    )
-
-    zig_target_platform(
-        target = zigtargetinfo,
-        args = args,
-    )
-
     location_targets = ctx.attr.data
 
     copts = location_expansion(
@@ -275,6 +265,16 @@ def zig_build_impl(ctx, *, kind):
         inputs = transitive_inputs,
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
+    )
+
+    zig_settings(
+        settings = ctx.attr._settings[ZigSettingsInfo],
+        args = args,
+    )
+
+    zig_target_platform(
+        target = zigtargetinfo,
+        args = args,
     )
 
     inputs = depset(
