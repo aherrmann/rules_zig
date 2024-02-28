@@ -111,7 +111,7 @@ test "runfiles in nested binary" {
     try env.put("DATA", data_rpath);
     try r.environment(&env);
 
-    const result = try std.ChildProcess.exec(.{
+    const result = try std.ChildProcess.run(.{
         .allocator = std.testing.allocator,
         .argv = &[_][]const u8{binary_path},
         .env_map = &env,
