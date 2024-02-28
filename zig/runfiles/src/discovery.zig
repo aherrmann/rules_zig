@@ -46,7 +46,7 @@ pub const DiscoverOptions = struct {
 pub const DiscoverError = error{
     OutOfMemory,
     InvalidCmdLine,
-    InvalidUtf8,
+    InvalidWtf8,
     MissingArg0,
 };
 
