@@ -253,6 +253,16 @@ def zig_build_impl(ctx, *, kind):
         zig_version = zigtoolchaininfo.zig_version,
     )
 
+    zig_settings(
+        settings = ctx.attr._settings[ZigSettingsInfo],
+        args = args,
+    )
+
+    zig_target_platform(
+        target = zigtargetinfo,
+        args = args,
+    )
+
     if zigtoolchaininfo.zig_version.startswith("0.11."):
         args.add_all(["--main-pkg-path", "."])
         args.add(ctx.file.main)
@@ -265,16 +275,6 @@ def zig_build_impl(ctx, *, kind):
         inputs = transitive_inputs,
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
-    )
-
-    zig_settings(
-        settings = ctx.attr._settings[ZigSettingsInfo],
-        args = args,
-    )
-
-    zig_target_platform(
-        target = zigtargetinfo,
-        args = args,
     )
 
     inputs = depset(
