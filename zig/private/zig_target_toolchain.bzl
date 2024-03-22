@@ -74,7 +74,7 @@ def _zig_target_toolchain(ctx):
     )
 
     target_json = ctx.actions.declare_file(ctx.label.name + ".json")
-    ctx.actions.write(target_json, target_info.to_json(), is_executable = False)
+    ctx.actions.write(target_json, json.encode(target_info), is_executable = False)
 
     template_variables = platform_common.TemplateVariableInfo({
         "ZIG_TARGET": target,

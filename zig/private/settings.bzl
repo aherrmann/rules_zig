@@ -57,7 +57,7 @@ def _settings_impl(ctx):
     )
 
     settings_json = ctx.actions.declare_file(ctx.label.name + ".json")
-    ctx.actions.write(settings_json, settings_info.to_json(), is_executable = False)
+    ctx.actions.write(settings_json, json.encode(settings_info), is_executable = False)
 
     default_info = DefaultInfo(
         files = depset([settings_json]),
