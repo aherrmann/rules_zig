@@ -13,6 +13,7 @@ Files required in runfiles to make the Zig executable available.
 May be empty if the zig_exe_path points to a locally installed Zig executable.
 """,
     "zig_version": "String, The Zig toolchain's version.",
+    "zig_cache": "String, The Zig cache directory prefix used for the global and local cache.",
 }
 
 ZigToolchainInfo = provider(
