@@ -43,6 +43,7 @@ bzl_library(
         ":bazel_tools",
         "//zig/private:toolchains_repo",
         "//zig/private:versions",
+        "//zig/private/common:zig_cache",
     ],
 )
 
