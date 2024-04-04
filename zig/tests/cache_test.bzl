@@ -1,7 +1,7 @@
 """Unit tests for Zig cache handling."""
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
-load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load(
     "//zig/private/common:zig_cache.bzl",
     "DEFAULT_CACHE_PREFIX",
@@ -13,6 +13,12 @@ load(
     "VAR_CACHE_PREFIX_MACOS",
     "VAR_CACHE_PREFIX_WINDOWS",
     "env_zig_cache_prefix",
+)
+load("//zig/private/providers:zig_toolchain_info.bzl", "ZigToolchainInfo")
+load(
+    ":util.bzl",
+    "assert_find_action",
+    "assert_find_unique_option",
 )
 
 def _env_zig_cache_prefix_test_impl(ctx):
@@ -107,8 +113,42 @@ _env_zig_cache_prefix_test = unittest.make(
     _env_zig_cache_prefix_test_impl,
 )
 
+def _simple_binary_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    toolchain = ctx.attr._zig_toolchain[ZigToolchainInfo]
+
+    build = assert_find_action(env, "ZigBuildExe")
+
+    local_cache = assert_find_unique_option(env, "--cache-dir", build.argv)
+    asserts.equals(env, toolchain.zig_cache, local_cache)
+
+    global_cache = assert_find_unique_option(env, "--global-cache-dir", build.argv)
+    asserts.equals(env, toolchain.zig_cache, global_cache)
+
+    docs = assert_find_action(env, "ZigBuildDocs")
+
+    local_cache = assert_find_unique_option(env, "--cache-dir", docs.argv)
+    asserts.equals(env, toolchain.zig_cache, local_cache)
+
+    global_cache = assert_find_unique_option(env, "--global-cache-dir", docs.argv)
+    asserts.equals(env, toolchain.zig_cache, global_cache)
+
+    return analysistest.end(env)
+
+_simple_binary_test = analysistest.make(
+    _simple_binary_test_impl,
+    attrs = {
+        "_zig_toolchain": attr.label(default = "//zig:resolved_toolchain"),
+    },
+)
+
 def cache_test_suite(name):
     unittest.suite(
         name,
         partial.make(_env_zig_cache_prefix_test, size = "small"),
+        partial.make(
+            _simple_binary_test,
+            target_under_test = "//zig/tests/simple-binary:binary",
+            size = "small",
+        ),
     )
