@@ -49,6 +49,8 @@ and build configuration features well.
 The instructions assume basic familiarity with the Bazel build system.
 Take a look at [Bazel's documentation][bazel-intro] if you are unfamiliar.
 
+Consider the [_Additional Setup_](#additional-setup) section as well.
+
 [bazel-intro]: https://bazel.build/about/intro
 
 ### Using Bzlmod with Bazel >=6
@@ -134,6 +136,34 @@ information.
 ## User Guide Documentation
 
 -->
+
+### Additional Setup
+
+#### Zig Cache
+
+The Zig compiler caches intermediate outputs on disk. This cache is shared and
+persisted between Bazel builds and build actions. You can configure the cache
+directory using the following set of environment variables, you can configure
+them through Bazel by using the `--repo_env` flag.
+
+- `RULES_ZIG_CACHE_PREFIX_LINUX`: Cache directory on Linux, default `/tmp/zig-cache`.
+- `RULES_ZIG_CACHE_PREFIX_MACOS`: Cache directory on MacOS, default `/var/tmp/zig-cache`.
+- `RULES_ZIG_CACHE_PREFIX_WINDOWS`: Cache directory on Windows, default `C:\Temp\zig-cache`.
+- `RULES_ZIG_CACHE_PREFIX`: Cache directory fall-back for all platforms, default `/tmp/zig-cache`.
+
+> [!Note]
+> On Bazel 7 and above you need to explicitly allow persistence in the sandbox.
+> You can use the following `.bazelrc` snippet, adjust the paths depending on
+> your cache configuration.
+>
+> ```
+> common --enable_platform_specific_config
+> # You can configure `/tmp/zig-cache`, or similar, specifically,
+> # if you can ensure that the directory exists before the build.
+> build:linux --sandbox_add_mount_pair=/tmp
+> build:macos --sandbox_add_mount_pair=/var/tmp
+> build:windows --sandbox_add_mount_pair=C:\Temp
+> ```
 
 ## Usage Examples
 
