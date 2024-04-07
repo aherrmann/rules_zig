@@ -114,9 +114,7 @@ def zig_docs_impl(ctx, *, kind):
     )
 
     zig_cache_output(
-        actions = ctx.actions,
-        name = ctx.label.name + "-docs",
-        outputs = outputs,
+        zigtoolchaininfo = zigtoolchaininfo,
         args = args,
     )
 

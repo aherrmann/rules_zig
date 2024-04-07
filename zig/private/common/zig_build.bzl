@@ -251,9 +251,7 @@ def zig_build_impl(ctx, *, kind):
     )
 
     zig_cache_output(
-        actions = ctx.actions,
-        name = ctx.label.name,
-        outputs = outputs,
+        zigtoolchaininfo = zigtoolchaininfo,
         args = args,
     )
 

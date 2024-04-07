@@ -39,6 +39,24 @@ test "failing zig_test fails" {
     try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 3 }, result.term);
 }
 
+test "Zig cache directory can be configured" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{
+            "cquery",
+            "--repo_env=RULES_ZIG_CACHE_PREFIX=/CACHE_OVERRIDE",
+            "--output=starlark",
+            "--starlark:expr=providers(target)['ToolchainInfo'].zigtoolchaininfo.zig_cache",
+            "@rules_zig//zig:resolved_toolchain",
+        },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+    try std.testing.expectEqualStrings("/CACHE_OVERRIDE\n", result.stdout);
+}
+
 test "target build mode defaults to Debug" {
     const ctx = try BitContext.init();
 

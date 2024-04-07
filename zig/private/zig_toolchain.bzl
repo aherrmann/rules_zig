@@ -51,6 +51,10 @@ ATTRS = {
         doc = "The Zig toolchain's version.",
         mandatory = True,
     ),
+    "zig_cache": attr.string(
+        doc = "The Zig cache directory prefix. Used for both the global and local cache.",
+        mandatory = True,
+    ),
 }
 
 # Avoid using non-normalized paths (workspace/../other_workspace/path)
@@ -101,6 +105,7 @@ def _zig_toolchain_impl(ctx):
     zig_exe_path = ctx.attr.zig_exe_path
     zig_lib_path = ctx.attr.zig_lib_path
     zig_version = ctx.attr.zig_version
+    zig_cache = ctx.attr.zig_cache
 
     if ctx.attr.zig_exe:
         zig_files = ctx.attr.zig_exe.files.to_list() + ctx.files.zig_lib
@@ -135,6 +140,7 @@ def _zig_toolchain_impl(ctx):
         zig_lib_path = zig_lib_path,
         zig_files = zig_files,
         zig_version = zig_version,
+        zig_cache = zig_cache,
     )
 
     # Export all the providers inside our ToolchainInfo

@@ -30,3 +30,13 @@ test --test_output=errors
 test --test_verbose_timeout_warnings
 # docs: https://bazel.build/reference/command-line-reference#flag--incompatible_exclusive_test_sandboxed
 test --incompatible_exclusive_test_sandboxed
+
+# docs: https://bazel.build/reference/command-line-reference#flag--enable_platform_specific_config
+common --enable_platform_specific_config
+# Enable persistent Zig cache directory within the sandbox,
+# see https://github.com/aherrmann/rules_zig/issues/87,
+# and https://github.com/uber/hermetic_cc_toolchain/issues/83.
+# docs: https://bazel.build/reference/command-line-reference#flag--sandbox_add_mount_pair
+build:linux --sandbox_add_mount_pair=/tmp
+build:macos --sandbox_add_mount_pair=/var/tmp
+build:windows --sandbox_add_mount_pair=C:\Temp
