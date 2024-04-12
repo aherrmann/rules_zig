@@ -1,5 +1,8 @@
-"""Extensions for bzlmod.
+"""Extensions for bzlmod."""
 
+load(":repositories.bzl", "zig_register_toolchains")
+
+_DOC = """\
 Installs a Zig toolchain.
 Every module can define a toolchain version under the default name, "zig".
 The latest of those versions will be selected (the rest discarded),
@@ -12,8 +15,6 @@ effectively overriding the default named toolchain
 due to toolchain resolution precedence.
 """
 
-load(":repositories.bzl", "zig_register_toolchains")
-
 _DEFAULT_NAME = "zig"
 
 zig_toolchain = tag_class(attrs = {
@@ -23,6 +24,10 @@ Overriding the default is only permitted in the root module.
 """, default = _DEFAULT_NAME),
     "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
 })
+
+_TAG_CLASSES = {
+    "toolchain": zig_toolchain,
+}
 
 def _toolchain_extension(module_ctx):
     registrations = {}
@@ -54,5 +59,6 @@ def _toolchain_extension(module_ctx):
 
 zig = module_extension(
     implementation = _toolchain_extension,
-    tag_classes = {"toolchain": zig_toolchain},
+    doc = _DOC,
+    tag_classes = _TAG_CLASSES,
 )
