@@ -18,10 +18,6 @@ due to toolchain resolution precedence.
 _DEFAULT_NAME = "zig"
 
 zig_toolchain = tag_class(attrs = {
-    "name": attr.string(doc = """\
-Base name for generated repositories, allowing more than one Zig toolchain to be registered.
-Overriding the default is only permitted in the root module.
-""", default = _DEFAULT_NAME),
     "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
 })
 
@@ -33,14 +29,9 @@ def _toolchain_extension(module_ctx):
     registrations = {}
     for mod in module_ctx.modules:
         for toolchain in mod.tags.toolchain:
-            if toolchain.name != _DEFAULT_NAME and not mod.is_root:
-                fail("""\
-                Only the root module may override the default name for the Zig toolchain.
-                This prevents conflicting registrations in the global namespace of external repos.
-                """)
-            if toolchain.name not in registrations.keys():
-                registrations[toolchain.name] = []
-            registrations[toolchain.name].append(toolchain.zig_version)
+            if _DEFAULT_NAME not in registrations.keys():
+                registrations[_DEFAULT_NAME] = []
+            registrations[_DEFAULT_NAME].append(toolchain.zig_version)
     for name, versions in registrations.items():
         if len(versions) > 1:
             # TODO: should be semver-aware, using MVS
