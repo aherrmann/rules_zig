@@ -1,5 +1,6 @@
 """Extensions for bzlmod."""
 
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load(":repositories.bzl", "zig_register_toolchains")
 
 _DOC = """\
@@ -26,27 +27,25 @@ _TAG_CLASSES = {
 }
 
 def _toolchain_extension(module_ctx):
-    registrations = {}
+    versions = sets.make()
     for mod in module_ctx.modules:
         for toolchain in mod.tags.toolchain:
-            if _DEFAULT_NAME not in registrations.keys():
-                registrations[_DEFAULT_NAME] = []
-            registrations[_DEFAULT_NAME].append(toolchain.zig_version)
-    for name, versions in registrations.items():
-        if len(versions) > 1:
-            # TODO: should be semver-aware, using MVS
-            selected = sorted(versions, reverse = True)[0]
+            sets.insert(versions, toolchain.zig_version)
 
-            # buildifier: disable=print
-            print("NOTE: Zig toolchain {} has multiple versions {}, selected {}".format(name, versions, selected))
-        else:
-            selected = versions[0]
+    if len(sets.to_list(versions)) > 1:
+        # TODO: should be semver-aware, using MVS
+        selected = sorted(sets.to_list(versions), reverse = True)[0]
 
-        zig_register_toolchains(
-            name = name,
-            zig_version = selected,
-            register = False,
-        )
+        # buildifier: disable=print
+        print("NOTE: Zig toolchain has multiple versions {}, selected {}".format(versions, selected))
+    else:
+        selected = sets.to_list(versions)[0]
+
+    zig_register_toolchains(
+        name = _DEFAULT_NAME,
+        zig_version = selected,
+        register = False,
+    )
 
 zig = module_extension(
     implementation = _toolchain_extension,
