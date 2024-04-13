@@ -102,6 +102,8 @@ def _zig_transition_impl(settings, attr):
     result = dict(settings)
     if attr.target:
         result["//command_line_option:platforms"] = str(attr.target)
+    if attr.zig_version:
+        result["@zig_toolchains//:version"] = str(attr.zig_version)
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
     if attr.threaded:
@@ -112,11 +114,13 @@ _zig_transition = transition(
     implementation = _zig_transition_impl,
     inputs = [
         "//command_line_option:platforms",
+        "@zig_toolchains//:version",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
     outputs = [
         "//command_line_option:platforms",
+        "@zig_toolchains//:version",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
@@ -132,6 +136,10 @@ def _make_attrs(*, executable):
         ),
         "target": attr.label(
             doc = "The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.",
+            mandatory = False,
+        ),
+        "zig_version": attr.string(
+            doc = "The Zig SDK version, must be registered using the `zig` module extension.",
             mandatory = False,
         ),
         "mode": attr.string(
