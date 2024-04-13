@@ -19,7 +19,7 @@ load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 zig_register_toolchains(
     name = "zig",
-    zig_version = TOOL_VERSIONS.keys()[0],
+    zig_versions = TOOL_VERSIONS.keys(),
 )
 
 # rules_python dependencies
