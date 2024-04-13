@@ -6,7 +6,7 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", __http_archive = "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//zig/private:toolchains_repo.bzl", "PLATFORMS", "toolchains_repo")
+load("//zig/private:toolchains_repo.bzl", "PLATFORMS", "sanitize_version", "toolchains_repo")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load(
     "//zig/private/common:zig_cache.bzl",
@@ -107,12 +107,6 @@ zig_repositories = repository_rule(
     environ = _ENV,
 )
 
-def _sanitize_version(zig_version):
-    """Replace any illegal workspace name characters in the Zig version."""
-
-    # TODO deduplicate
-    return zig_version.replace("+", "_P")
-
 # Wrapper macro around everything above, this is the primary API
 def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
     """Convenience macro for users which does typical setup.
@@ -136,7 +130,7 @@ def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
         **kwargs: passed to each zig_repositories call
     """
     for zig_version in zig_versions:
-        sanitized_zig_version = _sanitize_version(zig_version)
+        sanitized_zig_version = sanitize_version(zig_version)
         for platform in PLATFORMS.keys():
             zig_repositories(
                 name = name + "_" + sanitized_zig_version + "_" + platform,

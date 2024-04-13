@@ -58,10 +58,8 @@ PLATFORMS = {
     ),
 }
 
-def _sanitize_version(zig_version):
+def sanitize_version(zig_version):
     """Replace any illegal workspace name characters in the Zig version."""
-
-    # TODO deduplicate
     return zig_version.replace("+", "_P")
 
 def _toolchains_repo_impl(repository_ctx):
@@ -73,7 +71,7 @@ def _toolchains_repo_impl(repository_ctx):
 
 """
     for zig_version in repository_ctx.attr.zig_versions:
-        sanitized_zig_version = _sanitize_version(zig_version)
+        sanitized_zig_version = sanitize_version(zig_version)
         for [platform, meta] in PLATFORMS.items():
             build_content += """
 # Declare a toolchain Bazel will select for running the tool in an action
