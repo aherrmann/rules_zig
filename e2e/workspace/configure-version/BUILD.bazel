@@ -47,3 +47,16 @@ zig_configure_test(
     actual = ":zig_test_0.11.0_manual",
     zig_version = "0.11.0",
 )
+
+zig_test(
+    name = "zig_test_0.11.0-dev.3886+0c1bfe271_manual",
+    main = "test-0.11.0-dev.3886+0c1bfe271.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "zig_test_0.11.0-dev.3886+0c1bfe271",
+    size = "small",
+    actual = ":zig_test_0.11.0-dev.3886+0c1bfe271_manual",
+    zig_version = "0.11.0-dev.3886+0c1bfe271",
+)
