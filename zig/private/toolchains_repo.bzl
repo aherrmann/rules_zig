@@ -62,6 +62,25 @@ def sanitize_version(zig_version):
     """Replace any illegal workspace name characters in the Zig version."""
     return zig_version.replace("+", "_P")
 
+def _calc_counter_digits(num):
+    """Determine the number of digits required for the counter prefix.
+
+    Uses at least four digits to avoid unnecessary invalidation when the number
+    of toolchains changes in slightly in most common use-cases.
+    """
+    return max(4, len(repr(num)))
+
+def _counter_prefix(count, *, width):
+    """Render the counter prefix.
+
+    Args:
+      count: int, The counter value.
+      width: int, The number of digits to use.
+    """
+    count_repr = repr(count)
+    prefix = "0" * (width - len(count_repr))
+    return prefix + count_repr
+
 def _toolchains_repo_impl(repository_ctx):
     if len(repository_ctx.attr.zig_versions) < 1:
         fail("Must specify at least one Zig SDK version in `zig_versions`.")
@@ -107,21 +126,23 @@ config_setting(
             zig_version = zig_version,
         )
 
-    for zig_version in repository_ctx.attr.zig_versions:
+    counter_digits = _calc_counter_digits(len(repository_ctx.attr.zig_versions))
+
+    for counter, zig_version in enumerate(repository_ctx.attr.zig_versions):
         sanitized_zig_version = sanitize_version(zig_version)
         for [platform, meta] in PLATFORMS.items():
             build_content += """
 # Declare a toolchain Bazel will select for running the tool in an action
 # on the execution platform.
 toolchain(
-    name = "{version}_{platform}_toolchain",
+    name = "{prefix}_{version}_{platform}_toolchain",
     exec_compatible_with = {compatible_with},
     target_settings = [":{version}"],
     toolchain = "@{user_repository_name}_{sanitized_version}_{platform}//:zig_toolchain",
     toolchain_type = "@rules_zig//zig:toolchain_type",
 )
 """.format(
-                # TODO add counter prefix to ensure ordering
+                prefix = _counter_prefix(counter, width = counter_digits),
                 version = zig_version,
                 sanitized_version = sanitized_zig_version,
                 platform = platform,
