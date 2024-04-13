@@ -32,15 +32,6 @@ def _toolchain_extension(module_ctx):
         for toolchain in mod.tags.toolchain:
             sets.insert(versions, toolchain.zig_version)
 
-    if len(sets.to_list(versions)) > 1:
-        # TODO: should be semver-aware, using MVS
-        selected = sorted(sets.to_list(versions), reverse = True)[0]
-
-        # buildifier: disable=print
-        print("NOTE: Zig toolchain has multiple versions {}, selected {}".format(versions, selected))
-    else:
-        selected = sets.to_list(versions)[0]
-
     zig_register_toolchains(
         name = _DEFAULT_NAME,
         zig_versions = sets.to_list(versions),
