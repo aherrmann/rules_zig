@@ -109,6 +109,8 @@ zig_repositories = repository_rule(
 
 def _sanitize_version(zig_version):
     """Replace any illegal workspace name characters in the Zig version."""
+
+    # TODO deduplicate
     return zig_version.replace("+", "_P")
 
 # Wrapper macro around everything above, this is the primary API
@@ -145,10 +147,10 @@ def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
             if register:
                 native.register_toolchains("@%s_toolchains//:%s_%s_toolchain" % (name, sanitized_zig_version, platform))
 
-    sanitized_zig_version = _sanitize_version(zig_versions[0])  # TODO register all versions
     toolchains_repo(
         name = name + "_toolchains",
-        user_repository_name = name + "_" + sanitized_zig_version,
+        user_repository_name = name,
+        zig_versions = zig_versions,
     )
 
     if register:
