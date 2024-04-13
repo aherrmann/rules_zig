@@ -108,7 +108,7 @@ zig_repositories = repository_rule(
 )
 
 # Wrapper macro around everything above, this is the primary API
-def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
+def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, register = True, **kwargs):
     """Convenience macro for users which does typical setup.
 
     - create a repository for each version and built-in platform like
@@ -124,11 +124,23 @@ def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
         name: base name for all created repos, like "zig".
         zig_versions: The list of Zig SDK versions to fetch,
             toolchains are registered in the given order.
+        zig_version: A single Zig SDK version to fetch.
+            Do not use together with zig_versions.
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users,
             but False when used under bzlmod extension.
         **kwargs: passed to each zig_repositories call
     """
+    versions_unset = zig_versions == None
+    version_unset = zig_version == None
+    both_unset = versions_unset and version_unset
+    both_set = not versions_unset and not version_unset
+    if both_unset or both_set:
+        fail("You must specify one of `zig_versions` or `zig_version`")
+
+    if versions_unset:
+        zig_versions = [zig_version]
+
     for zig_version in zig_versions:
         sanitized_zig_version = sanitize_version(zig_version)
         for platform in PLATFORMS.keys():
