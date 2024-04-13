@@ -8,7 +8,7 @@ Extensions for bzlmod.
 
 <pre>
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
-zig.toolchain(<a href="#zig.toolchain-name">name</a>, <a href="#zig.toolchain-zig_version">zig_version</a>)
+zig.toolchain(<a href="#zig.toolchain-zig_version">zig_version</a>)
 </pre>
 
 Installs a Zig toolchain.
@@ -33,7 +33,6 @@ due to toolchain resolution precedence.
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig.toolchain-name"></a>name |  Base name for generated repositories, allowing more than one Zig toolchain to be registered. Overriding the default is only permitted in the root module.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | optional |  `"zig"`  |
 | <a id="zig.toolchain-zig_version"></a>zig_version |  Explicit version of Zig.   | String | required |  |
 
 
