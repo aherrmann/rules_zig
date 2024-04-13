@@ -107,12 +107,17 @@ zig_repositories = repository_rule(
     environ = _ENV,
 )
 
+def _sanitize_version(zig_version):
+    """Replace any illegal workspace name characters in the Zig version."""
+    return zig_version.replace("+", "_P")
+
 # Wrapper macro around everything above, this is the primary API
-def zig_register_toolchains(*, name, register = True, **kwargs):
+def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
     """Convenience macro for users which does typical setup.
 
-    - create a repository for each built-in platform like "zig_linux_amd64" -
-      this repository is lazily fetched when zig is needed for that platform.
+    - create a repository for each version and built-in platform like
+      "zig_0.10.1_linux_amd64" - this repository is lazily fetched when zig is
+      needed for that version and platform.
     - TODO: create a convenience repository for the host platform like "zig_host"
     - create a repository exposing toolchains for each platform like "zig_platforms"
     - register a toolchain pointing at each platform
@@ -120,24 +125,30 @@ def zig_register_toolchains(*, name, register = True, **kwargs):
     Users can avoid this macro and do these steps themselves, if they want more control.
 
     Args:
-        name: base name for all created repos, like "zig1_14"
+        name: base name for all created repos, like "zig".
+        zig_versions: The list of Zig SDK versions to fetch,
+            toolchains are registered in the given order.
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users,
             but False when used under bzlmod extension.
         **kwargs: passed to each zig_repositories call
     """
-    for platform in PLATFORMS.keys():
-        zig_repositories(
-            name = name + "_" + platform,
-            platform = platform,
-            **kwargs
-        )
-        if register:
-            native.register_toolchains("@%s_toolchains//:%s_toolchain" % (name, platform))
+    for zig_version in zig_versions:
+        sanitized_zig_version = _sanitize_version(zig_version)
+        for platform in PLATFORMS.keys():
+            zig_repositories(
+                name = name + "_" + sanitized_zig_version + "_" + platform,
+                zig_version = zig_version,
+                platform = platform,
+                **kwargs
+            )
+            if register:
+                native.register_toolchains("@%s_toolchains//:%s_%s_toolchain" % (name, sanitized_zig_version, platform))
 
+    sanitized_zig_version = _sanitize_version(zig_versions[0])  # TODO register all versions
     toolchains_repo(
         name = name + "_toolchains",
-        user_repository_name = name,
+        user_repository_name = name + "_" + sanitized_zig_version,
     )
 
     if register:

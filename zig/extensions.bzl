@@ -43,7 +43,7 @@ def _toolchain_extension(module_ctx):
 
     zig_register_toolchains(
         name = _DEFAULT_NAME,
-        zig_version = selected,
+        zig_versions = sets.to_list(versions),
         register = False,
     )
 
