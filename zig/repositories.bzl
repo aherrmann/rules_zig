@@ -61,7 +61,7 @@ _ENV = [
     VAR_CACHE_PREFIX_WINDOWS,
 ]
 
-def _zig_repo_impl(repository_ctx):
+def _zig_repository_impl(repository_ctx):
     url = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform].url
     integrity = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform].integrity
     basename = url.rsplit("/", 1)[1]
@@ -100,12 +100,23 @@ zig_toolchain(
     # Base BUILD file for this repository
     repository_ctx.file("BUILD.bazel", build_content)
 
-zig_repositories = repository_rule(
-    _zig_repo_impl,
+zig_repository = repository_rule(
+    _zig_repository_impl,
     doc = _DOC,
     attrs = _ATTRS,
     environ = _ENV,
 )
+
+def zig_repositories(**kwargs):
+    """Fetch and install a Zig toolchain.
+
+    Args:
+      **kwargs: forwarded to `zig_repository`.
+
+    Deprecated:
+      Use `zig_repository` instead.
+    """
+    zig_repository(**kwargs)
 
 # Wrapper macro around everything above, this is the primary API
 def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, register = True, **kwargs):
@@ -129,7 +140,7 @@ def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, re
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users,
             but False when used under bzlmod extension.
-        **kwargs: passed to each zig_repositories call
+        **kwargs: passed to each zig_repository call
     """
     versions_unset = zig_versions == None
     version_unset = zig_version == None
@@ -144,7 +155,7 @@ def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, re
     for zig_version in zig_versions:
         sanitized_zig_version = sanitize_version(zig_version)
         for platform in PLATFORMS.keys():
-            zig_repositories(
+            zig_repository(
                 name = name + "_" + sanitized_zig_version + "_" + platform,
                 zig_version = zig_version,
                 platform = platform,
