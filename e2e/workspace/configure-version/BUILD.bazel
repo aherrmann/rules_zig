@@ -21,3 +21,16 @@ diff_test(
     file1 = ":zig_version_0.11.0.expected",
     file2 = ":zig_version_0.11.0",
 )
+
+zig_configure(
+    name = "zig_version_0.11.0-dev.3886+0c1bfe271",
+    actual = ":zig_version",
+    zig_version = "0.11.0-dev.3886+0c1bfe271",
+)
+
+diff_test(
+    name = "zig_version_test_0.11.0-dev.3886+0c1bfe271",
+    size = "small",
+    file1 = ":zig_version_0.11.0-dev.3886+0c1bfe271.expected",
+    file2 = ":zig_version_0.11.0-dev.3886+0c1bfe271",
+)
