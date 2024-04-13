@@ -1,5 +1,6 @@
 """Extensions for bzlmod."""
 
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load(":repositories.bzl", "zig_register_toolchains")
 
 _DOC = """\
@@ -18,10 +19,6 @@ due to toolchain resolution precedence.
 _DEFAULT_NAME = "zig"
 
 zig_toolchain = tag_class(attrs = {
-    "name": attr.string(doc = """\
-Base name for generated repositories, allowing more than one Zig toolchain to be registered.
-Overriding the default is only permitted in the root module.
-""", default = _DEFAULT_NAME),
     "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
 })
 
@@ -30,32 +27,25 @@ _TAG_CLASSES = {
 }
 
 def _toolchain_extension(module_ctx):
-    registrations = {}
+    versions = sets.make()
     for mod in module_ctx.modules:
         for toolchain in mod.tags.toolchain:
-            if toolchain.name != _DEFAULT_NAME and not mod.is_root:
-                fail("""\
-                Only the root module may override the default name for the Zig toolchain.
-                This prevents conflicting registrations in the global namespace of external repos.
-                """)
-            if toolchain.name not in registrations.keys():
-                registrations[toolchain.name] = []
-            registrations[toolchain.name].append(toolchain.zig_version)
-    for name, versions in registrations.items():
-        if len(versions) > 1:
-            # TODO: should be semver-aware, using MVS
-            selected = sorted(versions, reverse = True)[0]
+            sets.insert(versions, toolchain.zig_version)
 
-            # buildifier: disable=print
-            print("NOTE: Zig toolchain {} has multiple versions {}, selected {}".format(name, versions, selected))
-        else:
-            selected = versions[0]
+    if len(sets.to_list(versions)) > 1:
+        # TODO: should be semver-aware, using MVS
+        selected = sorted(sets.to_list(versions), reverse = True)[0]
 
-        zig_register_toolchains(
-            name = name,
-            zig_version = selected,
-            register = False,
-        )
+        # buildifier: disable=print
+        print("NOTE: Zig toolchain has multiple versions {}, selected {}".format(versions, selected))
+    else:
+        selected = sets.to_list(versions)[0]
+
+    zig_register_toolchains(
+        name = _DEFAULT_NAME,
+        zig_versions = sets.to_list(versions),
+        register = False,
+    )
 
 zig = module_extension(
     implementation = _toolchain_extension,

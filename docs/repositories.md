@@ -22,13 +22,14 @@ Register dependencies required by rules_zig.
 ## zig_register_toolchains
 
 <pre>
-zig_register_toolchains(<a href="#zig_register_toolchains-name">name</a>, <a href="#zig_register_toolchains-register">register</a>, <a href="#zig_register_toolchains-kwargs">kwargs</a>)
+zig_register_toolchains(<a href="#zig_register_toolchains-name">name</a>, <a href="#zig_register_toolchains-zig_versions">zig_versions</a>, <a href="#zig_register_toolchains-zig_version">zig_version</a>, <a href="#zig_register_toolchains-register">register</a>, <a href="#zig_register_toolchains-kwargs">kwargs</a>)
 </pre>
 
 Convenience macro for users which does typical setup.
 
-- create a repository for each built-in platform like "zig_linux_amd64" -
-  this repository is lazily fetched when zig is needed for that platform.
+- create a repository for each version and built-in platform like
+  "zig_0.10.1_linux_amd64" - this repository is lazily fetched when zig is
+  needed for that version and platform.
 - TODO: create a convenience repository for the host platform like "zig_host"
 - create a repository exposing toolchains for each platform like "zig_platforms"
 - register a toolchain pointing at each platform
@@ -41,9 +42,11 @@ Users can avoid this macro and do these steps themselves, if they want more cont
 
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
-| <a id="zig_register_toolchains-name"></a>name |  base name for all created repos, like "zig1_14"   |  none |
+| <a id="zig_register_toolchains-name"></a>name |  base name for all created repos, like "zig".   |  none |
+| <a id="zig_register_toolchains-zig_versions"></a>zig_versions |  The list of Zig SDK versions to fetch, toolchains are registered in the given order.   |  `None` |
+| <a id="zig_register_toolchains-zig_version"></a>zig_version |  A single Zig SDK version to fetch. Do not use together with zig_versions.   |  `None` |
 | <a id="zig_register_toolchains-register"></a>register |  whether to call through to native.register_toolchains. Should be True for WORKSPACE users, but False when used under bzlmod extension.   |  `True` |
-| <a id="zig_register_toolchains-kwargs"></a>kwargs |  passed to each zig_repositories call   |  none |
+| <a id="zig_register_toolchains-kwargs"></a>kwargs |  passed to each zig_repository call   |  none |
 
 
 <a id="zig_repositories"></a>
@@ -51,7 +54,29 @@ Users can avoid this macro and do these steps themselves, if they want more cont
 ## zig_repositories
 
 <pre>
-zig_repositories(<a href="#zig_repositories-name">name</a>, <a href="#zig_repositories-platform">platform</a>, <a href="#zig_repositories-repo_mapping">repo_mapping</a>, <a href="#zig_repositories-zig_version">zig_version</a>)
+zig_repositories(<a href="#zig_repositories-kwargs">kwargs</a>)
+</pre>
+
+Fetch and install a Zig toolchain.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="zig_repositories-kwargs"></a>kwargs |  forwarded to `zig_repository`.   |  none |
+
+**DEPRECATED**
+
+Use `zig_repository` instead.
+
+
+<a id="zig_repository"></a>
+
+## zig_repository
+
+<pre>
+zig_repository(<a href="#zig_repository-name">name</a>, <a href="#zig_repository-platform">platform</a>, <a href="#zig_repository-repo_mapping">repo_mapping</a>, <a href="#zig_repository-zig_version">zig_version</a>)
 </pre>
 
 Fetch and install a Zig toolchain.
@@ -61,10 +86,10 @@ Fetch and install a Zig toolchain.
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig_repositories-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_repositories-platform"></a>platform |  -   | String | required |  |
-| <a id="zig_repositories-repo_mapping"></a>repo_mapping |  In `WORKSPACE` context only: a dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<br><br>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`, it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).<br><br>This attribute is _not_ supported in `MODULE.bazel` context (when invoking a repository rule inside a module extension's implementation function).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  |
-| <a id="zig_repositories-zig_version"></a>zig_version |  -   | String | required |  |
+| <a id="zig_repository-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_repository-platform"></a>platform |  -   | String | required |  |
+| <a id="zig_repository-repo_mapping"></a>repo_mapping |  In `WORKSPACE` context only: a dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<br><br>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`, it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).<br><br>This attribute is _not_ supported in `MODULE.bazel` context (when invoking a repository rule inside a module extension's implementation function).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  |
+| <a id="zig_repository-zig_version"></a>zig_version |  -   | String | required |  |
 
 **ENVIRONMENT VARIABLES**
 

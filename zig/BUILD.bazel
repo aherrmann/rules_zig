@@ -76,7 +76,10 @@ bzl_library(
     name = "extensions",
     srcs = ["extensions.bzl"],
     visibility = ["//visibility:public"],
-    deps = [":repositories"],
+    deps = [
+        ":repositories",
+        "@bazel_skylib//lib:sets",
+    ],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

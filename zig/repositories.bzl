@@ -6,7 +6,7 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", __http_archive = "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//zig/private:toolchains_repo.bzl", "PLATFORMS", "toolchains_repo")
+load("//zig/private:toolchains_repo.bzl", "PLATFORMS", "sanitize_version", "toolchains_repo")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load(
     "//zig/private/common:zig_cache.bzl",
@@ -61,7 +61,7 @@ _ENV = [
     VAR_CACHE_PREFIX_WINDOWS,
 ]
 
-def _zig_repo_impl(repository_ctx):
+def _zig_repository_impl(repository_ctx):
     url = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform].url
     integrity = TOOL_VERSIONS[repository_ctx.attr.zig_version][repository_ctx.attr.platform].integrity
     basename = url.rsplit("/", 1)[1]
@@ -100,19 +100,31 @@ zig_toolchain(
     # Base BUILD file for this repository
     repository_ctx.file("BUILD.bazel", build_content)
 
-zig_repositories = repository_rule(
-    _zig_repo_impl,
+zig_repository = repository_rule(
+    _zig_repository_impl,
     doc = _DOC,
     attrs = _ATTRS,
     environ = _ENV,
 )
 
+def zig_repositories(**kwargs):
+    """Fetch and install a Zig toolchain.
+
+    Args:
+      **kwargs: forwarded to `zig_repository`.
+
+    Deprecated:
+      Use `zig_repository` instead.
+    """
+    zig_repository(**kwargs)
+
 # Wrapper macro around everything above, this is the primary API
-def zig_register_toolchains(*, name, register = True, **kwargs):
+def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, register = True, **kwargs):
     """Convenience macro for users which does typical setup.
 
-    - create a repository for each built-in platform like "zig_linux_amd64" -
-      this repository is lazily fetched when zig is needed for that platform.
+    - create a repository for each version and built-in platform like
+      "zig_0.10.1_linux_amd64" - this repository is lazily fetched when zig is
+      needed for that version and platform.
     - TODO: create a convenience repository for the host platform like "zig_host"
     - create a repository exposing toolchains for each platform like "zig_platforms"
     - register a toolchain pointing at each platform
@@ -120,25 +132,42 @@ def zig_register_toolchains(*, name, register = True, **kwargs):
     Users can avoid this macro and do these steps themselves, if they want more control.
 
     Args:
-        name: base name for all created repos, like "zig1_14"
+        name: base name for all created repos, like "zig".
+        zig_versions: The list of Zig SDK versions to fetch,
+            toolchains are registered in the given order.
+        zig_version: A single Zig SDK version to fetch.
+            Do not use together with zig_versions.
         register: whether to call through to native.register_toolchains.
             Should be True for WORKSPACE users,
             but False when used under bzlmod extension.
-        **kwargs: passed to each zig_repositories call
+        **kwargs: passed to each zig_repository call
     """
-    for platform in PLATFORMS.keys():
-        zig_repositories(
-            name = name + "_" + platform,
-            platform = platform,
-            **kwargs
-        )
-        if register:
-            native.register_toolchains("@%s_toolchains//:%s_toolchain" % (name, platform))
+    versions_unset = zig_versions == None
+    version_unset = zig_version == None
+    both_unset = versions_unset and version_unset
+    both_set = not versions_unset and not version_unset
+    if both_unset or both_set:
+        fail("You must specify one of `zig_versions` or `zig_version`")
+
+    if versions_unset:
+        zig_versions = [zig_version]
+
+    for zig_version in zig_versions:
+        sanitized_zig_version = sanitize_version(zig_version)
+        for platform in PLATFORMS.keys():
+            zig_repository(
+                name = name + "_" + sanitized_zig_version + "_" + platform,
+                zig_version = zig_version,
+                platform = platform,
+                **kwargs
+            )
 
     toolchains_repo(
         name = name + "_toolchains",
         user_repository_name = name,
+        zig_versions = zig_versions,
     )
 
     if register:
+        native.register_toolchains("@%s_toolchains//:all" % name)
         native.register_toolchains("@rules_zig//zig/target:all")
