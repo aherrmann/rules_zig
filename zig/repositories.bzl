@@ -144,8 +144,6 @@ def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
                 platform = platform,
                 **kwargs
             )
-            if register:
-                native.register_toolchains("@%s_toolchains//:%s_%s_toolchain" % (name, sanitized_zig_version, platform))
 
     toolchains_repo(
         name = name + "_toolchains",
@@ -154,4 +152,5 @@ def zig_register_toolchains(*, name, zig_versions, register = True, **kwargs):
     )
 
     if register:
+        native.register_toolchains("@%s_toolchains//:all" % name)
         native.register_toolchains("@rules_zig//zig/target:all")
