@@ -78,6 +78,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":repositories",
+        "//zig/private/common:semver",
         "@bazel_skylib//lib:sets",
     ],
 )

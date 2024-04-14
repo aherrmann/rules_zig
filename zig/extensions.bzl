@@ -1,6 +1,7 @@
 """Extensions for bzlmod."""
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load("//zig/private/common:semver.bzl", "semver")
 load(":repositories.bzl", "zig_register_toolchains")
 
 _DOC = """\
@@ -34,7 +35,7 @@ def _toolchain_extension(module_ctx):
 
     zig_register_toolchains(
         name = _DEFAULT_NAME,
-        zig_versions = sets.to_list(versions),
+        zig_versions = semver.sorted(sets.to_list(versions), reverse = True),
         register = False,
     )
 

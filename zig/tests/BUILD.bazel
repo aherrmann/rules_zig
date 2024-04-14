@@ -4,6 +4,7 @@ load(":config_test.bzl", "config_test_suite")
 load(":mode_test.bzl", "mode_test_suite")
 load(":module_info_test.bzl", "module_info_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
+load(":semver_test.bzl", "semver_test_suite")
 load(":target_platform_test.bzl", "target_platform_test_suite")
 load(":target_triple_test.bzl", "target_triple_test_suite")
 load(":threaded_test.bzl", "threaded_test_suite")
@@ -18,6 +19,8 @@ mode_test_suite(name = "mode_test")
 module_info_test_suite(name = "module_info_test")
 
 rules_test_suite(name = "rules_test")
+
+semver_test_suite(name = "semver_test")
 
 target_platform_test_suite(name = "target_platform_test")
 
