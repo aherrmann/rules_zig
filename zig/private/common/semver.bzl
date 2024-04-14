@@ -35,14 +35,14 @@ def _parse(version):
         pre_release = pre_release,
     )
 
-def _sorted(versions):
+def _sorted(versions, *, reverse = False):
     """Sort a list of strings by semantic version comparison."""
 
     def key(version):
         parsed = _parse(version)
         return [parsed.major, parsed.minor, parsed.patch, parsed.pre_release]
 
-    return sorted(versions, key = key)
+    return sorted(versions, key = key, reverse = reverse)
 
 semver = struct(
     sorted = _sorted,
