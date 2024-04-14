@@ -35,7 +35,7 @@ def _toolchain_extension(module_ctx):
 
     zig_register_toolchains(
         name = _DEFAULT_NAME,
-        zig_versions = semver.sorted(sets.to_list(versions)),
+        zig_versions = semver.sorted(sets.to_list(versions), reverse = True),
         register = False,
     )
 
