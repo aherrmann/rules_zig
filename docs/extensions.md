@@ -12,15 +12,13 @@ zig.toolchain(<a href="#zig.toolchain-default">default</a>, <a href="#zig.toolch
 </pre>
 
 Installs a Zig toolchain.
-Every module can define a toolchain version under the default name, "zig".
-The latest of those versions will be selected (the rest discarded),
-and will always be registered by rules_zig.
 
-Additionally, the root module can define arbitrarily many more toolchain versions
-under different names (the latest version will be picked for each name)
-and can register them as it sees fit,
-effectively overriding the default named toolchain
-due to toolchain resolution precedence.
+Every module can define multiple toolchain versions. All these versions will be
+registered as toolchains and you can select the toolchain using the
+`@zig_toolchains//:version` build flag.
+
+The latest version will be the default unless the root module explicitly
+declares one as the default.
 
 
 **TAG CLASSES**
@@ -34,6 +32,6 @@ due to toolchain resolution precedence.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig.toolchain-default"></a>default |  Make this the default Zig SDK version. Can only be used once, and only in the root module.   | Boolean | optional |  `False`  |
-| <a id="zig.toolchain-zig_version"></a>zig_version |  Explicit version of Zig.   | String | required |  |
+| <a id="zig.toolchain-zig_version"></a>zig_version |  The Zig SDK version.   | String | required |  |
 
 
