@@ -23,6 +23,11 @@ _DEFAULT_VERSION = TOOL_VERSIONS.keys()[0]
 
 zig_toolchain = tag_class(attrs = {
     "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
+    "default": attr.bool(
+        doc = "Make this the default Zig SDK version. Can only be used once, and only in the root module.",
+        mandatory = False,
+        default = False,
+    ),
 })
 
 _TAG_CLASSES = {
@@ -30,18 +35,29 @@ _TAG_CLASSES = {
 }
 
 def _toolchain_extension(module_ctx):
+    default = None
     versions = sets.make()
     for mod in module_ctx.modules:
         for toolchain in mod.tags.toolchain:
-            sets.insert(versions, toolchain.zig_version)
+            if toolchain.default:
+                if not mod.is_root:
+                    fail("Only the root module may specify a default Zig SDK version.", toolchain)
+                elif default != None:
+                    fail("You may only specify one default Zig SDK version.", toolchain)
+                else:
+                    default = toolchain.zig_version
+            else:
+                sets.insert(versions, toolchain.zig_version)
 
-    versions = sets.to_list(versions)
-    if len(versions) == 0:
+    versions = semver.sorted(sets.to_list(versions), reverse = True)
+    if default != None:
+        versions.insert(0, default)
+    elif len(versions) == 0:
         versions.append(_DEFAULT_VERSION)
 
     zig_register_toolchains(
         name = _DEFAULT_NAME,
-        zig_versions = semver.sorted(versions, reverse = True),
+        zig_versions = versions,
         register = False,
     )
 
