@@ -1,6 +1,7 @@
 """Extensions for bzlmod."""
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load("//zig/private/common:semver.bzl", "semver")
 load(":repositories.bzl", "zig_register_toolchains")
 
@@ -18,6 +19,7 @@ due to toolchain resolution precedence.
 """
 
 _DEFAULT_NAME = "zig"
+_DEFAULT_VERSION = TOOL_VERSIONS.keys()[0]
 
 zig_toolchain = tag_class(attrs = {
     "zig_version": attr.string(doc = "Explicit version of Zig.", mandatory = True),
@@ -33,9 +35,13 @@ def _toolchain_extension(module_ctx):
         for toolchain in mod.tags.toolchain:
             sets.insert(versions, toolchain.zig_version)
 
+    versions = sets.to_list(versions)
+    if len(versions) == 0:
+        versions.append(_DEFAULT_VERSION)
+
     zig_register_toolchains(
         name = _DEFAULT_NAME,
-        zig_versions = semver.sorted(sets.to_list(versions), reverse = True),
+        zig_versions = semver.sorted(versions, reverse = True),
         register = False,
     )
 
