@@ -8,7 +8,7 @@ Extensions for bzlmod.
 
 <pre>
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
-zig.toolchain(<a href="#zig.toolchain-zig_version">zig_version</a>)
+zig.toolchain(<a href="#zig.toolchain-default">default</a>, <a href="#zig.toolchain-zig_version">zig_version</a>)
 </pre>
 
 Installs a Zig toolchain.
@@ -33,6 +33,7 @@ due to toolchain resolution precedence.
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig.toolchain-default"></a>default |  Make this the default Zig SDK version. Can only be used once, and only in the root module.   | Boolean | optional |  `False`  |
 | <a id="zig.toolchain-zig_version"></a>zig_version |  Explicit version of Zig.   | String | required |  |
 
 
