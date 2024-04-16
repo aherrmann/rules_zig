@@ -7,6 +7,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, reopened, synchronize, edited]
 
   # Allows you to call this workflow from another workflow
   workflow_call:
