@@ -5,3 +5,6 @@ local_path_override(
     module_name = "rules_zig",
     path = "../../../..",
 )
+
+zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
+use_repo(zig, "zig_toolchains")
