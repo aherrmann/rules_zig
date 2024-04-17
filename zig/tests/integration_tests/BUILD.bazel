@@ -12,11 +12,16 @@ load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 # gazelle:exclude workspace
 
+zig_module(
+    name = "integration_testing",
+    main = "integration_testing.zig",
+)
+
 zig_test(
     name = "integration_tests_runner",
-    srcs = ["integration_testing.zig"],
     main = "integration_tests_runner.zig",
     tags = ["manual"],
+    deps = [":integration_testing"],
 )
 
 bazel_integration_tests(
@@ -42,11 +47,6 @@ bazel_integration_tests(
         "//:all_files",
     ],
     workspace_path = "workspace",
-)
-
-zig_module(
-    name = "integration_testing",
-    main = "integration_testing.zig",
 )
 
 [
