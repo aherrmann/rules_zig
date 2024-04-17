@@ -21,4 +21,20 @@ test "%ZIG_VERSION% - zig_binary prints Hello World!" {
     try std.testing.expectEqualStrings("Hello World!\n", result.stdout);
 }
 
+test "%ZIG_VERSION% - builtin.zig_version_string matches" {
+    const ctx = try BitContext.init();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{
+            "run",
+            "//:print_zig_version",
+            "--@zig_toolchains//:version=%ZIG_VERSION%",
+        },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+    try std.testing.expectEqualStrings("%ZIG_VERSION%", result.stdout);
+}
+
 // vim: ft=zig
