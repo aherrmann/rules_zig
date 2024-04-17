@@ -1,6 +1,6 @@
 const builtin = @import("builtin");
 const std = @import("std");
-const integration_testing = @import("integration_testing.zig");
+const integration_testing = @import("integration_testing");
 const BitContext = integration_testing.BitContext;
 
 test "zig_binary prints Hello World!" {

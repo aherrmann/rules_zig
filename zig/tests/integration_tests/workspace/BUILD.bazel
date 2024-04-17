@@ -30,6 +30,11 @@ zig_binary(
     main = "print_build_mode.zig",
 )
 
+zig_binary(
+    name = "print_zig_version",
+    main = "print_zig_version.zig",
+)
+
 genrule(
     name = "exec_build_mode",
     outs = ["exec_build_mode.out"],

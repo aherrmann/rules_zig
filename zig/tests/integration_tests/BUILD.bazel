@@ -1,20 +1,27 @@
 load("@bazel_binaries//:defs.bzl", "bazel_binaries")
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load(
     "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
     "bazel_integration_test",
     "bazel_integration_tests",
     "integration_test_utils",
 )
-load("//zig:defs.bzl", "zig_test")
+load("//zig:defs.bzl", "zig_module", "zig_test")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 # gazelle:exclude workspace
 
+zig_module(
+    name = "integration_testing",
+    main = "integration_testing.zig",
+)
+
 zig_test(
     name = "integration_tests_runner",
-    srcs = ["integration_testing.zig"],
     main = "integration_tests_runner.zig",
     tags = ["manual"],
+    deps = [":integration_testing"],
 )
 
 bazel_integration_tests(
@@ -42,28 +49,53 @@ bazel_integration_tests(
     workspace_path = "workspace",
 )
 
-zig_test(
-    name = "zig_version_tests_runner",
-    srcs = ["integration_testing.zig"],
-    main = "zig_version_tests_runner.zig",
-    tags = ["manual"],
-)
-
-zig_version_tests = {
-    "zig_version_test_" + zig_version: bazel_integration_test(
-        name = "zig_version_test_" + zig_version,
-        size = "small",
-        bazel_version = bazel_binaries.versions.current,
-        env = {"ZIG_VERSION": zig_version},
-        tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
-        test_runner = ":zig_version_tests_runner",
-        workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
-            "//:all_files",
-        ],
-        workspace_path = "workspace",
+[
+    expand_template(
+        name = "zig_version_test_%s_zig_source" % zig_version,
+        out = "zig_version_test_%s.zig" % zig_version,
+        substitutions = {
+            "%ZIG_VERSION%": zig_version,
+        },
+        template = "zig_version_test.zig.tpl",
     )
     for zig_version in TOOL_VERSIONS.keys()
-}.keys()
+]
+
+write_file(
+    name = "zig_version_tests_runner_zig_source",
+    out = "zig_version_tests_runner.zig",
+    content = [
+        "test {",
+    ] + [
+        '    _ = @import("zig_version_test_%s.zig");' % zig_version
+        for zig_version in TOOL_VERSIONS.keys()
+    ] + [
+        "}",
+    ],
+)
+
+zig_test(
+    name = "zig_version_tests_runner",
+    srcs = [
+        "zig_version_test_%s.zig" % zig_version
+        for zig_version in TOOL_VERSIONS.keys()
+    ],
+    main = "zig_version_tests_runner.zig",
+    tags = ["manual"],
+    deps = [":integration_testing"],
+)
+
+bazel_integration_test(
+    name = "zig_version_tests",
+    size = "small",
+    bazel_version = bazel_binaries.versions.current,
+    tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
+    test_runner = ":zig_version_tests_runner",
+    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
+        "//:all_files",
+    ],
+    workspace_path = "workspace",
+)
 
 test_suite(
     name = "integration_tests",
@@ -74,5 +106,7 @@ test_suite(
     ) + integration_test_utils.bazel_integration_test_names(
         "bzlmod_test",
         bazel_binaries.versions.all,
-    ) + zig_version_tests,
+    ) + [
+        ":zig_version_tests",
+    ],
 )
