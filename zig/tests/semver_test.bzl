@@ -7,6 +7,162 @@ load("//zig/private/common:semver.bzl", "semver")
 def _grouped_test_impl(ctx):
     env = unittest.begin(ctx)
 
+    actual = semver.grouped(["1.0.0", "2.0.0"])
+    asserts.equals(
+        env,
+        {
+            "1": {
+                True: ["1.0.0"],
+                False: [],
+            },
+            "2": {
+                True: ["2.0.0"],
+                False: [],
+            },
+        },
+        actual.major,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0": {
+                True: ["1.0.0"],
+                False: [],
+            },
+            "2.0": {
+                True: ["2.0.0"],
+                False: [],
+            },
+        },
+        actual.minor,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0.0": {
+                True: ["1.0.0"],
+                False: [],
+            },
+            "2.0.0": {
+                True: ["2.0.0"],
+                False: [],
+            },
+        },
+        actual.patch,
+    )
+
+    actual = semver.grouped(["1.0.0", "1.1.0"])
+    asserts.equals(
+        env,
+        {
+            "1": {
+                True: ["1.0.0", "1.1.0"],
+                False: [],
+            },
+        },
+        actual.major,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0": {
+                True: ["1.0.0"],
+                False: [],
+            },
+            "1.1": {
+                True: ["1.1.0"],
+                False: [],
+            },
+        },
+        actual.minor,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0.0": {
+                True: ["1.0.0"],
+                False: [],
+            },
+            "1.1.0": {
+                True: ["1.1.0"],
+                False: [],
+            },
+        },
+        actual.patch,
+    )
+
+    actual = semver.grouped(["1.0.0", "1.0.1"])
+    asserts.equals(
+        env,
+        {
+            "1": {
+                True: ["1.0.0", "1.0.1"],
+                False: [],
+            },
+        },
+        actual.major,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0": {
+                True: ["1.0.0", "1.0.1"],
+                False: [],
+            },
+        },
+        actual.minor,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0.0": {
+                True: ["1.0.0"],
+                False: [],
+            },
+            "1.0.1": {
+                True: ["1.0.1"],
+                False: [],
+            },
+        },
+        actual.patch,
+    )
+
+    actual = semver.grouped(["1.0.0-", "1.0.1-rc1"])
+    asserts.equals(
+        env,
+        {
+            "1": {
+                True: [],
+                False: ["1.0.0-", "1.0.1-rc1"],
+            },
+        },
+        actual.major,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0": {
+                True: [],
+                False: ["1.0.0-", "1.0.1-rc1"],
+            },
+        },
+        actual.minor,
+    )
+    asserts.equals(
+        env,
+        {
+            "1.0.0": {
+                True: [],
+                False: ["1.0.0-"],
+            },
+            "1.0.1": {
+                True: [],
+                False: ["1.0.1-rc1"],
+            },
+        },
+        actual.patch,
+    )
+
     return unittest.end(env)
 
 _grouped_test = unittest.make(_grouped_test_impl)
