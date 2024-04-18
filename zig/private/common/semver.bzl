@@ -43,19 +43,19 @@ def _grouped(versions):
 
     for version in versions:
         components = _split(version)
-        is_release = components.pre_release == None
-        major.setdefault(
+        attr = "release" if components.pre_release == None else "pre_release"
+        getattr(major.setdefault(
             components.major,
-            {True: [], False: []},
-        )[is_release].append(version)
-        minor.setdefault(
+            struct(release = [], pre_release = []),
+        ), attr).append(version)
+        getattr(minor.setdefault(
             "{}.{}".format(components.major, components.minor),
-            {True: [], False: []},
-        )[is_release].append(version)
-        patch.setdefault(
+            struct(release = [], pre_release = []),
+        ), attr).append(version)
+        getattr(patch.setdefault(
             "{}.{}.{}".format(components.major, components.minor, components.patch),
-            {True: [], False: []},
-        )[is_release].append(version)
+            struct(release = [], pre_release = []),
+        ), attr).append(version)
 
     return struct(
         major = major,

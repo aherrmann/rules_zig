@@ -11,42 +11,42 @@ def _grouped_test_impl(ctx):
     asserts.equals(
         env,
         {
-            "1": {
-                True: ["1.0.0"],
-                False: [],
-            },
-            "2": {
-                True: ["2.0.0"],
-                False: [],
-            },
+            "1": struct(
+                release = ["1.0.0"],
+                pre_release = [],
+            ),
+            "2": struct(
+                release = ["2.0.0"],
+                pre_release = [],
+            ),
         },
         actual.major,
     )
     asserts.equals(
         env,
         {
-            "1.0": {
-                True: ["1.0.0"],
-                False: [],
-            },
-            "2.0": {
-                True: ["2.0.0"],
-                False: [],
-            },
+            "1.0": struct(
+                release = ["1.0.0"],
+                pre_release = [],
+            ),
+            "2.0": struct(
+                release = ["2.0.0"],
+                pre_release = [],
+            ),
         },
         actual.minor,
     )
     asserts.equals(
         env,
         {
-            "1.0.0": {
-                True: ["1.0.0"],
-                False: [],
-            },
-            "2.0.0": {
-                True: ["2.0.0"],
-                False: [],
-            },
+            "1.0.0": struct(
+                release = ["1.0.0"],
+                pre_release = [],
+            ),
+            "2.0.0": struct(
+                release = ["2.0.0"],
+                pre_release = [],
+            ),
         },
         actual.patch,
     )
@@ -55,38 +55,38 @@ def _grouped_test_impl(ctx):
     asserts.equals(
         env,
         {
-            "1": {
-                True: ["1.0.0", "1.1.0"],
-                False: [],
-            },
+            "1": struct(
+                release = ["1.0.0", "1.1.0"],
+                pre_release = [],
+            ),
         },
         actual.major,
     )
     asserts.equals(
         env,
         {
-            "1.0": {
-                True: ["1.0.0"],
-                False: [],
-            },
-            "1.1": {
-                True: ["1.1.0"],
-                False: [],
-            },
+            "1.0": struct(
+                release = ["1.0.0"],
+                pre_release = [],
+            ),
+            "1.1": struct(
+                release = ["1.1.0"],
+                pre_release = [],
+            ),
         },
         actual.minor,
     )
     asserts.equals(
         env,
         {
-            "1.0.0": {
-                True: ["1.0.0"],
-                False: [],
-            },
-            "1.1.0": {
-                True: ["1.1.0"],
-                False: [],
-            },
+            "1.0.0": struct(
+                release = ["1.0.0"],
+                pre_release = [],
+            ),
+            "1.1.0": struct(
+                release = ["1.1.0"],
+                pre_release = [],
+            ),
         },
         actual.patch,
     )
@@ -95,34 +95,34 @@ def _grouped_test_impl(ctx):
     asserts.equals(
         env,
         {
-            "1": {
-                True: ["1.0.0", "1.0.1"],
-                False: [],
-            },
+            "1": struct(
+                release = ["1.0.0", "1.0.1"],
+                pre_release = [],
+            ),
         },
         actual.major,
     )
     asserts.equals(
         env,
         {
-            "1.0": {
-                True: ["1.0.0", "1.0.1"],
-                False: [],
-            },
+            "1.0": struct(
+                release = ["1.0.0", "1.0.1"],
+                pre_release = [],
+            ),
         },
         actual.minor,
     )
     asserts.equals(
         env,
         {
-            "1.0.0": {
-                True: ["1.0.0"],
-                False: [],
-            },
-            "1.0.1": {
-                True: ["1.0.1"],
-                False: [],
-            },
+            "1.0.0": struct(
+                release = ["1.0.0"],
+                pre_release = [],
+            ),
+            "1.0.1": struct(
+                release = ["1.0.1"],
+                pre_release = [],
+            ),
         },
         actual.patch,
     )
@@ -131,34 +131,34 @@ def _grouped_test_impl(ctx):
     asserts.equals(
         env,
         {
-            "1": {
-                True: [],
-                False: ["1.0.0-", "1.0.1-rc1"],
-            },
+            "1": struct(
+                release = [],
+                pre_release = ["1.0.0-", "1.0.1-rc1"],
+            ),
         },
         actual.major,
     )
     asserts.equals(
         env,
         {
-            "1.0": {
-                True: [],
-                False: ["1.0.0-", "1.0.1-rc1"],
-            },
+            "1.0": struct(
+                release = [],
+                pre_release = ["1.0.0-", "1.0.1-rc1"],
+            ),
         },
         actual.minor,
     )
     asserts.equals(
         env,
         {
-            "1.0.0": {
-                True: [],
-                False: ["1.0.0-"],
-            },
-            "1.0.1": {
-                True: [],
-                False: ["1.0.1-rc1"],
-            },
+            "1.0.0": struct(
+                release = [],
+                pre_release = ["1.0.0-"],
+            ),
+            "1.0.1": struct(
+                release = [],
+                pre_release = ["1.0.1-rc1"],
+            ),
         },
         actual.patch,
     )

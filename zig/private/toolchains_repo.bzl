@@ -153,8 +153,8 @@ selects.config_setting_group(
 )
 """.format(
                 group = group,
-                releases = repr(versions[True]),
-                pre_releases = repr(versions[False]),
+                releases = repr(versions.release),
+                pre_releases = repr(versions.pre_release),
             )
 
     counter_digits = _calc_counter_digits(len(repository_ctx.attr.zig_versions))
