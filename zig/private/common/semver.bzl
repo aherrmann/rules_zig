@@ -35,6 +35,21 @@ def _parse(version):
         pre_release = pre_release,
     )
 
+# buildifier: disable=unused-variable
+def _grouped(versions):
+    """Group versions in a nested structure by their version components.
+
+    Args:
+      versions: sequence of string, The versions to group.
+
+    Returns:
+      `struct(major, minor, patch, pre_release)`, each field is a `dict` from
+        string to list of string, where the key is the grouping, e.g.
+        `"MAJOR.MINOR"` in the `minor` field, and the value is the list of
+        versions that fall into this group.
+    """
+    pass
+
 def _sorted(versions, *, reverse = False):
     """Sort a list of strings by semantic version comparison."""
 
@@ -45,5 +60,6 @@ def _sorted(versions, *, reverse = False):
     return sorted(versions, key = key, reverse = reverse)
 
 semver = struct(
+    grouped = _grouped,
     sorted = _sorted,
 )
