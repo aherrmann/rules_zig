@@ -17,6 +17,8 @@ This guidance tells us how to avoid that: we put the toolchain targets in the al
 with only the toolchain attribute pointing into the platform-specific repositories.
 """
 
+load("//zig/private/common:semver.bzl", "semver")
+
 # Add more platforms as needed to mirror all the binaries
 # published by the upstream project.
 PLATFORMS = {
@@ -92,6 +94,7 @@ def _toolchains_repo_impl(repository_ctx):
 # By default all these toolchains are registered by the zig_register_toolchains macro
 # so you don't normally need to interact with these targets.
 
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 """
 
@@ -125,6 +128,34 @@ config_setting(
 """.format(
             zig_version = zig_version,
         )
+
+    grouped = semver.grouped(repository_ctx.attr.zig_versions)
+    for grouping in ["major", "minor", "patch"]:
+        for group, versions in getattr(grouped, grouping).items():
+            build_content += """
+# Use this configuration setting in `select` or `target_compatible_with` to
+# change the target based on the Zig version or declare compatibility with a
+# specific set of versions.
+selects.config_setting_group(
+    name = "any_{group}.release",
+    match_any = {releases},
+    visibility = ["//visibility:public"],
+)
+selects.config_setting_group(
+    name = "any_{group}.pre_release",
+    match_any = {pre_releases},
+    visibility = ["//visibility:public"],
+)
+selects.config_setting_group(
+    name = "any_{group}.",
+    match_any = ["any_{group}.release", "any_{group}.pre_release"],
+    visibility = ["//visibility:public"],
+)
+""".format(
+                group = group,
+                releases = repr(versions[True]),
+                pre_releases = repr(versions[False]),
+            )
 
     counter_digits = _calc_counter_digits(len(repository_ctx.attr.zig_versions))
 
