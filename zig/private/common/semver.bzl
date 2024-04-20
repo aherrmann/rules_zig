@@ -72,19 +72,15 @@ def _parse_pre_release_component(component):
     else:
         alpha = component
 
-    return (False, num, alpha)
+    return (num, alpha)
 
 def _parse(version):
     """Split a semantic version into its components for comparison."""
     v = _split(version)
 
-    if v.pre_release == None:
-        pre_release = [(True, 0, "")]
-    else:
-        pre_release = [
-            _parse_pre_release_component(component)
-            for component in v.pre_release
-        ]
+    pre_release = [v.pre_release == None]
+    for component in v.pre_release or []:
+        pre_release.append(_parse_pre_release_component(component))
 
     return struct(
         major = int(v.major),
