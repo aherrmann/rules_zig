@@ -76,22 +76,20 @@ def _parse_pre_release_component(component):
 
 def _parse(version):
     """Split a semantic version into its components for comparison."""
-    if version.find("+") != -1:
-        version, _build = version.split("+", 1)
+    v = _split(version)
 
-    pre_release = [(True, 0, "")]
-    if version.find("-") != -1:
-        version, pre_release = version.split("-", 1)
+    if v.pre_release == None:
+        pre_release = [(True, 0, "")]
+    else:
         pre_release = [
             _parse_pre_release_component(component)
-            for component in pre_release.split(".")
+            for component in v.pre_release
         ]
 
-    major, minor, patch = version.split(".", 3)
     return struct(
-        major = int(major),
-        minor = int(minor),
-        patch = int(patch),
+        major = int(v.major),
+        minor = int(v.minor),
+        patch = int(v.patch),
         pre_release = pre_release,
     )
 
