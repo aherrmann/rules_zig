@@ -32,9 +32,22 @@ TAG_CLASSES = {
     "toolchain": zig_toolchain,
 }
 
-# buildifier: disable=unused-variable
 def handle_tags(module_ctx):
+    """Handle the zig module extension tags.
+
+    Exposed as a standalone function for unit testing.
+
+    Args:
+      module_ctx: The module context object.
+
+    Returns:
+      (err, versions), maybe an error or the list of versions.
+    """
     versions = []
+
+    for mod in module_ctx.modules:
+        for toolchain in mod.tags.toolchain:
+            versions.append(toolchain.zig_version)
 
     if len(versions) == 0:
         versions.append(DEFAULT_VERSION)
