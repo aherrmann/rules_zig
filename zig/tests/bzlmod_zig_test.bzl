@@ -72,6 +72,44 @@ def _zig_versions_test_impl(ctx):
         "should order versions by semver",
     )
 
+    asserts.equals(
+        env,
+        (None, ["0.1.0", "0.0.1"]),
+        handle_tags(struct(
+            modules = [
+                struct(
+                    tags = struct(
+                        toolchain = [
+                            struct(
+                                default = False,
+                                zig_version = "0.0.1",
+                            ),
+                            struct(
+                                default = False,
+                                zig_version = "0.1.0",
+                            ),
+                        ],
+                    ),
+                ),
+                struct(
+                    tags = struct(
+                        toolchain = [
+                            struct(
+                                default = False,
+                                zig_version = "0.0.1",
+                            ),
+                            struct(
+                                default = False,
+                                zig_version = "0.1.0",
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        )),
+        "should deduplicate versions",
+    )
+
     return unittest.end(env)
 
 _zig_versions_test = unittest.make(

@@ -43,13 +43,13 @@ def handle_tags(module_ctx):
     Returns:
       (err, versions), maybe an error or the list of versions.
     """
-    versions = []
+    versions = sets.make()
 
     for mod in module_ctx.modules:
         for toolchain in mod.tags.toolchain:
-            versions.append(toolchain.zig_version)
+            sets.insert(versions, toolchain.zig_version)
 
-    versions = semver.sorted(versions, reverse = True)
+    versions = semver.sorted(sets.to_list(versions), reverse = True)
 
     if len(versions) == 0:
         versions.append(DEFAULT_VERSION)
