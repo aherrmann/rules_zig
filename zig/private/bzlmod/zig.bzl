@@ -52,6 +52,9 @@ def handle_tags(module_ctx):
                 if not mod.is_root:
                     return (("Only the root module may specify a default Zig SDK version.", toolchain), None)
 
+                if default != None:
+                    return (("You may only specify one default Zig SDK version.", toolchain), None)
+
                 default = toolchain.zig_version
 
             sets.insert(versions, toolchain.zig_version)

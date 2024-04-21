@@ -219,6 +219,34 @@ def _zig_versions_test_impl(ctx):
         "only root may set default",
     )
 
+    asserts.equals(
+        env,
+        (("You may only specify one default Zig SDK version.", struct(
+            default = True,
+            zig_version = "0.2.0",
+        )), None),
+        handle_tags(struct(
+            modules = [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [
+                            struct(
+                                default = True,
+                                zig_version = "0.1.0",
+                            ),
+                            struct(
+                                default = True,
+                                zig_version = "0.2.0",
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        )),
+        "only one default allowed",
+    )
+
     return unittest.end(env)
 
 _zig_versions_test = unittest.make(
