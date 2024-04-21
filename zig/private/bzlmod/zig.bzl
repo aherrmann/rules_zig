@@ -50,8 +50,11 @@ def handle_tags(module_ctx):
         for toolchain in mod.tags.toolchain:
             if toolchain.default:
                 default = toolchain.zig_version
-            else:
-                sets.insert(versions, toolchain.zig_version)
+
+            sets.insert(versions, toolchain.zig_version)
+
+    if default != None:
+        sets.remove(versions, default)
 
     versions = semver.sorted(sets.to_list(versions), reverse = True)
 
