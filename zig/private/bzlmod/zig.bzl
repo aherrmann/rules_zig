@@ -1,9 +1,9 @@
 """Implementation of the `zig` module extension."""
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load("//zig:repositories.bzl", "zig_register_toolchains")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load("//zig/private/common:semver.bzl", "semver")
-load("//zig:repositories.bzl", "zig_register_toolchains")
 
 _DOC = """\
 Installs a Zig toolchain.

@@ -145,6 +145,7 @@ filegroup(
         ":zig_target_toolchain.bzl",
         ":zig_test.bzl",
         ":zig_toolchain.bzl",
+        "//zig/private/bzlmod:all_files",
         "//zig/private/common:all_files",
         "//zig/private/providers:all_files",
     ],
