@@ -16,6 +16,7 @@ load(
     "VAR_CACHE_PREFIX_WINDOWS",
     "env_zig_cache_prefix",
 )
+load("//zig/private/repo:zig_repository.bzl", _zig_repository = "zig_repository")
 
 def _http_archive(name, **kwargs):
     maybe(__http_archive, name = name, **kwargs)
@@ -155,10 +156,12 @@ def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, re
     for zig_version in zig_versions:
         sanitized_zig_version = sanitize_version(zig_version)
         for platform in PLATFORMS.keys():
-            zig_repository(
+            _zig_repository(
                 name = name + "_" + sanitized_zig_version + "_" + platform,
                 zig_version = zig_version,
                 platform = platform,
+                url = TOOL_VERSIONS[zig_version][platform].url,
+                integrity = TOOL_VERSIONS[zig_version][platform].integrity,
                 **kwargs
             )
 

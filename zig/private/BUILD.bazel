@@ -148,6 +148,7 @@ filegroup(
         "//zig/private/bzlmod:all_files",
         "//zig/private/common:all_files",
         "//zig/private/providers:all_files",
+        "//zig/private/repo:all_files",
     ],
     visibility = ["//zig:__pkg__"],
 )

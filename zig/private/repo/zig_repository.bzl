@@ -1,7 +1,7 @@
 """Implementation of the `zig_repository` repository rule."""
 
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "update_attrs")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "update_attrs")
 load(
     "//zig/private/common:zig_cache.bzl",
     "VAR_CACHE_PREFIX",

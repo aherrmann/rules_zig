@@ -45,6 +45,7 @@ bzl_library(
         "//zig/private:toolchains_repo",
         "//zig/private:versions",
         "//zig/private/common:zig_cache",
+        "//zig/private/repo:zig_repository",
     ],
 )
 
