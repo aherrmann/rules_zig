@@ -5,7 +5,7 @@ load("//zig:repositories.bzl", "zig_register_toolchains")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load("//zig/private/common:semver.bzl", "semver")
 
-_DOC = """\
+DOC = """\
 Installs a Zig toolchain.
 
 Every module can define multiple toolchain versions. All these versions will be
@@ -28,7 +28,7 @@ zig_toolchain = tag_class(attrs = {
     ),
 })
 
-_TAG_CLASSES = {
+TAG_CLASSES = {
     "toolchain": zig_toolchain,
 }
 
@@ -61,6 +61,6 @@ def _toolchain_extension(module_ctx):
 
 zig = module_extension(
     implementation = _toolchain_extension,
-    doc = _DOC,
-    tag_classes = _TAG_CLASSES,
+    doc = DOC,
+    tag_classes = TAG_CLASSES,
 )
