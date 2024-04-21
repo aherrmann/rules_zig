@@ -17,7 +17,7 @@ declares one as the default.
 """
 
 _DEFAULT_NAME = "zig"
-_DEFAULT_VERSION = TOOL_VERSIONS.keys()[0]
+DEFAULT_VERSION = TOOL_VERSIONS.keys()[0]
 
 zig_toolchain = tag_class(attrs = {
     "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
@@ -35,6 +35,10 @@ TAG_CLASSES = {
 # buildifier: disable=unused-variable
 def handle_tags(module_ctx):
     versions = []
+
+    if len(versions) == 0:
+        versions.append(DEFAULT_VERSION)
+
     return None, versions
 
 def _toolchain_extension(module_ctx):
@@ -56,7 +60,7 @@ def _toolchain_extension(module_ctx):
     if default != None:
         versions.insert(0, default)
     elif len(versions) == 0:
-        versions.append(_DEFAULT_VERSION)
+        versions.append(DEFAULT_VERSION)
 
     zig_register_toolchains(
         name = _DEFAULT_NAME,

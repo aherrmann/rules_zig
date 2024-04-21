@@ -15,6 +15,7 @@ def _zig_versions_test_impl(ctx):
         env,
         (None, []),
         handle_tags(_fake_module_ctx()),
+        "should fall back to the default Zig SDK version",
     )
 
     return unittest.end(env)
