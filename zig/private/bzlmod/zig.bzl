@@ -32,6 +32,11 @@ TAG_CLASSES = {
     "toolchain": zig_toolchain,
 }
 
+# buildifier: disable=unused-variable
+def handle_tags(module_ctx):
+    versions = []
+    return None, versions
+
 def _toolchain_extension(module_ctx):
     default = None
     versions = sets.make()
