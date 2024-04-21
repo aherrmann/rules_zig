@@ -20,6 +20,7 @@ def _zig_versions_test_impl(ctx):
         handle_tags(struct(
             modules = [
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -40,6 +41,7 @@ def _zig_versions_test_impl(ctx):
         handle_tags(struct(
             modules = [
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -54,6 +56,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -78,6 +81,7 @@ def _zig_versions_test_impl(ctx):
         handle_tags(struct(
             modules = [
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -92,6 +96,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -116,6 +121,7 @@ def _zig_versions_test_impl(ctx):
         handle_tags(struct(
             modules = [
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -130,6 +136,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
                 struct(
+                    is_root = True,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -154,6 +161,7 @@ def _zig_versions_test_impl(ctx):
         handle_tags(struct(
             modules = [
                 struct(
+                    is_root = False,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -168,6 +176,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
                 struct(
+                    is_root = True,
                     tags = struct(
                         toolchain = [
                             struct(
@@ -184,6 +193,30 @@ def _zig_versions_test_impl(ctx):
             ],
         )),
         "should not duplicate default",
+    )
+
+    asserts.equals(
+        env,
+        (("Only the root module may specify a default Zig SDK version.", struct(
+            default = True,
+            zig_version = "0.1.0",
+        )), None),
+        handle_tags(struct(
+            modules = [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [
+                            struct(
+                                default = True,
+                                zig_version = "0.1.0",
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        )),
+        "only root may set default",
     )
 
     return unittest.end(env)
