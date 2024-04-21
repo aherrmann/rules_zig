@@ -34,6 +34,44 @@ def _zig_versions_test_impl(ctx):
         "should choose a single configured version",
     )
 
+    asserts.equals(
+        env,
+        (None, ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
+        handle_tags(struct(
+            modules = [
+                struct(
+                    tags = struct(
+                        toolchain = [
+                            struct(
+                                default = False,
+                                zig_version = "0.0.1",
+                            ),
+                            struct(
+                                default = False,
+                                zig_version = "0.4.0",
+                            ),
+                        ],
+                    ),
+                ),
+                struct(
+                    tags = struct(
+                        toolchain = [
+                            struct(
+                                default = False,
+                                zig_version = "0.2.0",
+                            ),
+                            struct(
+                                default = False,
+                                zig_version = "0.1.0",
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+        )),
+        "should order versions by semver",
+    )
+
     return unittest.end(env)
 
 _zig_versions_test = unittest.make(

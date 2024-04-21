@@ -49,6 +49,8 @@ def handle_tags(module_ctx):
         for toolchain in mod.tags.toolchain:
             versions.append(toolchain.zig_version)
 
+    versions = semver.sorted(versions, reverse = True)
+
     if len(versions) == 0:
         versions.append(DEFAULT_VERSION)
 
