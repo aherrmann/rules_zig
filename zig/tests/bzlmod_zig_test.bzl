@@ -197,10 +197,10 @@ def _zig_versions_test_impl(ctx):
 
     asserts.equals(
         env,
-        (("Only the root module may specify a default Zig SDK version.", struct(
+        (["Only the root module may specify a default Zig SDK version.", struct(
             default = True,
             zig_version = "0.1.0",
-        )), None),
+        )], None),
         handle_tags(struct(
             modules = [
                 struct(
@@ -221,10 +221,10 @@ def _zig_versions_test_impl(ctx):
 
     asserts.equals(
         env,
-        (("You may only specify one default Zig SDK version.", struct(
+        (["You may only specify one default Zig SDK version.", struct(
             default = True,
             zig_version = "0.2.0",
-        )), None),
+        )], None),
         handle_tags(struct(
             modules = [
                 struct(
