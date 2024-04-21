@@ -73,25 +73,10 @@ def handle_tags(module_ctx):
     return None, versions
 
 def _toolchain_extension(module_ctx):
-    default = None
-    versions = sets.make()
-    for mod in module_ctx.modules:
-        for toolchain in mod.tags.toolchain:
-            if toolchain.default:
-                if not mod.is_root:
-                    fail("Only the root module may specify a default Zig SDK version.", toolchain)
-                elif default != None:
-                    fail("You may only specify one default Zig SDK version.", toolchain)
-                else:
-                    default = toolchain.zig_version
-            else:
-                sets.insert(versions, toolchain.zig_version)
+    (err, versions) = handle_tags(module_ctx)
 
-    versions = semver.sorted(sets.to_list(versions), reverse = True)
-    if default != None:
-        versions.insert(0, default)
-    elif len(versions) == 0:
-        versions.append(DEFAULT_VERSION)
+    if err != None:
+        fail(*err)
 
     zig_register_toolchains(
         name = _DEFAULT_NAME,
