@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub fn main() !void {
     const args = try std.process.argsAlloc(std.heap.page_allocator);
@@ -15,7 +16,10 @@ pub fn main() !void {
 fn printMachineType(allocator: std.mem.Allocator, binary_path: []const u8) !void {
     const content = try std.fs.cwd().readFileAlloc(allocator, binary_path, 1048576);
 
-    var coff = try std.coff.Coff.init(content);
+    var coff = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+        try std.coff.Coff.init(content)
+    else
+        try std.coff.Coff.init(content, false);
 
     try std.io.getStdOut().writer().print("{s}\n", .{@tagName(coff.getCoffHeader().machine)});
 }
