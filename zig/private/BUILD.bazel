@@ -108,6 +108,12 @@ bzl_library(
 )
 
 bzl_library(
+    name = "platforms",
+    srcs = ["platforms.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
+bzl_library(
     name = "resolved_target_toolchain",
     srcs = ["resolved_target_toolchain.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -131,6 +137,7 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         ":cc_linkopts.bzl",
+        ":platforms.bzl",
         ":resolved_target_toolchain.bzl",
         ":resolved_toolchain.bzl",
         ":settings.bzl",

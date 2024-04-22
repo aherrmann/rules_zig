@@ -42,6 +42,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":bazel_tools",
+        "//zig/private:platforms",
         "//zig/private:versions",
         "//zig/private/common:zig_cache",
         "//zig/private/repo:toolchains_repo",
