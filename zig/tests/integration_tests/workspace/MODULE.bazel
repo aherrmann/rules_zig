@@ -7,4 +7,6 @@ local_path_override(
 )
 
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
+zig.toolchain(zig_version = "0.12.0")
+zig.toolchain(zig_version = "0.11.0")
 use_repo(zig, "zig_toolchains")
