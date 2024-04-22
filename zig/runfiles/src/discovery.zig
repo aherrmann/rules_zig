@@ -181,7 +181,7 @@ test "discover user specified manifest" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .manifest), location);
+    try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
     try std.testing.expectEqualStrings(manifest_path, location.manifest);
 }
 
@@ -202,7 +202,7 @@ test "discover environment specified manifest" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .manifest), location);
+    try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
     try std.testing.expectEqualStrings(manifest_path, location.manifest);
 }
 
@@ -221,7 +221,7 @@ test "discover user specified directory" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .directory), location);
+    try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
     try std.testing.expectEqualStrings(directory_path, location.directory);
 }
 
@@ -242,7 +242,7 @@ test "discover environment specified directory" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .directory), location);
+    try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
     try std.testing.expectEqualStrings(directory_path, location.directory);
 }
 
@@ -266,7 +266,7 @@ test "discover user specified argv0 manifest" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .manifest), location);
+    try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
     try std.testing.expectEqualStrings(manifest_path, location.manifest);
 }
 
@@ -290,7 +290,7 @@ test "discover user specified argv0 .exe manifest" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .manifest), location);
+    try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
     try std.testing.expectEqualStrings(manifest_path, location.manifest);
 }
 
@@ -314,7 +314,7 @@ test "discover user specified argv0 directory" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .directory), location);
+    try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
     try std.testing.expectEqualStrings(directory_path, location.directory);
 }
 
@@ -338,7 +338,7 @@ test "discover user specified argv0 .exe directory" {
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
-    try std.testing.expectEqual(@as(Strategy, .directory), location);
+    try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
     try std.testing.expectEqualStrings(directory_path, location.directory);
 }
 
@@ -391,7 +391,7 @@ test "discover priority" {
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
-        try std.testing.expectEqual(@as(Strategy, .manifest), location);
+        try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
         try std.testing.expectEqualStrings(manifest_path, location.manifest);
     }
 
@@ -409,7 +409,7 @@ test "discover priority" {
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
-        try std.testing.expectEqual(@as(Strategy, .directory), location);
+        try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
         try std.testing.expectEqualStrings(directory_path, location.directory);
     }
 
@@ -426,7 +426,7 @@ test "discover priority" {
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
-        try std.testing.expectEqual(@as(Strategy, .manifest), location);
+        try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
         try std.testing.expectEqualStrings(manifest_path, location.manifest);
     }
 
@@ -443,7 +443,7 @@ test "discover priority" {
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
-        try std.testing.expectEqual(@as(Strategy, .directory), location);
+        try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
         try std.testing.expectEqualStrings(directory_path, location.directory);
     }
 
@@ -460,7 +460,7 @@ test "discover priority" {
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
-        try std.testing.expectEqual(@as(Strategy, .manifest), location);
+        try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
         try std.testing.expectEqualStrings(manifest_path, location.manifest);
     }
 
@@ -479,7 +479,7 @@ test "discover priority" {
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
-        try std.testing.expectEqual(@as(Strategy, .directory), location);
+        try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
         try std.testing.expectEqualStrings(directory_path, location.directory);
     }
 
