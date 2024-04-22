@@ -8,6 +8,15 @@ local_path_override(
     path = "../..",
 )
 
+zig = use_extension(
+    "@rules_zig//zig:extensions.bzl",
+    "zig",
+    dev_dependency = True,
+)
+zig.toolchain(zig_version = "0.12.0")
+zig.toolchain(zig_version = "0.11.0")
+use_repo(zig, "zig_toolchains")
+
 bazel_dep(name = "runfiles_library_dependency", dev_dependency = True)
 local_path_override(
     module_name = "runfiles_library_dependency",
