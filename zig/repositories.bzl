@@ -6,8 +6,8 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", __http_archive = "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//zig/private:toolchains_repo.bzl", "PLATFORMS", "sanitize_version", "toolchains_repo")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
+load("//zig/private/repo:toolchains_repo.bzl", "PLATFORMS", "sanitize_version", "toolchains_repo")
 load("//zig/private/repo:zig_repository.bzl", _zig_repository = "zig_repository")
 
 def _http_archive(name, **kwargs):
