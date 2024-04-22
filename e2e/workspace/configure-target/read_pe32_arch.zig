@@ -1,7 +1,7 @@
 const std = @import("std");
 
 pub fn main() !void {
-    var args = try std.process.argsAlloc(std.heap.page_allocator);
+    const args = try std.process.argsAlloc(std.heap.page_allocator);
     defer std.process.argsFree(std.heap.page_allocator, args);
 
     if (args.len < 2) {
