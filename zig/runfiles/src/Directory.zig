@@ -4,6 +4,7 @@
 //! [runfiles-design]: https://docs.google.com/document/d/e/2PACX-1vSDIrFnFvEYhKsCMdGdD40wZRBX3m3aZ5HhVj4CtHPmiXKDCxioTUbYsDydjKtFDAzER5eg7OjJWs3V/pub
 
 const std = @import("std");
+const builtin = @import("builtin");
 
 const RPath = @import("RPath.zig");
 
@@ -11,7 +12,10 @@ const Directory = @This();
 
 path: []const u8,
 
-pub const InitError = std.mem.Allocator.Error || std.os.RealPathError || std.os.OpenError;
+pub const InitError = std.mem.Allocator.Error || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+    std.os.OpenError || std.os.RealPathError
+else
+    std.posix.OpenError || std.posix.RealPathError);
 
 pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Directory {
     const absolute = try std.fs.cwd().realpathAlloc(allocator, path);
