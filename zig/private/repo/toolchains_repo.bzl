@@ -21,6 +21,22 @@ platform-specific repositories.
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("//zig/private/common:semver.bzl", "semver")
 
+DOC = """\
+Create a repository that defines toolchain targets for all Zig toolchains.
+
+The properties of each toolchain target are split across multiple attributes.
+All the attributes must be ordered such that values corresponding to a single
+toolchain are aligned.
+"""
+
+ATTRS = {
+    "names": attr.string_list(doc = "The name suffixes to assign to the generated toolchain targets. Will be pre-fixed with a counter for ordering."),
+    "labels": attr.string_list(doc = "The labels to the toolchain implementation targets."),
+    "zig_versions": attr.string_list(doc = "The Zig SDK versions of the corresponding toolchain targets."),
+    "exec_lengths": attr.int_list(doc = "The length of the slice of the `exec_constraints` attribute that corresponds to each toolchain target."),
+    "exec_constraints": attr.string_list(doc = "All toolchain execution platform constraints concatenated to a single list."),
+}
+
 def sanitize_version(zig_version):
     """Replace any illegal workspace name characters in the Zig version."""
     return zig_version.replace("+", "_P")
@@ -170,18 +186,6 @@ toolchain(
 
 toolchains_repo = repository_rule(
     _toolchains_repo_impl,
-    doc = """\
-Create a repository that defines toolchain targets for all Zig toolchains.
-
-The properties of each toolchain target are split across multiple attributes.
-All the attributes must be ordered such that values corresponding to a single
-toolchain are aligned.
-""",
-    attrs = {
-        "names": attr.string_list(doc = "The name suffixes to assign to the generated toolchain targets. Will be pre-fixed with a counter for ordering."),
-        "labels": attr.string_list(doc = "The labels to the toolchain implementation targets."),
-        "zig_versions": attr.string_list(doc = "The Zig SDK versions of the corresponding toolchain targets."),
-        "exec_lengths": attr.int_list(doc = "The length of the slice of the `exec_constraints` attribute that corresponds to each toolchain target."),
-        "exec_constraints": attr.string_list(doc = "All toolchain execution platform constraints concatenated to a single list."),
-    },
+    doc = DOC,
+    attrs = ATTRS,
 )
