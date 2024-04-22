@@ -15,7 +15,10 @@ bzl_library(
     name = "toolchains_repo",
     srcs = ["toolchains_repo.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/common:semver"],
+    deps = [
+        "//zig/private/common:semver",
+        "@bazel_skylib//lib:sets",
+    ],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

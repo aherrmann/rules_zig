@@ -107,11 +107,22 @@ def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, re
     if versions_unset:
         zig_versions = [zig_version]
 
+    toolchain_names = []
+    toolchain_labels = []
+    toolchain_zig_versions = []
+    toolchain_exec_lengths = []
+    toolchain_exec_constraints = []
     for zig_version in zig_versions:
         sanitized_zig_version = sanitize_version(zig_version)
-        for platform in PLATFORMS.keys():
+        for platform, meta in PLATFORMS.items():
+            repo_name = name + "_" + sanitized_zig_version + "_" + platform
+            toolchain_names.append(repo_name)
+            toolchain_labels.append("@{}//:zig_toolchain".format(repo_name))
+            toolchain_zig_versions.append(zig_version)
+            toolchain_exec_lengths.append(len(meta.compatible_with))
+            toolchain_exec_constraints.extend(meta.compatible_with)
             zig_repository(
-                name = name + "_" + sanitized_zig_version + "_" + platform,
+                name = repo_name,
                 zig_version = zig_version,
                 platform = platform,
                 **kwargs
@@ -119,8 +130,11 @@ def zig_register_toolchains(*, name, zig_versions = None, zig_version = None, re
 
     toolchains_repo(
         name = name + "_toolchains",
-        user_repository_name = name,
-        zig_versions = zig_versions,
+        names = toolchain_names,
+        labels = toolchain_labels,
+        zig_versions = toolchain_zig_versions,
+        exec_lengths = toolchain_exec_lengths,
+        exec_constraints = toolchain_exec_constraints,
     )
 
     if register:
