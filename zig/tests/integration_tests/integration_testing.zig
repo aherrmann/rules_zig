@@ -16,15 +16,19 @@ pub const BitContext = struct {
     bzlmod_enabled: bool,
 
     pub fn init() !BitContext {
-        const workspace_path = std.os.getenv(BIT_WORKSPACE_DIR) orelse {
+        const getenv = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+            std.os.getenv
+        else
+            std.posix.getenv;
+        const workspace_path = getenv(BIT_WORKSPACE_DIR) orelse {
             std.log.err("Required environment variable not found: {s}", .{BIT_WORKSPACE_DIR});
             return error.EnvironmentVariableNotFound;
         };
-        const bazel_path = std.os.getenv(BIT_BAZEL_BINARY) orelse {
+        const bazel_path = getenv(BIT_BAZEL_BINARY) orelse {
             std.log.err("Required environment variable not found: {s}", .{BIT_BAZEL_BINARY});
             return error.EnvironmentVariableNotFound;
         };
-        const bzlmod_enabled = if (std.os.getenv("BZLMOD_ENABLED")) |val|
+        const bzlmod_enabled = if (getenv("BZLMOD_ENABLED")) |val|
             std.mem.eql(u8, val, "true")
         else
             false;
@@ -77,7 +81,11 @@ pub const BitContext = struct {
             while (iter.next()) |item|
                 try env_map.?.put(item.key_ptr.*, item.value_ptr.*);
         }
-        const result = try std.ChildProcess.exec(.{
+        const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+            std.ChildProcess.exec
+        else
+            std.ChildProcess.run;
+        const result = try run(.{
             .allocator = std.testing.allocator,
             .argv = argv,
             .cwd = self.workspace_path,

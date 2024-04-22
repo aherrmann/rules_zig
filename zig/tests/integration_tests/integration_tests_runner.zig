@@ -348,7 +348,11 @@ test "runfiles library supports manifest mode" {
     env_map.remove("RUNFILES_MANIFEST_FILE");
 
     // Execute the binary.
-    const result = try std.ChildProcess.exec(.{
+    const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+        std.ChildProcess.exec
+    else
+        std.ChildProcess.run;
+    const result = try run(.{
         .allocator = std.testing.allocator,
         .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
         .cwd_dir = workspace,
@@ -359,6 +363,6 @@ test "runfiles library supports manifest mode" {
 
     if (result.stderr.len > 0)
         std.log.warn("stderr: {s}", .{result.stderr});
-    try std.testing.expectEqual(.{ .Exited = 0 }, result.term);
+    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
     try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
 }
