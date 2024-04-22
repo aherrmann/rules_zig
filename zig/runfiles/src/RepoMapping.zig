@@ -39,7 +39,7 @@ pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoM
         return e;
     };
     errdefer allocator.free(content);
-    var mapping = try parse(allocator, content, file_path);
+    const mapping = try parse(allocator, content, file_path);
     return .{
         .mapping = mapping,
         .content = content,

@@ -42,7 +42,7 @@ pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Manifest {
         return e;
     };
     errdefer allocator.free(content);
-    var mapping = try parse(allocator, content);
+    const mapping = try parse(allocator, content);
     return .{
         .mapping = mapping,
         .content = content,

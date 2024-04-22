@@ -14,7 +14,7 @@ path: []const u8,
 pub const InitError = std.mem.Allocator.Error || std.os.RealPathError || std.os.OpenError;
 
 pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Directory {
-    var absolute = try std.fs.cwd().realpathAlloc(allocator, path);
+    const absolute = try std.fs.cwd().realpathAlloc(allocator, path);
     errdefer allocator.free(absolute);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     return .{ .path = absolute };
