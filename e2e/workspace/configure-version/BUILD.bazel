@@ -10,27 +10,27 @@ genrule(
 )
 
 zig_configure(
-    name = "zig_version_0.11.0",
+    name = "zig_version_0.12.0",
     actual = ":zig_version",
-    zig_version = "0.11.0",
+    zig_version = "0.12.0",
 )
 
 diff_test(
-    name = "zig_version_test_0.11.0",
+    name = "zig_version_test_0.12.0",
     size = "small",
-    file1 = ":zig_version_0.11.0.expected",
-    file2 = ":zig_version_0.11.0",
+    file1 = ":zig_version_0.12.0.expected",
+    file2 = ":zig_version_0.12.0",
 )
 
 zig_test(
-    name = "zig_test_0.11.0_manual",
-    main = "test-0.11.0.zig",
+    name = "zig_test_0.12.0_manual",
+    main = "test-0.12.0.zig",
     tags = ["manual"],
 )
 
 zig_configure_test(
-    name = "zig_test_0.11.0",
+    name = "zig_test_0.12.0",
     size = "small",
-    actual = ":zig_test_0.11.0_manual",
-    zig_version = "0.11.0",
+    actual = ":zig_test_0.12.0_manual",
+    zig_version = "0.12.0",
 )
