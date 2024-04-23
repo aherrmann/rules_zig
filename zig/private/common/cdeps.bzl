@@ -47,6 +47,7 @@ def _compilation_context(*, compilation_context, inputs, args):
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
 def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
+    all_libraries = []
     dynamic_libraries = []
     for link in linking_context.linker_inputs.to_list():
         args.add_all(link.user_link_flags)
@@ -65,6 +66,8 @@ def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
                 file = lib.dynamic_library
                 dynamic = True
 
+            all_libraries.append((file, dynamic))
+
             if dynamic and lib.dynamic_library:
                 dynamic_libraries.append(lib.dynamic_library)
 
@@ -79,10 +82,32 @@ def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
 
             if file:
                 inputs.append(file)
-                args.add(file)
 
+    args.add_all(
+        all_libraries,
+        map_each = _lib_flags,
+        uniquify = True,
+    )
     data.extend(dynamic_libraries)
-    args.add_all(dynamic_libraries, map_each = _make_to_rpath(output_dir, os), allow_closure = True, before_each = "-rpath")
+    args.add_all(
+        dynamic_libraries,
+        map_each = _make_to_rpath(output_dir, os),
+        allow_closure = True,
+        before_each = "-rpath",
+        uniquify = True,
+    )
+
+def _lib_flags(arg):
+    (file, dynamic) = arg
+    if dynamic:
+        ext_skip = len(file.extension) + 1
+        if file.basename.startswith("lib"):
+            libname = file.basename[3:-ext_skip]
+        else:
+            libname = file.basename[:-ext_skip]
+        return ["-L" + file.dirname, "-l" + libname]
+    else:
+        return file.path
 
 def _make_to_rpath(output_dir, os):
     origin = "$ORIGIN"
