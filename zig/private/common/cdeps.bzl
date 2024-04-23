@@ -79,7 +79,15 @@ def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
 
             if file:
                 inputs.append(file)
-                args.add(file)
+                if dynamic:
+                    ext_skip = len(file.extension) + 1
+                    if file.basename.startswith("lib"):
+                        libname = file.basename[3:-ext_skip]
+                    else:
+                        libname = file.basename[:-ext_skip]
+                    args.add_all(["-L" + file.dirname, "-l" + libname])
+                else:
+                    args.add(file)
 
     data.extend(dynamic_libraries)
     args.add_all(dynamic_libraries, map_each = _make_to_rpath(output_dir, os), allow_closure = True, before_each = "-rpath")
