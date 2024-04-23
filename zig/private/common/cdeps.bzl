@@ -90,7 +90,13 @@ def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
                     args.add(file)
 
     data.extend(dynamic_libraries)
-    args.add_all(dynamic_libraries, map_each = _make_to_rpath(output_dir, os), allow_closure = True, before_each = "-rpath")
+    args.add_all(
+        dynamic_libraries,
+        map_each = _make_to_rpath(output_dir, os),
+        allow_closure = True,
+        before_each = "-rpath",
+        uniquify = True,
+    )
 
 def _make_to_rpath(output_dir, os):
     origin = "$ORIGIN"
