@@ -1,6 +1,15 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
+
+selects.config_setting_group(
+    name = "macos-zig-0.12.0",
+    match_all = [
+        "@platforms//os:macos",
+        "@zig_toolchains//:0.12.0",
+    ],
+)
 
 cc_binary(
     name = "add",
@@ -34,6 +43,10 @@ zig_library(
         "@rules_zig//zig/lib:libc",
     ],
     main = "main.zig",
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 zig_test(
@@ -47,11 +60,25 @@ zig_test(
 )
 
 build_test(
-    name = "build",
+    name = "build-binary",
     size = "small",
     targets = [
         ":binary",
+    ],
+)
+
+build_test(
+    name = "build-library",
+    size = "small",
+    targets = [
         ":library",
+    ],
+)
+
+build_test(
+    name = "build-test",
+    size = "small",
+    targets = [
         ":test",
     ],
 )
