@@ -22,6 +22,7 @@ load(
     "//zig/private/providers:zig_module_info.bzl",
     "ZigModuleInfo",
     "zig_module_dependencies",
+    "zig_module_specifications",
 )
 load(
     "//zig/private/providers:zig_settings_info.bzl",
@@ -196,12 +197,15 @@ def zig_build_impl(ctx, *, kind):
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
-    direct_inputs.append(ctx.file.main)
-    direct_inputs.extend(ctx.files.srcs)
-    direct_inputs.extend(ctx.files.extra_srcs)
+    zig_lib_dir(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = args,
+    )
 
-    args.add_all(["--main-pkg-path", "."])
-    args.add(ctx.file.main)
+    zig_cache_output(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = args,
+    )
 
     location_targets = ctx.attr.data
 
@@ -217,15 +221,6 @@ def zig_build_impl(ctx, *, kind):
         copts = copts,
         csrcs = ctx.files.csrcs,
         inputs = direct_inputs,
-        args = args,
-    )
-
-    bazel_builtin = bazel_builtin_module(ctx)
-
-    zig_module_dependencies(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
-        inputs = transitive_inputs,
         args = args,
     )
 
@@ -245,14 +240,17 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    zig_lib_dir(
-        zigtoolchaininfo = zigtoolchaininfo,
-        args = args,
-    )
+    direct_inputs.append(ctx.file.main)
+    direct_inputs.extend(ctx.files.srcs)
+    direct_inputs.extend(ctx.files.extra_srcs)
 
-    zig_cache_output(
-        zigtoolchaininfo = zigtoolchaininfo,
+    bazel_builtin = bazel_builtin_module(ctx)
+
+    zig_module_dependencies(
+        deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
         args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
     zig_settings(
@@ -263,6 +261,20 @@ def zig_build_impl(ctx, *, kind):
     zig_target_platform(
         target = zigtargetinfo,
         args = args,
+    )
+
+    if zigtoolchaininfo.zig_version.startswith("0.11."):
+        args.add_all(["--main-pkg-path", "."])
+        args.add(ctx.file.main)
+    else:
+        args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
+
+    zig_module_specifications(
+        deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
+        inputs = transitive_inputs,
+        args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
     inputs = depset(

@@ -31,7 +31,10 @@ mapping: HashMapUnmanaged,
 content: []const u8,
 path: []const u8,
 
-pub const InitError = ParseError || std.mem.Allocator.Error || std.os.RealPathError || std.os.OpenError || std.os.PReadError;
+pub const InitError = ParseError || std.mem.Allocator.Error || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+    std.os.OpenError || std.os.PReadError || std.os.RealPathError
+else
+    std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError);
 
 pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Manifest {
     const content = std.fs.cwd().readFileAlloc(allocator, path, std.math.maxInt(usize)) catch |e| {
@@ -42,7 +45,7 @@ pub fn init(allocator: std.mem.Allocator, path: []const u8) InitError!Manifest {
         return e;
     };
     errdefer allocator.free(content);
-    var mapping = try parse(allocator, content);
+    const mapping = try parse(allocator, content);
     return .{
         .mapping = mapping,
         .content = content,

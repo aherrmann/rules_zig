@@ -27,7 +27,10 @@ const RepoMapping = @This();
 mapping: HashMapUnmanaged,
 content: []const u8,
 
-pub const InitError = ParseError || std.os.RealPathError || std.os.OpenError || std.os.PReadError;
+pub const InitError = ParseError || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+    std.os.OpenError || std.os.PReadError || std.os.RealPathError
+else
+    std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError);
 
 /// Reads the given file into memory and parses the repo-mapping file format.
 pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoMapping {
@@ -39,7 +42,7 @@ pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoM
         return e;
     };
     errdefer allocator.free(content);
-    var mapping = try parse(allocator, content, file_path);
+    const mapping = try parse(allocator, content, file_path);
     return .{
         .mapping = mapping,
         .content = content,

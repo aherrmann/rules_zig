@@ -13,6 +13,7 @@ load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_module_info.bzl",
     "zig_module_dependencies",
+    "zig_module_specifications",
 )
 load(
     "//zig/private/providers:zig_settings_info.bzl",
@@ -64,13 +65,15 @@ def zig_docs_impl(ctx, *, kind):
 
     files = depset([output])
 
-    direct_inputs.append(ctx.file.main)
-    direct_inputs.extend(ctx.files.srcs)
-    direct_inputs.extend(ctx.files.extra_srcs)
-    direct_inputs.extend(ctx.files.extra_docs)
+    zig_lib_dir(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = args,
+    )
 
-    args.add_all(["--main-pkg-path", "."])
-    args.add(ctx.file.main)
+    zig_cache_output(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = args,
+    )
 
     location_targets = ctx.attr.data
 
@@ -89,15 +92,6 @@ def zig_docs_impl(ctx, *, kind):
         args = args,
     )
 
-    bazel_builtin = bazel_builtin_module(ctx)
-
-    zig_module_dependencies(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
-        inputs = transitive_inputs,
-        args = args,
-    )
-
     zig_cdeps(
         cdeps = ctx.attr.cdeps,
         output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
@@ -108,14 +102,32 @@ def zig_docs_impl(ctx, *, kind):
         data = direct_data,
     )
 
-    zig_lib_dir(
-        zigtoolchaininfo = zigtoolchaininfo,
+    direct_inputs.append(ctx.file.main)
+    direct_inputs.extend(ctx.files.srcs)
+    direct_inputs.extend(ctx.files.extra_srcs)
+    direct_inputs.extend(ctx.files.extra_docs)
+
+    bazel_builtin = bazel_builtin_module(ctx)
+
+    zig_module_dependencies(
+        deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
         args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
-    zig_cache_output(
-        zigtoolchaininfo = zigtoolchaininfo,
+    if zigtoolchaininfo.zig_version.startswith("0.11."):
+        args.add_all(["--main-pkg-path", "."])
+        args.add(ctx.file.main)
+    else:
+        args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
+
+    zig_module_specifications(
+        deps = ctx.attr.deps,
+        extra_deps = [bazel_builtin],
+        inputs = transitive_inputs,
         args = args,
+        zig_version = zigtoolchaininfo.zig_version,
     )
 
     zig_settings(

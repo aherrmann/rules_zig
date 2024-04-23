@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const runfiles = @import("runfiles");
 
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
@@ -111,7 +112,11 @@ test "runfiles in nested binary" {
     try env.put("DATA", data_rpath);
     try r.environment(&env);
 
-    const result = try std.ChildProcess.exec(.{
+    const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+        std.ChildProcess.exec
+    else
+        std.ChildProcess.run;
+    const result = try run(.{
         .allocator = std.testing.allocator,
         .argv = &[_][]const u8{binary_path},
         .env_map = &env,

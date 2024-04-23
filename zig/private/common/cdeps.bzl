@@ -37,7 +37,7 @@ def _compilation_context(*, compilation_context, inputs, args):
     args.add_all(compilation_context.defines, format_each = "-D%s")
     args.add_all(compilation_context.includes, format_each = "-I%s")
 
-    # Note, Zig does not support `-iquote` as of Zig 0.11.0
+    # Note, Zig does not support `-iquote` as of Zig 0.12.0
     # args.add_all(compilation_context.quote_includes, format_each = "-iquote%s")
     args.add_all(compilation_context.quote_includes, format_each = "-I%s")
     args.add_all(compilation_context.system_includes, before_each = "-isystem")

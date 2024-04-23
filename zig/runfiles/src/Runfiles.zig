@@ -53,19 +53,19 @@ pub fn create(options: CreateOptions) CreateError!?Runfiles {
         switch (result) {
             .manifest => |path| {
                 defer options.allocator.free(path);
-                var manifest = try Manifest.init(options.allocator, path);
+                const manifest = try Manifest.init(options.allocator, path);
                 break :discover Implementation{ .manifest = manifest };
             },
             .directory => |path| {
                 defer options.allocator.free(path);
-                var directory = try Directory.init(options.allocator, path);
+                const directory = try Directory.init(options.allocator, path);
                 break :discover Implementation{ .directory = directory };
             },
         }
     };
     errdefer implementation.deinit(options.allocator);
 
-    var repo_mapping = try implementation.loadRepoMapping(options.allocator);
+    const repo_mapping = try implementation.loadRepoMapping(options.allocator);
 
     return Runfiles{
         .implementation = implementation,

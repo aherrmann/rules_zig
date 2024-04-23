@@ -49,6 +49,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
+        zigversion: [0.12.0]
         bzlmodEnabled: [true, false]
         folder:
           - "."
@@ -59,43 +60,87 @@ jobs:
           # we only run them against the latest Bazel version.
           - os: ubuntu-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: false
             folder: "."
             target: "//zig/tests/integration_tests"
           - os: ubuntu-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: true
             folder: "."
             target: "//zig/tests/integration_tests"
           - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: true
             folder: "."
             target: "//zig/tests/integration_tests"
+          # Only test older Zig versions with the latest Bazel version
+          - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.11.0
+            bzlmodEnabled: false
+            folder: "."
+            target: "//..."
+          - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.11.0
+            bzlmodEnabled: true
+            folder: "."
+            target: "//..."
+          - os: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.11.0
+            bzlmodEnabled: true
+            folder: "."
+            target: "//..."
+          - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.11.0
+            bzlmodEnabled: false
+            folder: "e2e/workspace"
+            target: "//..."
+          - os: ubuntu-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.11.0
+            bzlmodEnabled: true
+            folder: "e2e/workspace"
+            target: "//..."
+          - os: macos-latest
+            bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.11.0
+            bzlmodEnabled: true
+            folder: "e2e/workspace"
+            target: "//..."
           # Only test the latest Bazel version on MacOS (MacOS runners are expensive and slow)
           - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: false
             folder: "."
             target: "//..."
           - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: true
             folder: "."
             target: "//..."
           - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: false
             folder: "e2e/workspace"
             target: "//..."
           - os: macos-latest
             bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigversion: 0.12.0
             bzlmodEnabled: true
             folder: "e2e/workspace"
             target: "//..."
 
     # Configure a human readable name for each job
-    name: Test ${{ matrix.target }} in ${{ matrix.folder }} with Bazel ${{ matrix.bazelversion }} and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
+    name: Test ${{ matrix.target }} in ${{ matrix.folder }} with Zig ${{ matrix.zigversion }}, Bazel ${{ matrix.bazelversion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -119,13 +164,17 @@ jobs:
           path: |
             ~/.cache/bazel
             ~/.cache/bazel-repo
-          key: bazel-cache-${{ matrix.os }}-${{ matrix.bazelversion }}-${{ matrix.bzlmodEnabled }}-${{ matrix.folder }}-${{ matrix.target }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
+          key: bazel-cache-${{ matrix.os }}-${{ matrix.zigversion }}-${{ matrix.bazelversion }}-${{ matrix.bzlmodEnabled }}-${{ matrix.folder }}-${{ matrix.target }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
           restore-keys: |
             bazel-cache-${{ matrix.os }}-${{ matrix.bazelversion }}-${{ matrix.bzlmodEnabled }}-${{ matrix.folder }}-${{ matrix.target }}
 
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
+
+      - name: Configure Zig version
+        working-directory: ${{ matrix.folder }}
+        run: echo "build --@zig_toolchains//:version=${{ matrix.zigversion }}" > .bazelrc.user
 
       - name: Configure documentation generation
         if: matrix.folder == '.' && matrix.target == '//...'
