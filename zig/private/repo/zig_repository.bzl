@@ -1,6 +1,5 @@
 """Implementation of the `zig_repository` repository rule."""
 
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "update_attrs")
 load(
     "//zig/private/common:zig_cache.bzl",
@@ -28,10 +27,22 @@ ENV = [
     VAR_CACHE_PREFIX_WINDOWS,
 ]
 
+def _basename(path):
+    return path.rpartition("/")[-1]
+
+def _split_extension(basename):
+    pos = basename.rfind(".")
+
+    if pos <= 0:
+        return (basename, "")
+
+    from_end = len(basename) - pos
+    return (basename[:-from_end], basename[-from_end:])
+
 def _get_strip_prefix(*, url):
-    basename0 = paths.basename(url)
-    basename1, _ = paths.split_extension(basename0)
-    basename2, ext2 = paths.split_extension(basename1)
+    basename0 = _basename(url)
+    basename1, _ = _split_extension(basename0)
+    basename2, ext2 = _split_extension(basename1)
 
     if ext2 == ".tar":
         strip_prefix = basename2
