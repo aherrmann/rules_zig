@@ -96,15 +96,14 @@ bzl_library(
 )
 
 bzl_library(
-    name = "toolchains_repo",
-    srcs = ["toolchains_repo.bzl"],
+    name = "cc_linkopts",
+    srcs = ["cc_linkopts.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/common:semver"],
 )
 
 bzl_library(
-    name = "cc_linkopts",
-    srcs = ["cc_linkopts.bzl"],
+    name = "platforms",
+    srcs = ["platforms.bzl"],
     visibility = ["//zig:__subpackages__"],
 )
 
@@ -132,10 +131,10 @@ filegroup(
     srcs = [
         ":BUILD.bazel",
         ":cc_linkopts.bzl",
+        ":platforms.bzl",
         ":resolved_target_toolchain.bzl",
         ":resolved_toolchain.bzl",
         ":settings.bzl",
-        ":toolchains_repo.bzl",
         ":versions.bzl",
         ":zig_binary.bzl",
         ":zig_configure.bzl",
@@ -148,6 +147,7 @@ filegroup(
         "//zig/private/bzlmod:all_files",
         "//zig/private/common:all_files",
         "//zig/private/providers:all_files",
+        "//zig/private/repo:all_files",
     ],
     visibility = ["//zig:__pkg__"],
 )

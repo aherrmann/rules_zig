@@ -76,27 +76,19 @@ Use `zig_repository` instead.
 ## zig_repository
 
 <pre>
-zig_repository(<a href="#zig_repository-name">name</a>, <a href="#zig_repository-platform">platform</a>, <a href="#zig_repository-repo_mapping">repo_mapping</a>, <a href="#zig_repository-zig_version">zig_version</a>)
+zig_repository(<a href="#zig_repository-name">name</a>, <a href="#zig_repository-zig_version">zig_version</a>, <a href="#zig_repository-platform">platform</a>, <a href="#zig_repository-kwargs">kwargs</a>)
 </pre>
 
 Fetch and install a Zig toolchain.
 
-**ATTRIBUTES**
+**PARAMETERS**
 
 
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig_repository-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_repository-platform"></a>platform |  -   | String | required |  |
-| <a id="zig_repository-repo_mapping"></a>repo_mapping |  In `WORKSPACE` context only: a dictionary from local repository name to global repository name. This allows controls over workspace dependency resolution for dependencies of this repository.<br><br>For example, an entry `"@foo": "@bar"` declares that, for any time this repository depends on `@foo` (such as a dependency on `@foo//some:target`, it should actually resolve that dependency within globally-declared `@bar` (`@bar//some:target`).<br><br>This attribute is _not_ supported in `MODULE.bazel` context (when invoking a repository rule inside a module extension's implementation function).   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional |  |
-| <a id="zig_repository-zig_version"></a>zig_version |  -   | String | required |  |
-
-**ENVIRONMENT VARIABLES**
-
-This repository rule depends on the following environment variables:
-* `RULES_ZIG_CACHE_PREFIX`
-* `RULES_ZIG_CACHE_PREFIX_LINUX`
-* `RULES_ZIG_CACHE_PREFIX_MACOS`
-* `RULES_ZIG_CACHE_PREFIX_WINDOWS`
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="zig_repository-name"></a>name |  string, A unique name for the repository.   |  none |
+| <a id="zig_repository-zig_version"></a>zig_version |  string, The Zig SDK version number.   |  none |
+| <a id="zig_repository-platform"></a>platform |  string, The platform that the Zig SDK can execute on, e.g. `x86_64-linux` or `aarch64-macos`.   |  none |
+| <a id="zig_repository-kwargs"></a>kwargs |  Passed to the underlying repository rule.   |  none |
 
 

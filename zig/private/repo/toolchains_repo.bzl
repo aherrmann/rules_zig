@@ -2,62 +2,38 @@
 
 This follows guidance here:
 https://docs.bazel.build/versions/main/skylark/deploying.html#registering-toolchains
-"
-Note that in order to resolve toolchains in the analysis phase
-Bazel needs to analyze all toolchain targets that are registered.
-Bazel will not need to analyze all targets referenced by toolchain.toolchain attribute.
-If in order to register toolchains you need to perform complex computation in the repository,
-consider splitting the repository with toolchain targets
-from the repository with <LANG>_toolchain targets.
-Former will be always fetched,
-and the latter will only be fetched when user actually needs to build <LANG> code.
-"
+
+> Note that in order to resolve toolchains in the analysis phase Bazel needs to
+> analyze all toolchain targets that are registered. Bazel will not need to
+> analyze all targets referenced by toolchain.toolchain attribute.
+>
+> If in order to register toolchains you need to perform complex computation in
+> the repository, consider splitting the repository with toolchain targets from
+> the repository with <LANG>_toolchain targets. Former will be always fetched,
+> and the latter will only be fetched when user actually needs to build <LANG> code.
+
 The "complex computation" in our case is simply downloading large artifacts.
-This guidance tells us how to avoid that: we put the toolchain targets in the alias repository
-with only the toolchain attribute pointing into the platform-specific repositories.
+This guidance tells us how to avoid that: We put the toolchain targets in the
+alias repository with only the toolchain attribute pointing into the
+platform-specific repositories.
 """
 
 load("//zig/private/common:semver.bzl", "semver")
 
-# Add more platforms as needed to mirror all the binaries
-# published by the upstream project.
-PLATFORMS = {
-    "aarch64-linux": struct(
-        compatible_with = [
-            "@platforms//os:linux",
-            "@platforms//cpu:aarch64",
-        ],
-    ),
-    "aarch64-macos": struct(
-        compatible_with = [
-            "@platforms//os:macos",
-            "@platforms//cpu:aarch64",
-        ],
-    ),
-    "aarch64-windows": struct(
-        compatible_with = [
-            "@platforms//os:windows",
-            "@platforms//cpu:aarch64",
-        ],
-    ),
-    "x86_64-linux": struct(
-        compatible_with = [
-            "@platforms//os:linux",
-            "@platforms//cpu:x86_64",
-        ],
-    ),
-    "x86_64-macos": struct(
-        compatible_with = [
-            "@platforms//os:macos",
-            "@platforms//cpu:x86_64",
-        ],
-    ),
-    "x86_64-windows": struct(
-        compatible_with = [
-            "@platforms//os:windows",
-            "@platforms//cpu:x86_64",
-        ],
-    ),
+DOC = """\
+Create a repository that defines toolchain targets for all Zig toolchains.
+
+The properties of each toolchain target are split across multiple attributes.
+All the attributes must be ordered such that values corresponding to a single
+toolchain are aligned.
+"""
+
+ATTRS = {
+    "names": attr.string_list(doc = "The name suffixes to assign to the generated toolchain targets. Will be pre-fixed with a counter for ordering."),
+    "labels": attr.string_list(doc = "The labels to the toolchain implementation targets."),
+    "zig_versions": attr.string_list(doc = "The Zig SDK versions of the corresponding toolchain targets."),
+    "exec_lengths": attr.int_list(doc = "The length of the slice of the `exec_constraints` attribute that corresponds to each toolchain target."),
+    "exec_constraints": attr.string_list(doc = "All toolchain execution platform constraints concatenated to a single list."),
 }
 
 def sanitize_version(zig_version):
@@ -84,6 +60,21 @@ def _counter_prefix(count, *, width):
     return prefix + count_repr
 
 def _toolchains_repo_impl(repository_ctx):
+    len_expected = len(repository_ctx.attr.names)
+    len_equal = all([
+        len_expected == len(getattr(repository_ctx.attr, attr))
+        for attr in ["labels", "zig_versions", "exec_lengths"]
+    ])
+    if not len_equal:
+        fail("Lengths of the attributes `names`, `labels`, `zig_versions`, `exec_lengths` must match.")
+
+    len_exec_constraints = 0
+    for exec_len in repository_ctx.attr.exec_lengths:
+        len_exec_constraints += exec_len
+
+    if not len_exec_constraints == len(repository_ctx.attr.exec_constraints):
+        fail("Length of the `exec_constraints` attribute must match the sum of `exec_lengths`.")
+
     if len(repository_ctx.attr.zig_versions) < 1:
         fail("Must specify at least one Zig SDK version in `zig_versions`.")
 
@@ -98,6 +89,11 @@ load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 """
 
+    unique_zig_versions = {
+        version: None
+        for version in repository_ctx.attr.zig_versions
+    }.keys()
+
     build_content += """
 # Use this build flag to select the Zig SDK version. E.g.
 #
@@ -109,11 +105,11 @@ string_flag(
     build_setting_default = {default_version},
 )
 """.format(
-        zig_versions = repr(repository_ctx.attr.zig_versions),
+        zig_versions = repr(unique_zig_versions),
         default_version = repr(repository_ctx.attr.zig_versions[0]),
     )
 
-    for zig_version in repository_ctx.attr.zig_versions:
+    for zig_version in unique_zig_versions:
         build_content += """
 # Use this configuration setting in `select` or `target_compatible_with` to
 # change the target based on the Zig version or declare compatibility with a
@@ -129,7 +125,7 @@ config_setting(
             zig_version = zig_version,
         )
 
-    grouped = semver.grouped(repository_ctx.attr.zig_versions)
+    grouped = semver.grouped(unique_zig_versions)
     for grouping in ["major", "minor", "patch"]:
         for group, versions in getattr(grouped, grouping).items():
             build_content += """
@@ -159,38 +155,39 @@ selects.config_setting_group(
 
     counter_digits = _calc_counter_digits(len(repository_ctx.attr.zig_versions))
 
-    for counter, zig_version in enumerate(repository_ctx.attr.zig_versions):
-        sanitized_zig_version = sanitize_version(zig_version)
-        for [platform, meta] in PLATFORMS.items():
-            build_content += """
+    zipped = zip(
+        repository_ctx.attr.names,
+        repository_ctx.attr.labels,
+        repository_ctx.attr.zig_versions,
+        repository_ctx.attr.exec_lengths,
+    )
+    exec_offset = 0
+    for counter, (name, label, zig_version, exec_len) in enumerate(zipped):
+        compatible_with = repository_ctx.attr.exec_constraints[exec_offset:exec_offset + exec_len]
+        exec_offset += exec_len
+        build_content += """
 # Declare a toolchain Bazel will select for running the tool in an action
 # on the execution platform.
 toolchain(
-    name = "{prefix}_{version}_{platform}_toolchain",
+    name = "{prefix}_{name}_toolchain",
     exec_compatible_with = {compatible_with},
     target_settings = [":{version}"],
-    toolchain = "@{user_repository_name}_{sanitized_version}_{platform}//:zig_toolchain",
+    toolchain = "{label}",
     toolchain_type = "@rules_zig//zig:toolchain_type",
 )
 """.format(
-                prefix = _counter_prefix(counter, width = counter_digits),
-                version = zig_version,
-                sanitized_version = sanitized_zig_version,
-                platform = platform,
-                name = repository_ctx.attr.name,
-                user_repository_name = repository_ctx.attr.user_repository_name,
-                compatible_with = meta.compatible_with,
-            )
+            prefix = _counter_prefix(counter, width = counter_digits),
+            name = name,
+            compatible_with = compatible_with,
+            version = zig_version,
+            label = label,
+        )
 
     # Base BUILD file for this repository
     repository_ctx.file("BUILD.bazel", build_content)
 
 toolchains_repo = repository_rule(
     _toolchains_repo_impl,
-    doc = """Creates a repository with toolchain definitions for all known platforms
-     which can be registered or selected.""",
-    attrs = {
-        "user_repository_name": attr.string(doc = "what the user chose for the base name"),
-        "zig_versions": attr.string_list(doc = "the defined Zig SDK versions"),
-    },
+    doc = DOC,
+    attrs = ATTRS,
 )
