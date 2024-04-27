@@ -18,7 +18,6 @@ alias repository with only the toolchain attribute pointing into the
 platform-specific repositories.
 """
 
-load("@bazel_skylib//lib:sets.bzl", "sets")
 load("//zig/private/common:semver.bzl", "semver")
 
 DOC = """\
@@ -90,7 +89,10 @@ load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 """
 
-    unique_zig_versions = sets.to_list(sets.make(repository_ctx.attr.zig_versions))
+    unique_zig_versions = {
+        version: None
+        for version in repository_ctx.attr.zig_versions
+    }.keys()
 
     build_content += """
 # Use this build flag to select the Zig SDK version. E.g.
