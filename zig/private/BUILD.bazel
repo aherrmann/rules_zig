@@ -140,6 +140,8 @@ filegroup(
         ":resolved_toolchain.bzl",
         ":settings.bzl",
         ":versions.bzl",
+        ":versions.bzl.tpl",
+        ":versions.json",
         ":zig_binary.bzl",
         ":zig_configure.bzl",
         ":zig_library.bzl",
