@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import base64
 import json
 import urllib.request
 
@@ -43,26 +42,6 @@ def fetch_zig_versions(url):
         return json.loads(data.decode('utf-8'))
 
 
-def convert_sha256(sha256_hex):
-    return "sha256-" + base64.b64encode(bytes.fromhex(sha256_hex)).decode()
-
-
-_HEADER = '''\
-"""Mirror of Zig release info.
-
-Generated from {url}.
-"""
-'''
-
-
-_PLATFORM = '''\
-        "{platform}": struct(
-            url = "{url}",
-            integrity = "{integrity}",
-        ),\
-'''
-
-
 def _parse_semver(version_str):
     """Split a semantic version into its components.
 
@@ -94,34 +73,27 @@ def _parse_semver(version_str):
     return major, minor, patch, pre_release_segment
 
 
-def generate_bzl_content(url, data, unsupported_versions, supported_platforms):
-    content = [_HEADER.format(url = url)]
-    content.append("TOOL_VERSIONS = {")
+def generate_json_content(data, unsupported_versions, supported_platforms):
+    content = {}
 
     for version, platforms in sorted(data.items(), key=lambda x: _parse_semver(x[0]), reverse=True):
         if version in unsupported_versions or version == "master":
             continue
 
-        content.append('    "{}": {{'.format(version))
-
         for platform, info in sorted(platforms.items()):
             if platform not in supported_platforms or not isinstance(info, dict):
                 continue
-            content.append(_PLATFORM.format(
-                platform = platform,
-                url = info["tarball"],
-                integrity = convert_sha256(info["shasum"])
-            ))
 
-        content.append('    },')
+            content.setdefault(version, {})[platform] = {
+                "tarball": info["tarball"],
+                "shasum": info["shasum"],
+            }
 
-    content.append('}\n')
-
-    return '\n'.join(content)
+    return content
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate Starlark file for Zig compiler versions.")
+    parser = argparse.ArgumentParser(description="Generate JSON file for Zig compiler versions.")
     parser.add_argument("--output", type=argparse.FileType('w'), default='-', help="Output file path or '-' for stdout.")
     parser.add_argument("--url", default=_ZIG_INDEX_URL, help="URL to fetch Zig versions JSON")
     parser.add_argument("--unsupported-versions", nargs="*", default=_UNSUPPORTED_VERSIONS, help="List of unsupported Zig versions")
@@ -129,9 +101,9 @@ def main():
     args = parser.parse_args()
 
     zig_data = fetch_zig_versions(args.url)
-    bzl_content = generate_bzl_content(args.url, zig_data, set(args.unsupported_versions), set(args.supported_platforms))
+    json_content = generate_json_content(zig_data, set(args.unsupported_versions), set(args.supported_platforms))
 
-    args.output.write(bzl_content)
+    json.dump(json_content, args.output, indent=4)
 
 
 if __name__ == "__main__":
