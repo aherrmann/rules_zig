@@ -2,7 +2,6 @@
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("//zig/private:platforms.bzl", "PLATFORMS")
-load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 load("//zig/private/common:semver.bzl", "semver")
 load("//zig/private/repo:toolchains_repo.bzl", "sanitize_version", "toolchains_repo")
 load("//zig/private/repo:zig_repository.bzl", "zig_repository")
@@ -19,7 +18,6 @@ declares one as the default.
 """
 
 _DEFAULT_NAME = "zig"
-DEFAULT_VERSION = TOOL_VERSIONS.keys()[0]
 
 zig_toolchain = tag_class(attrs = {
     "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
@@ -34,13 +32,14 @@ TAG_CLASSES = {
     "toolchain": zig_toolchain,
 }
 
-def handle_tags(module_ctx):
+def handle_tags(module_ctx, *, known_versions):
     """Handle the zig module extension tags.
 
     Exposed as a standalone function for unit testing.
 
     Args:
       module_ctx: The module context object.
+      known_versions: sequence of string, The set of known Zig versions.
 
     Returns:
       (err, versions), maybe an error or the list of versions.
@@ -70,7 +69,7 @@ def handle_tags(module_ctx):
         versions.insert(0, default)
 
     if len(versions) == 0:
-        versions.append(DEFAULT_VERSION)
+        versions.append(known_versions[0])
 
     return None, versions
 
@@ -91,7 +90,7 @@ def _toolchain_extension(module_ctx):
     zig_versions_json_path = module_ctx.path(Label("//zig/private:versions.json"))
     known_versions = _parse_zig_versions_json(module_ctx.read(zig_versions_json_path))
 
-    (err, versions) = handle_tags(module_ctx)
+    (err, versions) = handle_tags(module_ctx, known_versions = known_versions)
 
     if err != None:
         fail(*err)

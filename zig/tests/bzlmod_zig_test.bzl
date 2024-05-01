@@ -2,15 +2,15 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private/bzlmod:zig.bzl", "DEFAULT_VERSION", "handle_tags")
+load("//zig/private/bzlmod:zig.bzl", "handle_tags")
 
 def _zig_versions_test_impl(ctx):
     env = unittest.begin(ctx)
 
     asserts.equals(
         env,
-        (None, [DEFAULT_VERSION]),
-        handle_tags(struct(modules = [])),
+        (None, ["0.1.0"]),
+        handle_tags(struct(modules = []), known_versions = ["0.1.0"]),
         "should fall back to the default Zig SDK version",
     )
 
@@ -31,7 +31,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.1.0"]),
         "should choose a single configured version",
     )
 
@@ -71,7 +71,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
         "should order versions by semver",
     )
 
@@ -111,7 +111,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.1.0", "0.0.1"]),
         "should deduplicate versions",
     )
 
@@ -151,7 +151,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
         "the default should take precedence",
     )
 
@@ -191,7 +191,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.2.0", "0.1.0", "0.0.1"]),
         "should not duplicate default",
     )
 
@@ -215,7 +215,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.1.0"]),
         "only root may set default",
     )
 
@@ -243,7 +243,7 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        )),
+        ), known_versions = ["0.2.0", "0.1.0"]),
         "only one default allowed",
     )
 
