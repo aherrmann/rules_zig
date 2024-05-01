@@ -18,14 +18,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          OLD_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
+          OLD_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.json)"
           bazel run //util:update_zig_versions
-          [ -z "$(git status --porcelain=v1 zig/private/versions.bzl 2>/dev/null)" ] || {
-            NEW_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.bzl)"
+          [ -z "$(git status --porcelain=v1 zig/private/versions.json 2>/dev/null)" ] || {
+            NEW_VERSION="$(grep -m 1 -oP '^\s+"\K\d+\.\d+\.\d+(?=":)' zig/private/versions.json)"
             BRANCH="zig-update-$NEW_VERSION"
             git switch -c "$BRANCH"
-            git add zig/private/versions.bzl 
-            readarray -t FILES < <(git grep -l -F "$OLD_VERSION" -- ':(exclude)zig/private/versions.bzl')
+            git add zig/private/versions.json
+            readarray -t FILES < <(git grep -l -F "$OLD_VERSION" -- ':(exclude)zig/private/versions.json')
             sed -i "s/${OLD_VERSION//./\\.}/$NEW_VERSION/g" "${FILES[@]}"
             git add "${FILES[@]}"
             git config user.name "github-actions[bot]"
