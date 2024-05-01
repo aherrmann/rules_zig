@@ -2,6 +2,7 @@
 
 import argparse
 import json
+from string import Template
 import urllib.request
 
 
@@ -98,12 +99,25 @@ def main():
     parser.add_argument("--url", default=_ZIG_INDEX_URL, help="URL to fetch Zig versions JSON")
     parser.add_argument("--unsupported-versions", nargs="*", default=_UNSUPPORTED_VERSIONS, help="List of unsupported Zig versions")
     parser.add_argument("--supported-platforms", nargs="*", default=_SUPPORTED_PLATFORMS, help="List of supported platforms")
+    bzl_parser = parser.add_argument_group(title="Starlark module", description="Generate a Starlark module to capture the Zig versions")
+    bzl_parser.add_argument("--template-bzl", type=argparse.FileType('r'), default=None, help="Template file, replace the $ZIG_VERSIONS_JSON placeholder")
+    bzl_parser.add_argument("--output-bzl", type=argparse.FileType('w'), default=None, help="Output file")
     args = parser.parse_args()
+
+    if args.template_bzl or args.output_bzl:
+        if not (args.template_bzl and args.output_bzl):
+            parser.exit(1, "Either both or none of --template-bzl and --output-bzl must be specified.\n")
 
     zig_data = fetch_zig_versions(args.url)
     json_content = generate_json_content(zig_data, set(args.unsupported_versions), set(args.supported_platforms))
 
     json.dump(json_content, args.output, indent=4)
+
+    if args.template_bzl or args.output_bzl:
+        bzl = Template(args.template_bzl.read())
+        args.output_bzl.write(bzl.substitute({
+            "ZIG_VERSIONS_JSON": json.dumps(json_content, indent=4),
+        }))
 
 
 if __name__ == "__main__":
