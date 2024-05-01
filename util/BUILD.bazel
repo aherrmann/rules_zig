@@ -71,7 +71,7 @@ py_binary(
     srcs = ["update_zig_versions.py"],
     args = [
         "--output",
-        "$(rootpath //zig/private:versions.bzl)",
+        "$(rootpath //zig/private:versions.json)",
     ],
-    data = ["//zig/private:versions.bzl"],
+    data = ["//zig/private:versions.json"],
 )
