@@ -72,6 +72,14 @@ py_binary(
     args = [
         "--output",
         "$(rootpath //zig/private:versions.json)",
+        "--template-bzl",
+        "$(rootpath //zig/private:versions.bzl.tpl)",
+        "--output-bzl",
+        "$(rootpath //zig/private:versions.bzl)",
     ],
-    data = ["//zig/private:versions.json"],
+    data = [
+        "//zig/private:versions.bzl",
+        "//zig/private:versions.bzl.tpl",
+        "//zig/private:versions.json",
+    ],
 )
