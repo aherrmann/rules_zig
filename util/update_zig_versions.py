@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import urllib.request
-import json
-import base64
 import argparse
+import base64
+import json
+import urllib.request
 
 
 _ZIG_INDEX_URL = "https://ziglang.org/download/index.json"
