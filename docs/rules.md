@@ -441,26 +441,3 @@ zig_test(
 | <a id="zig_test-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
-<a id="zig_package"></a>
-
-## zig_package
-
-<pre>
-zig_package(<a href="#zig_package-name">name</a>, <a href="#zig_package-kwargs">kwargs</a>)
-</pre>
-
-Alias for `zig_module`.
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="zig_package-name"></a>name |  string, a unique name for the rule.   |  none |
-| <a id="zig_package-kwargs"></a>kwargs |  keyword arguments to forward to `zig_module`.   |  none |
-
-**DEPRECATED**
-
-The `zig_package` rule is deprecated, use `zig_module` instead.
-
-
