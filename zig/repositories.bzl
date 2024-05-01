@@ -56,7 +56,7 @@ def zig_repository(*, name, zig_version, platform, **kwargs):
     _zig_repository(
         name = name,
         url = TOOL_VERSIONS[zig_version][platform].url,
-        integrity = TOOL_VERSIONS[zig_version][platform].integrity,
+        sha256 = TOOL_VERSIONS[zig_version][platform].sha256,
         zig_version = zig_version,
         platform = platform,
         **kwargs
