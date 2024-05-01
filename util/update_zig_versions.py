@@ -111,12 +111,12 @@ def main():
     zig_data = fetch_zig_versions(args.url)
     json_content = generate_json_content(zig_data, set(args.unsupported_versions), set(args.supported_platforms))
 
-    json.dump(json_content, args.output, indent=4)
+    json.dump(json_content, args.output, indent=2)
 
     if args.template_bzl or args.output_bzl:
         bzl = Template(args.template_bzl.read())
         args.output_bzl.write(bzl.substitute({
-            "ZIG_VERSIONS_JSON": json.dumps(json_content, indent=4),
+            "ZIG_VERSIONS_JSON": json.dumps(json_content, indent=2),
         }))
 
 
