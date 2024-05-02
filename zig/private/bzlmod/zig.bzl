@@ -19,14 +19,21 @@ declares one as the default.
 
 _DEFAULT_NAME = "zig"
 
-zig_toolchain = tag_class(attrs = {
-    "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
-    "default": attr.bool(
-        doc = "Make this the default Zig SDK version. Can only be used once, and only in the root module.",
-        mandatory = False,
-        default = False,
-    ),
-})
+zig_toolchain = tag_class(
+    attrs = {
+        "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
+        "default": attr.bool(
+            doc = "Make this the default Zig SDK version. Can only be used once, and only in the root module.",
+            mandatory = False,
+            default = False,
+        ),
+    },
+    doc = """\
+Fetch and define toolchain targets for the given Zig SDK version.
+
+Defaults to the latest known release version.
+""",
+)
 
 zig_index = tag_class(
     attrs = {
