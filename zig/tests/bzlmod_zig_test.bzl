@@ -10,15 +10,15 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         (None, ["0.1.0"]),
-        handle_toolchain_tags(struct(modules = []), known_versions = ["0.1.0"]),
+        handle_toolchain_tags([], known_versions = ["0.1.0"]),
         "should fall back to the default Zig SDK version",
     )
 
     asserts.equals(
         env,
         (None, ["0.1.0"]),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = False,
                     tags = struct(
@@ -31,15 +31,16 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.1.0"]),
+            known_versions = ["0.1.0"],
+        ),
         "should choose a single configured version",
     )
 
     asserts.equals(
         env,
         (None, ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = False,
                     tags = struct(
@@ -71,15 +72,16 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
+            known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
+        ),
         "should order versions by semver",
     )
 
     asserts.equals(
         env,
         (None, ["0.1.0", "0.0.1"]),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = False,
                     tags = struct(
@@ -111,15 +113,16 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.1.0", "0.0.1"]),
+            known_versions = ["0.1.0", "0.0.1"],
+        ),
         "should deduplicate versions",
     )
 
     asserts.equals(
         env,
         (None, ["0.1.0", "0.4.0", "0.2.0", "0.0.1"]),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = False,
                     tags = struct(
@@ -151,15 +154,16 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
+            known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
+        ),
         "the default should take precedence",
     )
 
     asserts.equals(
         env,
         (None, ["0.1.0", "0.2.0", "0.0.1"]),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = False,
                     tags = struct(
@@ -191,7 +195,8 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.2.0", "0.1.0", "0.0.1"]),
+            known_versions = ["0.2.0", "0.1.0", "0.0.1"],
+        ),
         "should not duplicate default",
     )
 
@@ -201,8 +206,8 @@ def _zig_versions_test_impl(ctx):
             default = True,
             zig_version = "0.1.0",
         )], None),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = False,
                     tags = struct(
@@ -215,7 +220,8 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.1.0"]),
+            known_versions = ["0.1.0"],
+        ),
         "only root may set default",
     )
 
@@ -225,8 +231,8 @@ def _zig_versions_test_impl(ctx):
             default = True,
             zig_version = "0.2.0",
         )], None),
-        handle_toolchain_tags(struct(
-            modules = [
+        handle_toolchain_tags(
+            [
                 struct(
                     is_root = True,
                     tags = struct(
@@ -243,7 +249,8 @@ def _zig_versions_test_impl(ctx):
                     ),
                 ),
             ],
-        ), known_versions = ["0.2.0", "0.1.0"]),
+            known_versions = ["0.2.0", "0.1.0"],
+        ),
         "only one default allowed",
     )
 

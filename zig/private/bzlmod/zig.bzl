@@ -53,13 +53,13 @@ TAG_CLASSES = {
     "index": zig_index,
 }
 
-def handle_toolchain_tags(module_ctx, *, known_versions):
+def handle_toolchain_tags(modules, *, known_versions):
     """Handle the zig module extension's toolchain tags.
 
     Exposed as a standalone function for unit testing.
 
     Args:
-      module_ctx: The module context object.
+      modules: sequence of module objects.
       known_versions: sequence of string, The set of known Zig versions.
 
     Returns:
@@ -68,7 +68,7 @@ def handle_toolchain_tags(module_ctx, *, known_versions):
     default = None
     versions = sets.make()
 
-    for mod in module_ctx.modules:
+    for mod in modules:
         for toolchain in mod.tags.toolchain:
             if toolchain.default:
                 if not mod.is_root:
@@ -111,7 +111,7 @@ def _toolchain_extension(module_ctx):
     zig_versions_json_path = module_ctx.path(Label("//zig/private:versions.json"))
     known_versions = _parse_zig_versions_json(module_ctx.read(zig_versions_json_path))
 
-    (err, versions) = handle_toolchain_tags(module_ctx, known_versions = known_versions)
+    (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions)
 
     if err != None:
         fail(*err)
