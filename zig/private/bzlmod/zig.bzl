@@ -28,8 +28,22 @@ zig_toolchain = tag_class(attrs = {
     ),
 })
 
+zig_index = tag_class(
+    attrs = {
+        "file": attr.label(doc = "The Zig version index JSON file.", mandatory = True),
+    },
+    doc = """\
+Extend the set of known Zig SDK versions based on a Zig version index.
+
+The provided index must use a schema that is compatible with the [upstream index].
+
+[upstream index]: https://ziglang.org/download/index.json
+""",
+)
+
 TAG_CLASSES = {
     "toolchain": zig_toolchain,
+    "index": zig_index,
 }
 
 def handle_tags(module_ctx, *, known_versions):
