@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private/bzlmod:zig.bzl", "handle_tags")
+load("//zig/private/bzlmod:zig.bzl", "handle_toolchain_tags")
 
 def _zig_versions_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -10,14 +10,14 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         (None, ["0.1.0"]),
-        handle_tags(struct(modules = []), known_versions = ["0.1.0"]),
+        handle_toolchain_tags(struct(modules = []), known_versions = ["0.1.0"]),
         "should fall back to the default Zig SDK version",
     )
 
     asserts.equals(
         env,
         (None, ["0.1.0"]),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = False,
@@ -38,7 +38,7 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         (None, ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = False,
@@ -78,7 +78,7 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         (None, ["0.1.0", "0.0.1"]),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = False,
@@ -118,7 +118,7 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         (None, ["0.1.0", "0.4.0", "0.2.0", "0.0.1"]),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = False,
@@ -158,7 +158,7 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         (None, ["0.1.0", "0.2.0", "0.0.1"]),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = False,
@@ -201,7 +201,7 @@ def _zig_versions_test_impl(ctx):
             default = True,
             zig_version = "0.1.0",
         )], None),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = False,
@@ -225,7 +225,7 @@ def _zig_versions_test_impl(ctx):
             default = True,
             zig_version = "0.2.0",
         )], None),
-        handle_tags(struct(
+        handle_toolchain_tags(struct(
             modules = [
                 struct(
                     is_root = True,
