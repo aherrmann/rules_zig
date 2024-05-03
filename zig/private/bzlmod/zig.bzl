@@ -114,7 +114,13 @@ def parse_zig_versions_json(json_string):
         return "Invalid JSON format in Zig SDK version index.", None
 
     for version, platforms in data.items():
+        if "version" in platforms:
+            version = platforms["version"]
+
         for platform, info in platforms.items():
+            if type(info) != "dict":
+                continue
+
             if not "tarball" in info:
                 return "Missing `tarball` field in Zig SDK version index.", None
 

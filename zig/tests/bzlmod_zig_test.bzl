@@ -78,6 +78,29 @@ def _parse_zig_index_test_impl(ctx):
     result = parse_zig_versions_json(content)
     asserts.equals(env, (None, expected), result)
 
+    content = """\
+{
+  "master": {
+    "version": "0.13.0-dev.46+3648d7df1",
+    "x86_64-macos": {
+      "tarball": "https://ziglang.org/builds/zig-macos-x86_64-0.13.0-dev.46+3648d7df1.tar.xz",
+      "shasum": "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
+      "size": "47206948"
+    }
+  }
+}
+"""
+    expected = {
+        "0.13.0-dev.46+3648d7df1": {
+            "x86_64-macos": struct(
+                url = "https://ziglang.org/builds/zig-macos-x86_64-0.13.0-dev.46+3648d7df1.tar.xz",
+                sha256 = "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
+            ),
+        },
+    }
+    result = parse_zig_versions_json(content)
+    asserts.equals(env, (None, expected), result)
+
     content = ""
     expected_err = "Invalid JSON format in Zig SDK version index."
     result = parse_zig_versions_json(content)
