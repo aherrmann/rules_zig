@@ -94,7 +94,18 @@ def handle_toolchain_tags(modules, *, known_versions):
 
     return None, versions
 
-def _parse_zig_versions_json(json_string):
+def parse_zig_versions_json(json_string):
+    """Parse a Zig SDK versions index in JSON format.
+
+    Exposed as a standalone function for unit testing.
+
+    Args:
+      json_string: String, The version index in JSON format.
+
+    Returns:
+      (err, data), maybe an error or a
+        `dict[version, dict[platform, struct(url, sha256)]]`.
+    """
     result = {}
 
     data = json.decode(json_string)
@@ -123,7 +134,7 @@ def _toolchain_extension(module_ctx):
         for index in mod.tags.index:
             file_path = module_ctx.path(index.file)
             file_content = module_ctx.read(file_path)
-            (err, parsed) = _parse_zig_versions_json(file_content)
+            (err, parsed) = parse_zig_versions_json(file_content)
 
             if err != None:
                 fail(err, index)
