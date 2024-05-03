@@ -105,7 +105,7 @@ def _parse_zig_versions_json(json_string):
                 sha256 = info["shasum"],
             )
 
-    return result
+    return None, result
 
 def _merge_version_specs(version_specs):
     result = {}
@@ -123,7 +123,11 @@ def _toolchain_extension(module_ctx):
         for index in mod.tags.index:
             file_path = module_ctx.path(index.file)
             file_content = module_ctx.read(file_path)
-            parsed = _parse_zig_versions_json(file_content)
+            (err, parsed) = _parse_zig_versions_json(file_content)
+
+            if err != None:
+                fail(err, index)
+
             version_specs.append(parsed)
 
     known_versions = _merge_version_specs(version_specs)
