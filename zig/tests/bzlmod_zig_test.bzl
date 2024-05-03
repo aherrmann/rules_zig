@@ -78,6 +78,37 @@ def _parse_zig_index_test_impl(ctx):
     result = parse_zig_versions_json(content)
     asserts.equals(env, (None, expected), result)
 
+    content = ""
+    expected_err = "Invalid JSON format in Zig SDK version index."
+    result = parse_zig_versions_json(content)
+    asserts.equals(env, (expected_err, None), result)
+
+    content = """\
+{
+  "0.12.0": {
+    "aarch64-linux": {
+      "shasum": "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63"
+    }
+  }
+}
+"""
+    expected_err = "Missing `tarball` field in Zig SDK version index."
+    result = parse_zig_versions_json(content)
+    asserts.equals(env, (expected_err, None), result)
+
+    content = """\
+{
+  "0.12.0": {
+    "aarch64-linux": {
+      "tarball": "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz"
+    }
+  }
+}
+"""
+    expected_err = "Missing `shasum` field in Zig SDK version index."
+    result = parse_zig_versions_json(content)
+    asserts.equals(env, (expected_err, None), result)
+
     return unittest.end(env)
 
 _parse_zig_index_test = unittest.make(

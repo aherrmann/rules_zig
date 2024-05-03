@@ -108,9 +108,19 @@ def parse_zig_versions_json(json_string):
     """
     result = {}
 
-    data = json.decode(json_string)
+    data = json.decode(json_string, default = None)
+
+    if data == None:
+        return "Invalid JSON format in Zig SDK version index.", None
+
     for version, platforms in data.items():
         for platform, info in platforms.items():
+            if not "tarball" in info:
+                return "Missing `tarball` field in Zig SDK version index.", None
+
+            if not "shasum" in info:
+                return "Missing `shasum` field in Zig SDK version index.", None
+
             result.setdefault(version, {})[platform] = struct(
                 url = info["tarball"],
                 sha256 = info["shasum"],
