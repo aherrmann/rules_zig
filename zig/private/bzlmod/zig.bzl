@@ -107,9 +107,26 @@ def _parse_zig_versions_json(json_string):
 
     return result
 
+def _merge_version_specs(version_specs):
+    result = {}
+
+    for spec in version_specs:
+        for version, platforms in spec.items():
+            for platform, info in platforms.items():
+                result.setdefault(version, {})[platform] = info
+
+    return result
+
 def _toolchain_extension(module_ctx):
-    zig_versions_json_path = module_ctx.path(Label("//zig/private:versions.json"))
-    known_versions = _parse_zig_versions_json(module_ctx.read(zig_versions_json_path))
+    version_specs = []
+    for mod in module_ctx.modules:
+        for index in mod.tags.index:
+            file_path = module_ctx.path(index.file)
+            file_content = module_ctx.read(file_path)
+            parsed = _parse_zig_versions_json(file_content)
+            version_specs.append(parsed)
+
+    known_versions = _merge_version_specs(version_specs)
 
     (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions)
 
