@@ -31,7 +31,7 @@ zig_toolchain = tag_class(
     doc = """\
 Fetch and define toolchain targets for the given Zig SDK version.
 
-Defaults to the latest known release version.
+Defaults to the latest known version.
 """,
 )
 

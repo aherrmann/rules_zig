@@ -30,7 +30,7 @@ declares one as the default.
 
 Fetch and define toolchain targets for the given Zig SDK version.
 
-Defaults to the latest known release version.
+Defaults to the latest known version.
 
 **Attributes**
 
