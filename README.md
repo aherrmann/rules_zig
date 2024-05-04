@@ -53,7 +53,7 @@ Consider the [_Additional Setup_](#additional-setup) section as well.
 
 [bazel-intro]: https://bazel.build/about/intro
 
-### Using Bzlmod with Bazel >=6
+### Using Bzlmod with Bazel >=7
 
 Bzlmod is Bazel's new dependency manager. You can read more about it in the
 [Bazel documentation][bzlmod-doc]. If you use bzlmod, then you can skip the
