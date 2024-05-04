@@ -49,6 +49,10 @@ bazel_integration_tests(
     workspace_path = "workspace",
 )
 
+TEST_VERSIONS = TOOL_VERSIONS.keys() + [
+    "0.13.0-dev.46+3648d7df1",
+]
+
 [
     expand_template(
         name = "zig_version_test_%s_zig_source" % zig_version,
@@ -58,7 +62,7 @@ bazel_integration_tests(
         },
         template = "zig_version_test.zig.tpl",
     )
-    for zig_version in TOOL_VERSIONS.keys()
+    for zig_version in TEST_VERSIONS
 ]
 
 write_file(
@@ -68,7 +72,7 @@ write_file(
         "test {",
     ] + [
         '    _ = @import("zig_version_test_%s.zig");' % zig_version
-        for zig_version in TOOL_VERSIONS.keys()
+        for zig_version in TEST_VERSIONS
     ] + [
         "}",
     ],
@@ -78,7 +82,7 @@ zig_test(
     name = "zig_version_tests_runner",
     srcs = [
         "zig_version_test_%s.zig" % zig_version
-        for zig_version in TOOL_VERSIONS.keys()
+        for zig_version in TEST_VERSIONS
     ],
     main = "zig_version_tests_runner.zig",
     tags = ["manual"],
