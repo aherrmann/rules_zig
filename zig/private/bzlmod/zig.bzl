@@ -137,7 +137,17 @@ def parse_zig_versions_json(json_string):
 
     return None, result
 
-def _merge_version_specs(version_specs):
+def merge_version_specs(version_specs):
+    """Merge Zig SDK version indices.
+
+    Exposed as a standalone function for unit testing.
+
+    Args:
+      version_specs: sequence of `dict[version, dict[platform, struct(url, sha256)]]`.
+
+    Returns:
+      `dict[version, dict[platform, struct(url, sha256)]]`
+    """
     result = {}
 
     for spec in version_specs:
@@ -160,7 +170,7 @@ def _toolchain_extension(module_ctx):
 
             version_specs.append(parsed)
 
-    known_versions = _merge_version_specs(version_specs)
+    known_versions = merge_version_specs(version_specs)
 
     (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions)
 

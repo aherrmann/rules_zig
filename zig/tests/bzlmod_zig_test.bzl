@@ -5,6 +5,7 @@ load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
 load(
     "//zig/private/bzlmod:zig.bzl",
     "handle_toolchain_tags",
+    "merge_version_specs",
     "parse_zig_versions_json",
 )
 
@@ -213,6 +214,67 @@ def _parse_zig_index_test_impl(ctx):
 
 _parse_zig_index_test = unittest.make(
     _parse_zig_index_test_impl,
+)
+
+def _merge_version_specs_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(
+        env,
+        {},
+        merge_version_specs([]),
+    )
+
+    asserts.equals(
+        env,
+        {
+            "0.12.0": {
+                "aarch64-linux": struct(
+                    url = "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+                    sha256 = "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63",
+                ),
+            },
+            "0.11.0": {
+                "aarch64-linux": struct(
+                    url = "https://ziglang.org/download/0.11.0/zig-linux-aarch64-0.11.0.tar.xz",
+                    sha256 = "956eb095d8ba44ac6ebd27f7c9956e47d92937c103bf754745d0a39cdaa5d4c6",
+                ),
+                "aarch64-macos": struct(
+                    url = "https://ziglang.org/download/0.11.0/zig-macos-aarch64-0.11.0.tar.xz",
+                    sha256 = "c6ebf927bb13a707d74267474a9f553274e64906fd21bf1c75a20bde8cadf7b2",
+                ),
+            },
+        },
+        merge_version_specs([
+            {
+                "0.12.0": {
+                    "aarch64-linux": struct(
+                        url = "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+                        sha256 = "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63",
+                    ),
+                },
+                "0.11.0": {
+                    "aarch64-macos": struct(
+                        url = "https://ziglang.org/download/0.11.0/zig-macos-aarch64-0.11.0.tar.xz",
+                        sha256 = "c6ebf927bb13a707d74267474a9f553274e64906fd21bf1c75a20bde8cadf7b2",
+                    ),
+                },
+            },
+            {
+                "0.11.0": {
+                    "aarch64-linux": struct(
+                        url = "https://ziglang.org/download/0.11.0/zig-linux-aarch64-0.11.0.tar.xz",
+                        sha256 = "956eb095d8ba44ac6ebd27f7c9956e47d92937c103bf754745d0a39cdaa5d4c6",
+                    ),
+                },
+            },
+        ]),
+    )
+
+    return unittest.end(env)
+
+_merge_version_specs_test = unittest.make(
+    _merge_version_specs_test_impl,
 )
 
 def _zig_versions_test_impl(ctx):
@@ -475,5 +537,6 @@ def bzlmod_zig_test_suite(name):
     unittest.suite(
         name,
         partial.make(_zig_versions_test, size = "small"),
+        partial.make(_merge_version_specs_test, size = "small"),
         partial.make(_parse_zig_index_test, size = "small"),
     )
