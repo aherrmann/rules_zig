@@ -118,7 +118,7 @@ def parse_zig_versions_json(json_string):
             version = platforms["version"]
 
         for platform, info in platforms.items():
-            if type(info) != "dict":
+            if type(info) != "dict" or not platform in PLATFORMS:
                 continue
 
             if not "tarball" in info:
