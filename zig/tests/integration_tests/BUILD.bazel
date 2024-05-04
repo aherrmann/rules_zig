@@ -91,7 +91,7 @@ zig_test(
 
 bazel_integration_test(
     name = "zig_version_tests",
-    size = "small",
+    size = "medium",
     bazel_version = bazel_binaries.versions.current,
     tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":zig_version_tests_runner",
