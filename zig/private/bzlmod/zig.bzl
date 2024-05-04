@@ -19,26 +19,47 @@ declares one as the default.
 
 _DEFAULT_NAME = "zig"
 
-zig_toolchain = tag_class(attrs = {
-    "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
-    "default": attr.bool(
-        doc = "Make this the default Zig SDK version. Can only be used once, and only in the root module.",
-        mandatory = False,
-        default = False,
-    ),
-})
+zig_toolchain = tag_class(
+    attrs = {
+        "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
+        "default": attr.bool(
+            doc = "Make this the default Zig SDK version. Can only be used once, and only in the root module.",
+            mandatory = False,
+            default = False,
+        ),
+    },
+    doc = """\
+Fetch and define toolchain targets for the given Zig SDK version.
+
+Defaults to the latest known version.
+""",
+)
+
+zig_index = tag_class(
+    attrs = {
+        "file": attr.label(doc = "The Zig version index JSON file.", mandatory = True),
+    },
+    doc = """\
+Extend the set of known Zig SDK versions based on a Zig version index.
+
+The provided index must use a schema that is compatible with the [upstream index].
+
+[upstream index]: https://ziglang.org/download/index.json
+""",
+)
 
 TAG_CLASSES = {
     "toolchain": zig_toolchain,
+    "index": zig_index,
 }
 
-def handle_tags(module_ctx, *, known_versions):
-    """Handle the zig module extension tags.
+def handle_toolchain_tags(modules, *, known_versions):
+    """Handle the zig module extension's toolchain tags.
 
     Exposed as a standalone function for unit testing.
 
     Args:
-      module_ctx: The module context object.
+      modules: sequence of module objects.
       known_versions: sequence of string, The set of known Zig versions.
 
     Returns:
@@ -47,7 +68,7 @@ def handle_tags(module_ctx, *, known_versions):
     default = None
     versions = sets.make()
 
-    for mod in module_ctx.modules:
+    for mod in modules:
         for toolchain in mod.tags.toolchain:
             if toolchain.default:
                 if not mod.is_root:
@@ -73,24 +94,85 @@ def handle_tags(module_ctx, *, known_versions):
 
     return None, versions
 
-def _parse_zig_versions_json(json_string):
+def parse_zig_versions_json(json_string):
+    """Parse a Zig SDK versions index in JSON format.
+
+    Exposed as a standalone function for unit testing.
+
+    Args:
+      json_string: String, The version index in JSON format.
+
+    Returns:
+      (err, data), maybe an error or a
+        `dict[version, dict[platform, struct(url, sha256)]]`.
+    """
     result = {}
 
-    data = json.decode(json_string)
+    data = json.decode(json_string, default = None)
+
+    if data == None:
+        return "Invalid JSON format in Zig SDK version index.", None
+
     for version, platforms in data.items():
+        if "version" in platforms:
+            version = platforms["version"]
+
+        if not semver.is_valid(version):
+            return "Malformed version number '{}' in Zig SDK version index.".format(version), None
+
         for platform, info in platforms.items():
+            if type(info) != "dict" or not platform in PLATFORMS:
+                continue
+
+            if not "tarball" in info:
+                return "Missing `tarball` field in Zig SDK version index.", None
+
+            if not "shasum" in info:
+                return "Missing `shasum` field in Zig SDK version index.", None
+
             result.setdefault(version, {})[platform] = struct(
                 url = info["tarball"],
                 sha256 = info["shasum"],
             )
 
+    return None, result
+
+def merge_version_specs(version_specs):
+    """Merge Zig SDK version indices.
+
+    Exposed as a standalone function for unit testing.
+
+    Args:
+      version_specs: sequence of `dict[version, dict[platform, struct(url, sha256)]]`.
+
+    Returns:
+      `dict[version, dict[platform, struct(url, sha256)]]`
+    """
+    result = {}
+
+    for spec in version_specs:
+        for version, platforms in spec.items():
+            for platform, info in platforms.items():
+                result.setdefault(version, {})[platform] = info
+
     return result
 
 def _toolchain_extension(module_ctx):
-    zig_versions_json_path = module_ctx.path(Label("//zig/private:versions.json"))
-    known_versions = _parse_zig_versions_json(module_ctx.read(zig_versions_json_path))
+    version_specs = []
+    for mod in module_ctx.modules:
+        for index in mod.tags.index:
+            file_path = module_ctx.path(index.file)
+            file_content = module_ctx.read(file_path)
+            (err, parsed) = parse_zig_versions_json(file_content)
 
-    (err, versions) = handle_tags(module_ctx, known_versions = known_versions)
+            if err != None:
+                fail(err, index)
+
+            version_specs.append(parsed)
+
+    known_versions = merge_version_specs(version_specs)
+
+    (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions)
 
     if err != None:
         fail(*err)
