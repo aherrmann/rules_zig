@@ -205,7 +205,7 @@ def _parse_zig_index_test_impl(ctx):
   }
 }
 """
-    expected_err = "Malformed version number in Zig SDK version index."
+    expected_err = "Malformed version number 'bad-version' in Zig SDK version index."
     result = parse_zig_versions_json(content)
     asserts.equals(env, (expected_err, None), result)
 

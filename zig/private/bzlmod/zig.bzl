@@ -117,6 +117,9 @@ def parse_zig_versions_json(json_string):
         if "version" in platforms:
             version = platforms["version"]
 
+        if not semver.is_valid(version):
+            return "Malformed version number '{}' in Zig SDK version index.".format(version), None
+
         for platform, info in platforms.items():
             if type(info) != "dict" or not platform in PLATFORMS:
                 continue

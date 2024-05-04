@@ -63,6 +63,19 @@ def _grouped(versions):
         patch = patch,
     )
 
+def _is_valid(version):
+    """Validate the formatting of a semantic version."""
+    if version.count(".") < 2:
+        return False
+
+    v = _split(version)
+
+    return all([
+        v.major.isdigit(),
+        v.minor.isdigit(),
+        v.patch.isdigit(),
+    ])
+
 def _parse_pre_release_component(component):
     """Parse a pre-release component for sorting."""
     num = float("+Infinity")
@@ -101,4 +114,5 @@ def _sorted(versions, *, reverse = False):
 semver = struct(
     grouped = _grouped,
     sorted = _sorted,
+    is_valid = _is_valid,
 )
