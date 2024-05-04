@@ -47,13 +47,13 @@ bazel_binaries = use_extension(
 
 # NOTE: Keep in sync with WORKSPACE.
 bazel_binaries.download(version_file = "//:.bazelversion")
-bazel_binaries.download(version = "6.3.0")
+bazel_binaries.download(version = "7.0.0")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
     "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
-    "build_bazel_bazel_6_3_0",
+    "build_bazel_bazel_7_0_0",
 )
 
 # TODO[AH] Should be an implicit transitive dependency through rules_bazel_integration_test.
