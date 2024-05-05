@@ -21,7 +21,7 @@ build --bes_backend=grpcs://remote.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache
 build --remote_cache=grpcs://remote.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache_compression
-build --experimental_remote_cache_compression
+build --remote_cache_compression
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_download_toplevel
 build --remote_download_toplevel
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_timeout
