@@ -1,7 +1,5 @@
 # Build event stream setup.
 
-# docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
-build --bes_results_url=https://app.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_build_event_upload
 build --remote_build_event_upload=minimal
 # docs: https://bazel.build/reference/command-line-reference#flag--slim_profile
@@ -12,6 +10,9 @@ build --experimental_profile_include_target_label
 build --experimental_profile_include_primary_output
 # docs: https://bazel.build/reference/command-line-reference#flag--legacy_important_outputs
 build --nolegacy_important_outputs
+
+# docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
+build --bes_results_url=https://app.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_backend
 build --bes_backend=grpcs://remote.buildbuddy.io
 
