@@ -198,10 +198,9 @@ jobs:
 
       - name: Test generated files
         if: matrix.folder == '.' && matrix.target == '//...'
-        env:
-          # Bazelisk will download bazel to here, ensure it is cached between runs.
-          XDG_CACHE_HOME: ~/.cache/bazel-repo
         run: |
+          # Bazelisk will download bazel to here, ensure it is cached between runs.
+          export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
           bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
           test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; git diff >&2; exit 1; }
 
@@ -214,11 +213,11 @@ jobs:
           files: "${{ matrix.folder }}/test.sh"
 
       - name: bazel test ${{ matrix.target }}
-        env:
-          # Bazelisk will download bazel to here, ensure it is cached between runs.
-          XDG_CACHE_HOME: ~/.cache/bazel-repo
         working-directory: ${{ matrix.folder }}
-        run: bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ matrix.target }}
+        run: |
+          # Bazelisk will download bazel to here, ensure it is cached between runs.
+          export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
+          bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ matrix.target }}
 
       - name: ./test.sh
         # Run if there is a test.sh file in the folder
