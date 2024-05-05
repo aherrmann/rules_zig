@@ -3,7 +3,7 @@
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
 build --bes_results_url=https://app.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_build_event_upload
-build --experimental_remote_build_event_upload=minimal
+build --remote_build_event_upload=minimal
 # docs: https://bazel.build/reference/command-line-reference#flag--slim_profile
 build --noslim_profile
 # docs: https://bazel.build/reference/command-line-reference#flag--experimental_profile_include_target_label
