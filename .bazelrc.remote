@@ -1,9 +1,7 @@
 # Build event stream setup.
 
-# docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
-build --bes_results_url=https://app.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_build_event_upload
-build --experimental_remote_build_event_upload=minimal
+build --remote_build_event_upload=minimal
 # docs: https://bazel.build/reference/command-line-reference#flag--slim_profile
 build --noslim_profile
 # docs: https://bazel.build/reference/command-line-reference#flag--experimental_profile_include_target_label
@@ -12,6 +10,9 @@ build --experimental_profile_include_target_label
 build --experimental_profile_include_primary_output
 # docs: https://bazel.build/reference/command-line-reference#flag--legacy_important_outputs
 build --nolegacy_important_outputs
+
+# docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
+build --bes_results_url=https://app.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_backend
 build --bes_backend=grpcs://remote.buildbuddy.io
 
@@ -20,7 +21,7 @@ build --bes_backend=grpcs://remote.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache
 build --remote_cache=grpcs://remote.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache_compression
-build --experimental_remote_cache_compression
+build --remote_cache_compression
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_download_toplevel
 build --remote_download_toplevel
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_timeout
