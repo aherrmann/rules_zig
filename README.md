@@ -84,7 +84,7 @@ Note, `$SHA256` and `$COMMIT` are placeholders that you need to fill in. Take a
 look at the [Bazel documentation][archive-override-doc] for further
 information.
 
-[archive-override-doc]: https://bazel.build/versions/6.4.0/rules/lib/globals#archive_override
+[archive-override-doc]: https://bazel.build/versions/7.0.0/rules/lib/globals/module#archive_override
 
 ### Using WORKSPACE
 
