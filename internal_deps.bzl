@@ -21,8 +21,8 @@ def rules_zig_internal_deps():
     "Fetch deps needed for local development"
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "af47f30e9cbd70ae34e49866e201b3f77069abb111183f2c0297e7e74ba6bbc0",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.47.0/rules_go-v0.47.0.zip"],
+        sha256 = "f74c98d6df55217a36859c74b460e774abc0410a47cc100d822be34d5f990f16",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.47.1/rules_go-v0.47.1.zip"],
     )
 
     http_archive(
