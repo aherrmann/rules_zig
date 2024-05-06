@@ -27,4 +27,7 @@ build --remote_download_toplevel
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_timeout
 build --remote_timeout=3600
 
+# Remote execution setup.
 
+# docs: https://bazel.build/reference/command-line-reference#flag--remote_executor
+build --remote_executor=grpcs://remote.buildbuddy.io
