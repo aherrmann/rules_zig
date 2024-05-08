@@ -2,7 +2,6 @@ bazel_dep(name = "rules_zig", version = "0.0.0", dev_dependency = True)
 bazel_dep(name = "aspect_bazel_lib", version = "2.7.3", dev_dependency = True)
 bazel_dep(name = "bazel_skylib", version = "1.6.1", dev_dependency = True)
 bazel_dep(name = "platforms", version = "0.0.10", dev_dependency = True)
-bazel_dep(name = "hermetic_cc_toolchain", version = "3.0.1", dev_dependency = True)
 
 local_path_override(
     module_name = "rules_zig",

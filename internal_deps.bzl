@@ -88,12 +88,3 @@ def rules_zig_internal_deps():
             "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.23.0/rules_bazel_integration_test.v0.23.0.tar.gz",
         ],
     )
-
-    http_archive(
-        name = "hermetic_cc_toolchain",
-        sha256 = "3bc6ec127622fdceb4129cb06b6f7ab098c4d539124dde96a6318e7c32a53f7a",
-        urls = [
-            "https://mirror.bazel.build/github.com/uber/hermetic_cc_toolchain/releases/download/v3.0.1/hermetic_cc_toolchain-v3.0.1.tar.gz",
-            "https://github.com/uber/hermetic_cc_toolchain/releases/download/v3.0.1/hermetic_cc_toolchain-v3.0.1.tar.gz",
-        ],
-    )
