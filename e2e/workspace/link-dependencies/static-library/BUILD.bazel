@@ -47,7 +47,7 @@ genrule(
     outs = ["library-symbol.txt"],
     # Test that `add` is not inlined into the Zig library, but remains an
     # undefined symbol to be resolved later.
-    cmd = "$(NM) -j --undefined-only $(SRCS) | grep add > $(OUTS)",
+    cmd = "$(NM) --undefined-only $(SRCS) | grep add > $(OUTS)",
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
 )
 

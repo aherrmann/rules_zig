@@ -10,7 +10,7 @@ genrule(
     name = "library-symbol",
     srcs = [":library"],
     outs = ["library-symbol.txt"],
-    cmd = "$(NM) -j --defined-only $(SRCS) | grep sayHello > $(OUTS)",
+    cmd = "$(NM) --defined-only $(SRCS) | grep sayHello > $(OUTS)",
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
 )
 

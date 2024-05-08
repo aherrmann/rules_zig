@@ -10,7 +10,7 @@ genrule(
     name = "shared-symbol",
     srcs = [":shared"],
     outs = ["shared-symbol.txt"],
-    cmd = "$(NM) -j --defined-only $(SRCS) | grep sayHello > $(OUTS)",
+    cmd = "$(NM) --defined-only $(SRCS) | grep sayHello > $(OUTS)",
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
 )
 
