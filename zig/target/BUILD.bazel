@@ -53,7 +53,7 @@ toolchain(
 
 zig_target_toolchain(
     name = "x86_32-linux-gnu",
-    target = "x86-linux-gnu",
+    target = "x86-linux-gnu.2.17",
 )
 
 toolchain(
@@ -112,7 +112,7 @@ toolchain(
 
 zig_target_toolchain(
     name = "x86_64-linux-gnu",
-    target = "x86_64-linux-gnu",
+    target = "x86_64-linux-gnu.2.17",
 )
 
 toolchain(
@@ -160,7 +160,7 @@ toolchain(
 
 zig_target_toolchain(
     name = "ppc-linux-gnu",
-    target = "powerpc-linux-gnu",
+    target = "powerpc-linux-gnu.2.17",
 )
 
 toolchain(
@@ -219,7 +219,7 @@ toolchain(
 
 zig_target_toolchain(
     name = "aarch64-linux-gnu",
-    target = "aarch64-linux-gnu",
+    target = "aarch64-linux-gnu.2.17",
 )
 
 toolchain(
