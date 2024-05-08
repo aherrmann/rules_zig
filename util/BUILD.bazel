@@ -18,6 +18,7 @@ buildifier_test(
     lint_mode = "warn",
     mode = "diff",
     no_sandbox = True,
+    tags = ["no-remote-exec"],
     workspace = "//:WORKSPACE",
 )
 
