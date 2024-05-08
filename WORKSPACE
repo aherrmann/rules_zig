@@ -22,6 +22,14 @@ zig_register_toolchains(
     zig_versions = TOOL_VERSIONS.keys(),
 )
 
+load("@io_buildbuddy_buildbuddy_toolchain//:deps.bzl", "buildbuddy_deps")
+
+buildbuddy_deps()
+
+load("@io_buildbuddy_buildbuddy_toolchain//:rules.bzl", "buildbuddy")
+
+buildbuddy(name = "buildbuddy_toolchain")
+
 # rules_python dependencies
 load("@rules_python//python:repositories.bzl", "py_repositories")
 

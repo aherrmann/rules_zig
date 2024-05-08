@@ -34,3 +34,8 @@ build --remote_executor=grpcs://remote.buildbuddy.io
 
 # docs: https://bazel.build/reference/command-line-reference#flag--jobs
 build --jobs=80
+
+# docs: https://bazel.build/reference/command-line-reference#flag--extra_execution_platforms
+build --extra_execution_platforms=@buildbuddy_toolchain//:platform
+# docs: https://bazel.build/reference/command-line-reference#flag--extra_toolchains
+build --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
