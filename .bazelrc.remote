@@ -1,41 +1,43 @@
+build:remote --config=remote-bes --config=remote-cache --config=remote-exec
+
 # Build event stream setup.
 
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_build_event_upload
-build --remote_build_event_upload=minimal
+build:remote-bes --remote_build_event_upload=minimal
 # docs: https://bazel.build/reference/command-line-reference#flag--slim_profile
-build --noslim_profile
+build:remote-bes --noslim_profile
 # docs: https://bazel.build/reference/command-line-reference#flag--experimental_profile_include_target_label
-build --experimental_profile_include_target_label
+build:remote-bes --experimental_profile_include_target_label
 # docs: https://bazel.build/reference/command-line-reference#flag--experimental_profile_include_primary_output
-build --experimental_profile_include_primary_output
+build:remote-bes --experimental_profile_include_primary_output
 # docs: https://bazel.build/reference/command-line-reference#flag--legacy_important_outputs
-build --nolegacy_important_outputs
+build:remote-bes --nolegacy_important_outputs
 
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
-build --bes_results_url=https://app.buildbuddy.io/invocation/
+build:remote-bes --bes_results_url=https://app.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_backend
-build --bes_backend=grpcs://remote.buildbuddy.io
+build:remote-bes --bes_backend=grpcs://remote.buildbuddy.io
 
 # Remote cache setup.
 
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache
-build --remote_cache=grpcs://remote.buildbuddy.io
+build:remote-cache --remote_cache=grpcs://remote.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache_compression
-build --remote_cache_compression
+build:remote-cache --remote_cache_compression
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_download_toplevel
-build --remote_download_toplevel
+build:remote-cache --remote_download_toplevel
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_timeout
-build --remote_timeout=3600
+build:remote-cache --remote_timeout=3600
 
 # Remote execution setup.
 
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_executor
-build --remote_executor=grpcs://remote.buildbuddy.io
+build:remote-exec --remote_executor=grpcs://remote.buildbuddy.io
 
 # docs: https://bazel.build/reference/command-line-reference#flag--jobs
-build --jobs=80
+build:remote-exec --jobs=80
 
 # docs: https://bazel.build/reference/command-line-reference#flag--extra_execution_platforms
-build --extra_execution_platforms=@buildbuddy_toolchain//:platform
+build:remote-exec --extra_execution_platforms=@buildbuddy_toolchain//:platform
 # docs: https://bazel.build/reference/command-line-reference#flag--extra_toolchains
-build --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
+build:remote-exec --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
