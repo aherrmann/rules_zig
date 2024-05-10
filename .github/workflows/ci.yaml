@@ -168,13 +168,17 @@ jobs:
           restore-keys: |
             bazel-cache-${{ matrix.os }}-${{ matrix.bazelversion }}-${{ matrix.bzlmodEnabled }}-${{ matrix.folder }}-${{ matrix.target }}
 
+      - name: Configure remote cache and execution
+        working-directory: ${{ matrix.folder }}
+        run: echo "build --config=remote" >> .bazelrc.user
+
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
         run: echo "USE_BAZEL_VERSION=${{ matrix.bazelversion }}" > .bazeliskrc
 
       - name: Configure Zig version
         working-directory: ${{ matrix.folder }}
-        run: echo "build --@zig_toolchains//:version=${{ matrix.zigversion }}" > .bazelrc.user
+        run: echo "build --@zig_toolchains//:version=${{ matrix.zigversion }}" >> .bazelrc.user
 
       - name: Configure documentation generation
         if: matrix.folder == '.' && matrix.target == '//...'
