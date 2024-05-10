@@ -1,6 +1,5 @@
 """Zig documentation generation."""
 
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
@@ -94,7 +93,7 @@ def zig_docs_impl(ctx, *, kind):
 
     zig_cdeps(
         cdeps = ctx.attr.cdeps,
-        output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
+        solib_parents = [],
         os = zigtargetinfo.triple.os,
         direct_inputs = direct_inputs,
         transitive_inputs = transitive_inputs,

@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-def zig_cdeps(*, cdeps, output_dir, os, direct_inputs, transitive_inputs, args, data):
+def zig_cdeps(*, cdeps, solib_parents, os, direct_inputs, transitive_inputs, args, data):
     """Handle C library dependencies.
 
     Sets the appropriate command-line flags for the Zig compiler to expose
@@ -10,7 +10,7 @@ def zig_cdeps(*, cdeps, output_dir, os, direct_inputs, transitive_inputs, args, 
 
     Args:
       cdeps: List of Target, Must provide `CcInfo`.
-      output_dir: String, The directory in which the binary or library is created. Used for RUNPATH calcuation.
+      solib_parents: List of String, parent RUNPATH components in `$ORIGIN/PARENT/_solib_k8`.
       os: String, The OS component of the target triple.
       direct_inputs: List of File; mutable, Append the needed inputs to this list.
       transitive_inputs: List of depset of File; mutable, Append the needed inputs to this list.
@@ -25,7 +25,7 @@ def zig_cdeps(*, cdeps, output_dir, os, direct_inputs, transitive_inputs, args, 
     )
     _linking_context(
         linking_context = cc_info.linking_context,
-        output_dir = output_dir,
+        solib_parents = solib_parents,
         os = os,
         inputs = direct_inputs,
         args = args,
@@ -46,7 +46,7 @@ def _compilation_context(*, compilation_context, inputs, args):
         args.add_all(compilation_context.external_includes, before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
-def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
+def _linking_context(*, linking_context, solib_parents, os, inputs, args, data):
     all_libraries = []
     dynamic_libraries = []
     for link in linking_context.linker_inputs.to_list():
@@ -91,7 +91,7 @@ def _linking_context(*, linking_context, output_dir, os, inputs, args, data):
     data.extend(dynamic_libraries)
     args.add_all(
         dynamic_libraries,
-        map_each = _make_to_rpath(output_dir, os),
+        map_each = _make_to_rpath(solib_parents, os),
         allow_closure = True,
         before_each = "-rpath",
         uniquify = True,
@@ -109,7 +109,7 @@ def _lib_flags(arg):
     else:
         return file.path
 
-def _make_to_rpath(output_dir, os):
+def _make_to_rpath(solib_parents, os):
     origin = "$ORIGIN"
 
     # Based on `zig targets | jq .os`
@@ -117,41 +117,9 @@ def _make_to_rpath(output_dir, os):
         origin = "@loader_path"
 
     def to_rpath(lib):
-        result = paths.join(origin, _relativize(lib.dirname, output_dir))
+        result = []
+        for parent in solib_parents:
+            result.append(paths.join(origin, parent, paths.dirname(lib.short_path)))
         return result
 
     return to_rpath
-
-def _relativize(path, start):
-    """Generates a path to `path` relative to `start`.
-
-    Strips any common prefix, generates up-directory references corresponding
-    to the depth of the remainder of `start`, and appends the remainder of
-    `path`.
-
-    Note, Bazel Skylib's `paths.relativize` does not generate up-directory
-    references.
-
-    Args:
-      path: String, The target path.
-      start: String, The starting point.
-
-    Returns:
-      String, A relative path.
-    """
-    path_segments = path.split("/")
-    start_segments = start.split("/")
-
-    common = 0
-    for path_segment, start_segment in zip(path_segments, start_segments):
-        if path_segment != start_segment:
-            break
-
-        common += 1
-
-    up_count = len(start_segments) - common
-
-    result_segments = [".."] * up_count + path_segments[common:]
-    result = paths.join(*result_segments)
-
-    return result

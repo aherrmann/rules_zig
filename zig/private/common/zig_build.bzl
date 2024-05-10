@@ -177,6 +177,14 @@ def zig_build_impl(ctx, *, kind):
         executable = output
         files = depset([output])
         direct_data.append(output)
+
+        # Calculate the RPATH components to discover the solib tree.
+        # See https://github.com/bazelbuild/bazel/blob/7.0.0/src/main/java/com/google/devtools/build/lib/rules/cpp/LibrariesToLinkCollector.java#L177
+        # TODO: Implement case 8b.
+        solib_parents = [
+            "/".join([".." for _ in ctx.label.package.split("/")]),
+            paths.join(output.basename + ".runfiles", ctx.workspace_name),
+        ]
     elif kind == "zig_library":
         prefix = "" if zigtargetinfo.triple.os == "windows" else "lib"
         extension = ".lib" if zigtargetinfo.triple.os == "windows" else ".a"
@@ -185,6 +193,8 @@ def zig_build_impl(ctx, *, kind):
         args.add(static, format = "-femit-bin=%s")
 
         files = depset([static])
+
+        solib_parents = []
     elif kind == "zig_shared_library":
         prefix = "" if zigtargetinfo.triple.os == "windows" else "lib"
         extension = ".dll" if zigtargetinfo.triple.os == "windows" else ".so"
@@ -194,6 +204,8 @@ def zig_build_impl(ctx, *, kind):
         args.add(dynamic.basename, format = "-fsoname=%s")
 
         files = depset([dynamic])
+
+        solib_parents = [""]
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
@@ -226,7 +238,7 @@ def zig_build_impl(ctx, *, kind):
 
     zig_cdeps(
         cdeps = ctx.attr.cdeps,
-        output_dir = paths.join(ctx.bin_dir.path, ctx.label.package),
+        solib_parents = solib_parents,
         os = zigtargetinfo.triple.os,
         direct_inputs = direct_inputs,
         transitive_inputs = transitive_inputs,
