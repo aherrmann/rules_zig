@@ -27,9 +27,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "io_buildbuddy_buildbuddy_toolchain",
-        sha256 = "69f605320bed81fc11f1ab69bd76bd7199eca25c7d554504029c85b0a2ebb9af",
-        strip_prefix = "buildbuddy-toolchain-5bf0572e5a9c1e99fddb8e282e9a4cb6734ecd79",
-        urls = ["https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/5bf0572e5a9c1e99fddb8e282e9a4cb6734ecd79.tar.gz"],
+        sha256 = "6d74221174f1759652ae4f204e009b5c234b781d13252a43933a2141fbf117b9",
+        strip_prefix = "buildbuddy-toolchain-dfb7aadff5783bee5f53682144486265ed5e8941",
+        urls = ["https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/dfb7aadff5783bee5f53682144486265ed5e8941.tar.gz"],
     )
 
     http_archive(
