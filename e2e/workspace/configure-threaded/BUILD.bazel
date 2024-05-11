@@ -33,7 +33,7 @@ genrule(
     name = "library_single_symbol",
     srcs = [":library_single"],
     outs = ["library_single_symbol.txt"],
-    cmd = "$(NM) -j --defined-only $(SRCS) | grep single_threaded > $(OUTS)",
+    cmd = "$(NM) --defined-only $(SRCS) | grep single_threaded > $(OUTS)",
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
 )
 
@@ -41,7 +41,7 @@ genrule(
     name = "library_multi_symbol",
     srcs = [":library_multi"],
     outs = ["library_multi_symbol.txt"],
-    cmd = "$(NM) -j --defined-only $(SRCS) | grep multi_threaded > $(OUTS)",
+    cmd = "$(NM) --defined-only $(SRCS) | grep multi_threaded > $(OUTS)",
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
 )
 
