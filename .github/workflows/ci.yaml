@@ -176,6 +176,11 @@ jobs:
           # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
           build:linux --config=remote
           EOF
+          cat <<EOF >>.bazelrc.ic.user
+          build --config=remote-bes --config=remote-cache
+          # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
+          build:linux --config=remote
+          EOF
 
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}

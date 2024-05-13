@@ -33,6 +33,8 @@ build:remote-cache --remote_timeout=3600
 
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_executor
 build:remote-exec --remote_executor=grpcs://remote.buildbuddy.io
+# docs: https://bazel.build/reference/command-line-reference#flag--experimental_remote_downloader
+build:remote-exec --experimental_remote_downloader=grpcs://remote.buildbuddy.io
 
 # docs: https://bazel.build/reference/command-line-reference#flag--jobs
 build:remote-exec --jobs=80

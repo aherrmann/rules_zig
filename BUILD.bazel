@@ -15,6 +15,22 @@ bzl_library(
     ],
 )
 
+filegroup(
+    name = "bazelrc",
+    srcs = [
+        ".bazelrc.common",
+        ".bazelrc.flags",
+        ".bazelrc.remote",
+    ] + glob(
+        [
+            # buildifier: disable=constant-glob
+            ".bazelrc.ic.user",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//zig/tests/integration_tests:__pkg__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",

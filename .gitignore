@@ -1,5 +1,6 @@
 bazel-*
 .bazeliskrc
+.bazelrc.ic.user
 .bazelrc.user
 .idea/
 .ijwb/
