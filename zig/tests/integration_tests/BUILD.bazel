@@ -32,6 +32,7 @@ bazel_integration_tests(
     test_runner = ":integration_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
+        "//:bazelrc",
     ],
     workspace_path = "workspace",
 )
@@ -45,6 +46,7 @@ bazel_integration_tests(
     test_runner = ":integration_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
+        "//:bazelrc",
     ],
     workspace_path = "workspace",
 )
@@ -97,6 +99,7 @@ bazel_integration_test(
     test_runner = ":zig_version_tests_runner",
     workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
         "//:all_files",
+        "//:bazelrc",
     ],
     workspace_path = "workspace",
 )
