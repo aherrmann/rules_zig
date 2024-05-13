@@ -15,20 +15,6 @@ bzl_library(
     ],
 )
 
-# Execute `bazel run //util:update_filegroups` to update this target.
-filegroup(
-    name = "all_files",
-    srcs = [
-        ":BUILD.bazel",
-        ":MODULE.bazel",
-        ":WORKSPACE",
-        ":WORKSPACE.bzlmod",
-        ":internal_deps.bzl",
-        "//zig:all_files",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "bazelrc",
     srcs = [
@@ -43,4 +29,18 @@ filegroup(
         allow_empty = True,
     ),
     visibility = ["//zig/tests/integration_tests:__pkg__"],
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":MODULE.bazel",
+        ":WORKSPACE",
+        ":WORKSPACE.bzlmod",
+        ":internal_deps.bzl",
+        "//zig:all_files",
+    ],
+    visibility = ["//visibility:public"],
 )
