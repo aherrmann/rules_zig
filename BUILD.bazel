@@ -32,7 +32,6 @@ filegroup(
 filegroup(
     name = "bazelrc",
     srcs = [
-        ".bazelrc",
         ".bazelrc.common",
         ".bazelrc.flags",
         ".bazelrc.remote",
