@@ -8,4 +8,4 @@ import %workspace%/../../../../.bazelrc.flags
 import %workspace%/../../../../.bazelrc.remote
 
 # Load any settings specific to the current user.
-try-import %workspace%/../../../../.bazelrc.user
+try-import %workspace%/../../../../.bazelrc.ic.user

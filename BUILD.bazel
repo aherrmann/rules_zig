@@ -24,7 +24,7 @@ filegroup(
     ] + glob(
         [
             # buildifier: disable=constant-glob
-            ".bazelrc.user",
+            ".bazelrc.ic.user",
         ],
         allow_empty = True,
     ),

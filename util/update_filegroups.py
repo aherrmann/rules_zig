@@ -30,7 +30,7 @@ IGNORE_SRCS = {
         "//:.bazelrc.common",
         "//:.bazelrc.flags",
         "//:.bazelrc.remote",
-        "//:.bazelrc.user",
+        "//:.bazelrc.ic.user",
     ],
 }
 
