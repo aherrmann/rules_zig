@@ -24,6 +24,16 @@ EXTRA_SRCS = {
     ],
 }
 
+# Add source files to ignore here.
+IGNORE_SRCS = {
+    "": [
+        "//:.bazelrc.common",
+        "//:.bazelrc.flags",
+        "//:.bazelrc.remote",
+        "//:.bazelrc.user",
+    ],
+}
+
 
 def get_workspace_root():
     """Read the workspace root directory from the environment."""
@@ -85,9 +95,10 @@ def query_package_sources(bazel, package, enable_bzlmod):
         command += ["--enable_bzlmod"]
     else:
         command += ["--noenable_bzlmod"]
-    sources = subprocess.check_output(command).decode().split("\n")
-    sources.extend(EXTRA_SRCS.get(package, []))
-    return sources
+    sources = set(subprocess.check_output(command).decode().split("\n"))
+    sources.update(EXTRA_SRCS.get(package, []))
+    sources.difference_update(IGNORE_SRCS.get(package, []))
+    return list(sources)
 
 
 def generate_all_files_target(env, buildozer, package, sources, subpackages):
