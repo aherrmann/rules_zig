@@ -28,3 +28,20 @@ filegroup(
     ],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "bazelrc",
+    srcs = [
+        ".bazelrc",
+        ".bazelrc.common",
+        ".bazelrc.flags",
+        ".bazelrc.remote",
+    ] + glob(
+        [
+            # buildifier: disable=constant-glob
+            ".bazelrc.user",
+        ],
+        allow_empty = True,
+    ),
+    visibility = ["//zig/tests/integration_tests:__pkg__"],
+)
