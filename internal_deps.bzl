@@ -75,10 +75,10 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "bazel_skylib_gazelle_plugin",
-        sha256 = "2e4a533f7a303076a5d43191b3696c071b9bc0020eb00ec07c3e02bd9ce3093d",
+        sha256 = "e0629e3cbacca15e2c659833b24b86174d22b664ca0a67f377108ff6a207cc8c",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.0/bazel-skylib-gazelle-plugin-1.7.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.0/bazel-skylib-gazelle-plugin-1.7.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-gazelle-plugin-1.7.1.tar.gz",
         ],
     )
 
