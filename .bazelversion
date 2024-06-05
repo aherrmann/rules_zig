@@ -1,4 +1,4 @@
-8.0.0-pre.20240523.3
+8.0.0-pre.20240530.1
 # The first line of this file is used by Bazelisk and Bazel to be sure
 # the right version of Bazel is used to build and test this repo.
 # This also defines which version is used on CI.
