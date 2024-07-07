@@ -60,8 +60,19 @@ test "Directory init and unmapped lookup" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
     try tmp.dir.makePath("test.runfiles/my_workspace/some/package");
-    try tmp.dir.writeFile("test.runfiles/_repo_mapping", "_repo_mapping");
-    try tmp.dir.writeFile("test.runfiles/my_workspace/some/package/some_file", "some_file");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.runfiles/_repo_mapping", "_repo_mapping");
+        try tmp.dir.writeFile("test.runfiles/my_workspace/some/package/some_file", "some_file");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles/_repo_mapping",
+            .data = "_repo_mapping",
+        });
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles/my_workspace/some/package/some_file",
+            .data = "some_file",
+        });
+    }
 
     const cwd_path_absolute = try std.fs.cwd().realpathAlloc(std.testing.allocator, ".");
     defer std.testing.allocator.free(cwd_path_absolute);

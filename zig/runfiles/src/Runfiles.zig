@@ -273,15 +273,33 @@ const Implementation = union(discovery.Strategy) {
 test "Runfiles from manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.repo_mapping",
-        \\,my_module,my_workspace
-        \\,other_module,other~3.4.5
-        \\their_module~1.2.3,another_module,other~3.4.5
-    );
     try tmp.dir.makePath("some/package");
-    try tmp.dir.writeFile("some/package/some_file", "some_content");
     try tmp.dir.makePath("other/package");
-    try tmp.dir.writeFile("other/package/other_file", "other_content");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.repo_mapping",
+            \\,my_module,my_workspace
+            \\,other_module,other~3.4.5
+            \\their_module~1.2.3,another_module,other~3.4.5
+        );
+        try tmp.dir.writeFile("some/package/some_file", "some_content");
+        try tmp.dir.writeFile("other/package/other_file", "other_content");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.repo_mapping",
+            .data =
+                \\,my_module,my_workspace
+                \\,other_module,other~3.4.5
+                \\their_module~1.2.3,another_module,other~3.4.5
+        });
+        try tmp.dir.writeFile(.{
+            .sub_path = "some/package/some_file",
+            .data = "some_content",
+        });
+        try tmp.dir.writeFile(.{
+            .sub_path = "other/package/other_file",
+            .data = "other_content",
+        });
+    }
     {
         var manifest_file = try tmp.dir.createFile("test.runfiles_manifest", .{});
         defer manifest_file.close();
@@ -361,15 +379,33 @@ test "Runfiles from directory" {
 
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.repo_mapping",
-        \\,my_module,my_workspace
-        \\,other_module,other~3.4.5
-        \\their_module~1.2.3,another_module,other~3.4.5
-    );
     try tmp.dir.makePath("some/package");
-    try tmp.dir.writeFile("some/package/some_file", "some_content");
     try tmp.dir.makePath("other/package");
-    try tmp.dir.writeFile("other/package/other_file", "other_content");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.repo_mapping",
+            \\,my_module,my_workspace
+            \\,other_module,other~3.4.5
+            \\their_module~1.2.3,another_module,other~3.4.5
+        );
+        try tmp.dir.writeFile("some/package/some_file", "some_content");
+        try tmp.dir.writeFile("other/package/other_file", "other_content");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.repo_mapping",
+            .data =
+                \\,my_module,my_workspace
+                \\,other_module,other~3.4.5
+                \\their_module~1.2.3,another_module,other~3.4.5
+        });
+        try tmp.dir.writeFile(.{
+            .sub_path = "some/package/some_file",
+            .data = "some_content",
+        });
+        try tmp.dir.writeFile(.{
+            .sub_path = "other/package/other_file",
+            .data = "other_content",
+        });
+    }
     {
         var buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         try tmp.dir.makeDir("test.runfiles");
