@@ -80,8 +80,8 @@ runs:
       working-directory: ${{ inputs.folder }}
       shell: bash
       run: |
-        PREFIX=${{ inputs.docsEnabled == 'true' && '' || 'no' }}
-        echo "common --$PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
+        PREFIX=${{ inputs.docsEnabled == 'true' && '--' || '--no' }}
+        echo "common $PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
 
     - name: Configure Zig version
       working-directory: ${{ inputs.folder }}
