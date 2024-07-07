@@ -58,12 +58,13 @@ jobs:
       # Sorted in descending semver order.
       zigversions: ${{ steps.versions_from_zig_versions_json.outputs.zigversions }}
 
-  test:
+  test-bazel-versions:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
 
     needs:
       - matrix-prep-bazelversion
+      - matrix-prep-zigversion
 
     # Run bazel test in each workspace with each version of Bazel supported
     strategy:
@@ -71,7 +72,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         bazelVersion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
-        zigVersion: [0.12.0]
+        zigVersion:
+          - ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
         bzlmodEnabled: [true, false]
         folder:
           - "."
@@ -189,7 +191,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - matrix-prep-bazelversion
-      - test
+      - test-bazel-versions
     if: ${{ always() }}
     steps:
       - uses: cgrindel/gha_join_jobs@v1.2.0
