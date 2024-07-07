@@ -62,6 +62,32 @@ zig_configure_test(
 )
 
 zig_configure(
+    name = "zig_version_0.12.1",
+    actual = ":zig_version",
+    zig_version = "0.12.1",
+)
+
+diff_test(
+    name = "zig_version_test_0.12.1",
+    size = "small",
+    file1 = ":zig_version_0.12.1.expected",
+    file2 = ":zig_version_0.12.1",
+)
+
+zig_test(
+    name = "zig_test_0.12.1_manual",
+    main = "test-0.12.1.zig",
+    tags = ["manual"],
+)
+
+zig_configure_test(
+    name = "zig_test_0.12.1",
+    size = "small",
+    actual = ":zig_test_0.12.1_manual",
+    zig_version = "0.12.1",
+)
+
+zig_configure(
     name = "zig_version_0.13.0",
     actual = ":zig_version",
     zig_version = "0.13.0",
