@@ -72,15 +72,15 @@ runs:
       id: set_bzlmod_flag
       shell: bash
       run: |
-        echo "common ${{ inputs.bzlmodEnabled == true && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
-        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == true && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
+        echo "common ${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
+        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
 
     - name: Configure documentation generation
       if: inputs.folder == '.' && inputs.targetPattern == '//...'
       working-directory: ${{ inputs.folder }}
       shell: bash
       run: |
-        PREFIX=${{ inputs.docsEnabled == true && '' || 'no' }}
+        PREFIX=${{ inputs.docsEnabled == 'true' && '' || 'no' }}
         echo "common --$PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
 
     - name: Configure Zig version
