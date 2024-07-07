@@ -125,6 +125,10 @@ jobs:
           - "."
           - "e2e/workspace"
         targetPattern: ["//..."]
+        exclude:
+          # This combination is already tested in test-bazel-versions
+          - bazelVersion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+            zigVersion: ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
 
     # Configure a human readable name for each job
     name: Test ${{ matrix.targetPattern }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, Bazel ${{ matrix.bazelVersion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
