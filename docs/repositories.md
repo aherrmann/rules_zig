@@ -10,6 +10,8 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 ## rules_zig_dependencies
 
 <pre>
+load("@rules_zig//zig:repositories.bzl", "rules_zig_dependencies")
+
 rules_zig_dependencies()
 </pre>
 
@@ -22,7 +24,9 @@ Register dependencies required by rules_zig.
 ## zig_register_toolchains
 
 <pre>
-zig_register_toolchains(<a href="#zig_register_toolchains-name">name</a>, <a href="#zig_register_toolchains-zig_versions">zig_versions</a>, <a href="#zig_register_toolchains-zig_version">zig_version</a>, <a href="#zig_register_toolchains-register">register</a>, <a href="#zig_register_toolchains-kwargs">kwargs</a>)
+load("@rules_zig//zig:repositories.bzl", "zig_register_toolchains")
+
+zig_register_toolchains(*, <a href="#zig_register_toolchains-name">name</a>, <a href="#zig_register_toolchains-zig_versions">zig_versions</a>, <a href="#zig_register_toolchains-zig_version">zig_version</a>, <a href="#zig_register_toolchains-register">register</a>, <a href="#zig_register_toolchains-kwargs">**kwargs</a>)
 </pre>
 
 Convenience macro for users which does typical setup.
@@ -54,7 +58,9 @@ Users can avoid this macro and do these steps themselves, if they want more cont
 ## zig_repositories
 
 <pre>
-zig_repositories(<a href="#zig_repositories-kwargs">kwargs</a>)
+load("@rules_zig//zig:repositories.bzl", "zig_repositories")
+
+zig_repositories(<a href="#zig_repositories-kwargs">**kwargs</a>)
 </pre>
 
 Fetch and install a Zig toolchain.
@@ -76,7 +82,9 @@ Use `zig_repository` instead.
 ## zig_repository
 
 <pre>
-zig_repository(<a href="#zig_repository-name">name</a>, <a href="#zig_repository-zig_version">zig_version</a>, <a href="#zig_repository-platform">platform</a>, <a href="#zig_repository-kwargs">kwargs</a>)
+load("@rules_zig//zig:repositories.bzl", "zig_repository")
+
+zig_repository(*, <a href="#zig_repository-name">name</a>, <a href="#zig_repository-zig_version">zig_version</a>, <a href="#zig_repository-platform">platform</a>, <a href="#zig_repository-kwargs">**kwargs</a>)
 </pre>
 
 Fetch and install a Zig toolchain.

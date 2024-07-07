@@ -7,6 +7,8 @@ Rules to declare Zig toolchains.
 ## zig_target_toolchain
 
 <pre>
+load("@rules_zig//zig:toolchain.bzl", "zig_target_toolchain")
+
 zig_target_toolchain(<a href="#zig_target_toolchain-name">name</a>, <a href="#zig_target_toolchain-dynamic_linker">dynamic_linker</a>, <a href="#zig_target_toolchain-target">target</a>)
 </pre>
 
@@ -65,6 +67,8 @@ toolchain(
 ## zig_toolchain
 
 <pre>
+load("@rules_zig//zig:toolchain.bzl", "zig_toolchain")
+
 zig_toolchain(<a href="#zig_toolchain-name">name</a>, <a href="#zig_toolchain-zig_cache">zig_cache</a>, <a href="#zig_toolchain-zig_exe">zig_exe</a>, <a href="#zig_toolchain-zig_exe_path">zig_exe_path</a>, <a href="#zig_toolchain-zig_lib">zig_lib</a>, <a href="#zig_toolchain-zig_lib_path">zig_lib_path</a>, <a href="#zig_toolchain-zig_version">zig_version</a>)
 </pre>
 

@@ -72,16 +72,16 @@ runs:
       id: set_bzlmod_flag
       shell: bash
       run: |
-        echo "common ${{ inputs.bzlmodEnabled == true && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
-        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == true && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
+        echo "common ${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
+        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
 
     - name: Configure documentation generation
       if: inputs.folder == '.' && inputs.targetPattern == '//...'
       working-directory: ${{ inputs.folder }}
       shell: bash
       run: |
-        PREFIX=${{ inputs.docsEnabled == true && '' || 'no' }}
-        echo "common --$PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
+        PREFIX=${{ inputs.docsEnabled == 'true' && '--' || '--no' }}
+        echo "common $PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
 
     - name: Configure Zig version
       working-directory: ${{ inputs.folder }}
@@ -96,7 +96,11 @@ runs:
         # Bazelisk will download bazel to here, ensure it is cached between runs.
         export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
         bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
-        test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; git diff >&2; exit 1; }
+        [ -z "$(git status --porcelain=v1 2>/dev/null)" ] || {
+          echo 'Update generated files using `bazel run //util:update`' >&2
+          git --no-pager diff >&2
+          exit 1
+        }
 
     - name: Check for test.sh
       # Checks for the existence of test.sh in the folder. Downstream steps can use
