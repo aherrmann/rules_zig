@@ -19,18 +19,18 @@ def _parse_zig_index_test_impl(ctx):
 
     content = """\
 {
-  "0.12.0": {
+  "0.13.0": {
     "aarch64-linux": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
       "shasum": "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63"
     }
   }
 }
 """
     expected = {
-        "0.12.0": {
+        "0.13.0": {
             "aarch64-linux": struct(
-                url = "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+                url = "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
                 sha256 = "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63",
             ),
         },
@@ -40,9 +40,9 @@ def _parse_zig_index_test_impl(ctx):
 
     content = """\
 {
-  "0.12.0": {
+  "0.13.0": {
     "aarch64-linux": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
       "shasum": "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63"
     }
   },
@@ -59,9 +59,9 @@ def _parse_zig_index_test_impl(ctx):
 }
 """
     expected = {
-        "0.12.0": {
+        "0.13.0": {
             "aarch64-linux": struct(
-                url = "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+                url = "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
                 sha256 = "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63",
             ),
         },
@@ -125,23 +125,23 @@ def _parse_zig_index_test_impl(ctx):
       "size": "47206948"
     }
   },
-  "0.12.0": {
+  "0.13.0": {
     "date": "2024-04-20",
-    "docs": "https://ziglang.org/documentation/0.12.0/",
-    "stdDocs": "https://ziglang.org/documentation/0.12.0/std/",
-    "notes": "https://ziglang.org/download/0.12.0/release-notes.html",
+    "docs": "https://ziglang.org/documentation/0.13.0/",
+    "stdDocs": "https://ziglang.org/documentation/0.13.0/std/",
+    "notes": "https://ziglang.org/download/0.13.0/release-notes.html",
     "src": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-0.12.0.tar.xz",
+      "tarball": "https://ziglang.org/download/0.13.0/zig-0.13.0.tar.xz",
       "shasum": "a6744ef84b6716f976dad923075b2f54dc4f785f200ae6c8ea07997bd9d9bd9a",
       "size": "17099152"
     },
     "bootstrap": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-bootstrap-0.12.0.tar.xz",
+      "tarball": "https://ziglang.org/download/0.13.0/zig-bootstrap-0.13.0.tar.xz",
       "shasum": "3efc643d56421fa68072af94d5512cb71c61acf1c32512f77c0b4590bff63187",
       "size": "45527312"
     },
     "x86_64-macos": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-macos-x86_64-0.12.0.tar.xz",
+      "tarball": "https://ziglang.org/download/0.13.0/zig-macos-x86_64-0.13.0.tar.xz",
       "shasum": "4d411bf413e7667821324da248e8589278180dbc197f4f282b7dbb599a689311",
       "size": "47185720"
     }
@@ -155,9 +155,9 @@ def _parse_zig_index_test_impl(ctx):
                 sha256 = "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
             ),
         },
-        "0.12.0": {
+        "0.13.0": {
             "x86_64-macos": struct(
-                url = "https://ziglang.org/download/0.12.0/zig-macos-x86_64-0.12.0.tar.xz",
+                url = "https://ziglang.org/download/0.13.0/zig-macos-x86_64-0.13.0.tar.xz",
                 sha256 = "4d411bf413e7667821324da248e8589278180dbc197f4f282b7dbb599a689311",
             ),
         },
@@ -172,7 +172,7 @@ def _parse_zig_index_test_impl(ctx):
 
     content = """\
 {
-  "0.12.0": {
+  "0.13.0": {
     "aarch64-linux": {
       "shasum": "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63"
     }
@@ -185,9 +185,9 @@ def _parse_zig_index_test_impl(ctx):
 
     content = """\
 {
-  "0.12.0": {
+  "0.13.0": {
     "aarch64-linux": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz"
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz"
     }
   }
 }
@@ -200,7 +200,7 @@ def _parse_zig_index_test_impl(ctx):
 {
   "bad-version": {
     "aarch64-linux": {
-      "tarball": "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
       "shasum": "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63"
     }
   }
@@ -228,9 +228,9 @@ def _merge_version_specs_test_impl(ctx):
     asserts.equals(
         env,
         {
-            "0.12.0": {
+            "0.13.0": {
                 "aarch64-linux": struct(
-                    url = "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+                    url = "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
                     sha256 = "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63",
                 ),
             },
@@ -247,9 +247,9 @@ def _merge_version_specs_test_impl(ctx):
         },
         merge_version_specs([
             {
-                "0.12.0": {
+                "0.13.0": {
                     "aarch64-linux": struct(
-                        url = "https://ziglang.org/download/0.12.0/zig-linux-aarch64-0.12.0.tar.xz",
+                        url = "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
                         sha256 = "754f1029484079b7e0ca3b913a0a2f2a6afd5a28990cb224fe8845e72f09de63",
                     ),
                 },

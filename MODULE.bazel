@@ -21,7 +21,7 @@ zig_dev = use_extension(
     "zig",
     dev_dependency = True,
 )
-zig_dev.toolchain(zig_version = "0.12.0")
+zig_dev.toolchain(zig_version = "0.13.0")
 zig_dev.toolchain(zig_version = "0.11.0")
 
 bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
