@@ -203,6 +203,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - matrix-prep-bazelversion
+      - matrix-prep-zigversion
       - test-bazel-versions
       - test-zig-versions
       - integration-tests
