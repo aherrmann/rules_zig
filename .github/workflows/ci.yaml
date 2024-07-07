@@ -36,6 +36,28 @@ jobs:
       # Will look like ["<version from .bazelversion>","<version from bazel_versions.bzl>"]
       bazelversions: ${{ steps.versions_from_bazel_versions_bzl.outputs.bazelversions }}
 
+  matrix-prep-zigversion:
+    # Prepares the 'zigversion' axis of the test matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: versions_from_zig_versions_json
+        run: |
+          # https://stackoverflow.com/a/75770668/841562 by tlwhitec
+          # license https://creativecommons.org/licenses/by-sa/4.0/
+          jq_semver_cmp='
+            def opt(f):
+                . as $in | try f catch $in;
+            def semver_cmp:
+                sub("\\+.*$"; "")
+              | capture("^(?<v>[^-]+)(?:-(?<p>.*))?$") | [.v, .p // empty]
+              | map(split(".") | map(opt(tonumber)))
+              | .[1] |= (. // {});'
+          echo "zigversions=$(jq -c "$jq_semver_cmp"'keys|sort_by(semver_cmp)|reverse' zig/private/versions.json)" >> $GITHUB_OUTPUT
+    outputs:
+      # Sorted in descending semver order.
+      zigversions: ${{ steps.versions_from_zig_versions_json.outputs.zigversions }}
+
   test:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
