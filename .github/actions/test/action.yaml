@@ -1,0 +1,124 @@
+name: Run Tests
+description: Run all tests for a specific configuration.
+inputs:
+  os:
+    description: "The runer's operating system, used in cache keys."
+    required: true
+  folder:
+    description: "The folder to run builds and tests in."
+    required: true
+  bazelVersion:
+    description: "The Bazel version to run the build and tests with."
+    required: true
+  bzlmodEnabled:
+    description: "Whether to use bzlmod or the legacy WORKSPACE mode."
+    required: true
+  docsEnabled:
+    description: "Whether to build Stardoc documentation."
+    required: true
+  zigVersion:
+    description: "The default Zig version to use."
+    required: true
+  targetPattern:
+    description: "The Bazel build and test target pattern."
+    required: true
+runs:
+  using: composite
+  steps:
+    # Cache build and external artifacts so that the next ci build is incremental.
+    # Because github action caches cannot be updated after a build, we need to
+    # store the contents of each build in a unique cache key, then fall back to loading
+    # it on the next ci run. We use hashFiles(...) in the key and restore-keys- with
+    # the prefix to load the most recent cache for the branch on a cache miss. You
+    # should customize the contents of hashFiles to capture any bazel input sources,
+    # although this doesn't need to be perfect. If none of the input sources change
+    # then a cache hit will load an existing cache and bazel won't have to do any work.
+    # In the case of a cache miss, you want the fallback cache to contain most of the
+    # previously built artifacts to minimize build time. The more precise you are with
+    # hashFiles sources the less work bazel will have to do.
+    - name: Mount bazel caches
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/bazel
+          ~/.cache/bazel-repo
+        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
+        restore-keys: |
+          bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
+
+    - name: Configure remote cache and execution
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      run: |
+        cat <<EOF >>.bazelrc.user
+        build --config=remote-bes --config=remote-cache
+        # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
+        build:linux --config=remote
+        EOF
+        cat <<EOF >>.bazelrc.ic.user
+        build --config=remote-bes --config=remote-cache
+        # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
+        build:linux --config=remote
+        EOF
+
+    - name: Configure Bazel version
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      run: echo "USE_BAZEL_VERSION=${{ inputs.bazelVersion }}" > .bazeliskrc
+
+    - name: Set bzlmod flag
+      working-directory: ${{ inputs.folder }}
+      # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
+      id: set_bzlmod_flag
+      shell: bash
+      run: |
+        echo "common ${{ inputs.bzlmodEnabled == true && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
+        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == true && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
+
+    - name: Configure documentation generation
+      if: inputs.folder == '.' && inputs.targetPattern == '//...'
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      run: |
+        PREFIX=${{ inputs.docsEnabled == true && '' || 'no' }}
+        echo "common --$PREFIX@rules_zig//docs:build_docs" >> .bazelrc.user
+
+    - name: Configure Zig version
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      run: echo "build --@zig_toolchains//:version=${{ inputs.zigVersion }}" >> .bazelrc.user
+
+    - name: Test generated files
+      if: inputs.folder == '.' && inputs.targetPattern == '//...'
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      run: |
+        # Bazelisk will download bazel to here, ensure it is cached between runs.
+        export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
+        bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc run //util:update
+        test -z $(git status --porcelain) || { echo "Update generated files using `bazel run //util:update`" >&2; git diff >&2; exit 1; }
+
+    - name: Check for test.sh
+      # Checks for the existence of test.sh in the folder. Downstream steps can use
+      # steps.has_test_sh.outputs.files_exists as a conditional.
+      id: has_test_sh
+      uses: andstor/file-existence-action@v3
+      with:
+        files: "${{ inputs.folder }}/test.sh"
+
+    - name: ./test.sh
+      # Run if there is a test.sh file in the folder
+      if: steps.has_test_sh.outputs.files_exists == 'true'
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      # Run the script potentially setting BZLMOD_FLAG=--enable_bzlmod. All test.sh
+      # scripts that run bazel directly should make use of this variable.
+      run: BZLMOD_FLAG=${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} ./test.sh
+
+    - name: bazel test ${{ inputs.targetPattern }}
+      working-directory: ${{ inputs.folder }}
+      shell: bash
+      run: |
+        # Bazelisk will download bazel to here, ensure it is cached between runs.
+        export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
+        bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ inputs.targetPattern }}
