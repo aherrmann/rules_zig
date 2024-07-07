@@ -79,27 +79,6 @@ jobs:
           - "."
           - "e2e/workspace"
         targetPattern: ["//..."]
-        include:
-          # The integration tests iterate over all supported Bazel versions, so
-          # we only run them against the latest Bazel version.
-          - os: ubuntu-latest
-            bazelVersion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
-            zigVersion: 0.12.0
-            bzlmodEnabled: false
-            folder: "."
-            targetPattern: "//zig/tests/integration_tests"
-          - os: ubuntu-latest
-            bazelVersion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
-            zigVersion: 0.12.0
-            bzlmodEnabled: true
-            folder: "."
-            targetPattern: "//zig/tests/integration_tests"
-          - os: macos-latest
-            bazelVersion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
-            zigVersion: 0.12.0
-            bzlmodEnabled: true
-            folder: "."
-            targetPattern: "//zig/tests/integration_tests"
 
     # Configure a human readable name for each job
     name: Test ${{ matrix.targetPattern }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, Bazel ${{ matrix.bazelVersion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
@@ -171,12 +150,58 @@ jobs:
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
 
+  integration-tests:
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+
+    needs:
+      - matrix-prep-bazelversion
+      - matrix-prep-zigversion
+
+    # Run bazel test in each workspace with each version of Bazel supported
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        bazelVersion:
+          - ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+        zigVersion:
+          - ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
+        bzlmodEnabled: [true, false]
+        folder: ["."]
+        targetPattern: ["//zig/tests/integration_tests"]
+
+    # Configure a human readable name for each job
+    name: Test ${{ matrix.targetPattern }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, Bazel ${{ matrix.bazelVersion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/test
+        with:
+          os: ${{ matrix.os }}
+          folder: ${{ matrix.folder }}
+          bazelVersion: ${{ matrix.bazelVersion }}
+          bzlmodEnabled: ${{ matrix.bzlmodEnabled }}
+          # Disable documentation generation for all but the first Bazel
+          # version, by setting --no@rules_zig//docs:build_docs in
+          # .bazelrc.user. The generated documentation can vary between Bazel
+          # versions. For example, Bazel version 7 changed the documentation of
+          # the implicit `repo_mapping` parameter to repository rules compared
+          # to Bazel version 6.
+          docsEnabled: ${{ matrix.bazelVersion == fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
+          zigVersion: ${{ matrix.zigVersion }}
+          targetPattern: ${{ matrix.targetPattern }}
+
   all_tests:
     runs-on: ubuntu-latest
     needs:
       - matrix-prep-bazelversion
       - test-bazel-versions
       - test-zig-versions
+      - integration-tests
     if: ${{ always() }}
     steps:
       - uses: cgrindel/gha_join_jobs@v1.2.0
