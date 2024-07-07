@@ -15,5 +15,7 @@ zig.toolchain(
     default = True,
     zig_version = "0.13.0",
 )
+zig.toolchain(zig_version = "0.12.1")
+zig.toolchain(zig_version = "0.12.0")
 zig.toolchain(zig_version = "0.11.0")
 use_repo(zig, "zig_toolchains")
