@@ -114,8 +114,10 @@ test "runfiles in nested binary" {
 
     const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
         std.ChildProcess.exec
+    else if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 12)
+        std.ChildProcess.run
     else
-        std.ChildProcess.run;
+        std.process.Child.run;
     const result = try run(.{
         .allocator = std.testing.allocator,
         .argv = &[_][]const u8{binary_path},
@@ -125,6 +127,11 @@ test "runfiles in nested binary" {
     defer std.testing.allocator.free(result.stderr);
 
     std.log.warn("stderr: {s}", .{result.stderr});
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    const Term = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13)
+        std.ChildProcess.Term
+    else
+        std.process.Child.Term;
+    try std.testing.expectEqual(Term{ .Exited = 0 }, result.term);
+
     try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
 }

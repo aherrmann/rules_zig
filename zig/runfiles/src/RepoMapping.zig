@@ -200,12 +200,23 @@ const Ctx = struct {
 test "RepoMapping init from file" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("_repo_mapping",
-        \\,my_module,my_workspace
-        \\,my_protobuf,protobuf~3.19.2
-        \\,my_workspace,my_workspace
-        \\protobuf~3.19.2,protobuf,protobuf~3.19.2
-    );
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("_repo_mapping",
+            \\,my_module,my_workspace
+            \\,my_protobuf,protobuf~3.19.2
+            \\,my_workspace,my_workspace
+            \\protobuf~3.19.2,protobuf,protobuf~3.19.2
+        );
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "_repo_mapping",
+            .data =
+                \\,my_module,my_workspace
+                \\,my_protobuf,protobuf~3.19.2
+                \\,my_workspace,my_workspace
+                \\protobuf~3.19.2,protobuf,protobuf~3.19.2
+        });
+    }
     const mapping_path = try tmp.dir.realpathAlloc(std.testing.allocator, "_repo_mapping");
     defer std.testing.allocator.free(mapping_path);
     var repo_mapping = try RepoMapping.init(std.testing.allocator, mapping_path);

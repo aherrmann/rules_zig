@@ -3,6 +3,11 @@ const std = @import("std");
 const integration_testing = @import("integration_testing");
 const BitContext = integration_testing.BitContext;
 
+const Term = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13)
+    std.ChildProcess.Term
+else
+    std.process.Child.Term;
+
 test "zig_binary prints Hello World!" {
     const ctx = try BitContext.init();
 
@@ -36,7 +41,7 @@ test "failing zig_test fails" {
     defer result.deinit();
 
     // See https://bazel.build/run/scripts for Bazel exit codes.
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 3 }, result.term);
+    try std.testing.expectEqual(Term{ .Exited = 3 }, result.term);
 }
 
 test "Zig cache directory can be configured" {
@@ -350,8 +355,10 @@ test "runfiles library supports manifest mode" {
     // Execute the binary.
     const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
         std.ChildProcess.exec
+    else if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 12)
+        std.ChildProcess.run
     else
-        std.ChildProcess.run;
+        std.process.Child.run;
     const result = try run(.{
         .allocator = std.testing.allocator,
         .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
@@ -363,6 +370,6 @@ test "runfiles library supports manifest mode" {
 
     if (result.stderr.len > 0)
         std.log.warn("stderr: {s}", .{result.stderr});
-    try std.testing.expectEqual(std.ChildProcess.Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqual(Term{ .Exited = 0 }, result.term);
     try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
 }

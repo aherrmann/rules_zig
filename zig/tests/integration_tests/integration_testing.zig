@@ -7,6 +7,11 @@ const BIT_WORKSPACE_DIR = "BIT_WORKSPACE_DIR";
 /// Location of the Bazel binary.
 const BIT_BAZEL_BINARY = "BIT_BAZEL_BINARY";
 
+const Term = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13)
+    std.ChildProcess.Term
+else
+    std.process.Child.Term;
+
 /// Bazel integration testing context.
 ///
 /// Provides access to the Bazel binary and the workspace directory under test.
@@ -41,7 +46,7 @@ pub const BitContext = struct {
 
     pub const BazelResult = struct {
         success: bool,
-        term: std.ChildProcess.Term,
+        term: Term,
         stdout: []u8,
         stderr: []u8,
 
@@ -83,8 +88,10 @@ pub const BitContext = struct {
         }
         const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
             std.ChildProcess.exec
+        else if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 12)
+            std.ChildProcess.run
         else
-            std.ChildProcess.run;
+            std.process.Child.run;
         const result = try run(.{
             .allocator = std.testing.allocator,
             .argv = argv,

@@ -166,7 +166,14 @@ const testing = struct {
 test "discover user specified manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.runfiles_manifest", "");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.runfiles_manifest", "");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles_manifest",
+            .data = "",
+        });
+    }
 
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
@@ -188,7 +195,14 @@ test "discover user specified manifest" {
 test "discover environment specified manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.runfiles_manifest", "");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.runfiles_manifest", "");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles_manifest",
+            .data = "",
+        });
+    }
 
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
@@ -249,7 +263,14 @@ test "discover environment specified directory" {
 test "discover user specified argv0 manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.runfiles_manifest", "");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.runfiles_manifest", "");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles_manifest",
+            .data = "",
+        });
+    }
 
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
@@ -273,7 +294,14 @@ test "discover user specified argv0 manifest" {
 test "discover user specified argv0 .exe manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.exe.runfiles_manifest", "");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.exe.runfiles_manifest", "");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.exe.runfiles_manifest",
+            .data = "",
+        });
+    }
 
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.exe.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
@@ -366,7 +394,14 @@ test "discover not found" {
 test "discover priority" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.runfiles_manifest", "");
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.runfiles_manifest", "");
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles_manifest",
+            .data = "",
+        });
+    }
     try tmp.dir.makeDir("test.runfiles");
 
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");

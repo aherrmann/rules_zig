@@ -147,10 +147,19 @@ const HashMapUnmanaged = std.HashMapUnmanaged(
 test "RunfilesManifest init unmapped lookup" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.writeFile("test.runfiles_manifest",
-        \\my_workspace/some/package/some_file /absolute/path/to/some/package/some_file
-        \\_repo_mapping /absolute/path/to/_repo_mapping
-    );
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("test.runfiles_manifest",
+            \\my_workspace/some/package/some_file /absolute/path/to/some/package/some_file
+            \\_repo_mapping /absolute/path/to/_repo_mapping
+        );
+    } else {
+        try tmp.dir.writeFile(.{
+            .sub_path = "test.runfiles_manifest",
+            .data =
+                \\my_workspace/some/package/some_file /absolute/path/to/some/package/some_file
+                \\_repo_mapping /absolute/path/to/_repo_mapping
+        });
+    }
 
     const runfiles_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(runfiles_path);
