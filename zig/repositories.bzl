@@ -32,12 +32,12 @@ def rules_zig_dependencies():
             "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
         ],
     )
-
+    
     _http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "714cf8ce95a198bab0a6a3adaffea99e929d2f01bf6d4a59a2e6d6af72b4818c",
-        strip_prefix = "bazel-lib-2.7.8",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.7.9/bazel-lib-v2.7.8.tar.gz",
+        sha256 = "c780120ab99a4ca9daac69911eb06434b297214743ee7e0a1f1298353ef686db",
+        strip_prefix = "bazel-lib-2.7.9",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.7.9/bazel-lib-v2.7.9.tar.gz",
     )
 
 ########
