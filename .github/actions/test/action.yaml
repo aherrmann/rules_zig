@@ -2,7 +2,7 @@ name: Run Tests
 description: Run all tests for a specific configuration.
 inputs:
   os:
-    description: "The runer's operating system, used in cache keys."
+    description: "The runner's operating system, used in cache keys."
     required: true
   folder:
     description: "The folder to run builds and tests in."
