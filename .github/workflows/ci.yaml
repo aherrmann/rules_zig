@@ -103,6 +103,7 @@ jobs:
           docsEnabled: ${{ matrix.bazelVersion == fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
+          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
 
   test-zig-versions:
     # The type of runner that the job will run on
@@ -153,6 +154,7 @@ jobs:
           docsEnabled: ${{ matrix.bazelVersion == fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
+          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
 
   integration-tests:
     # The type of runner that the job will run on
@@ -198,6 +200,7 @@ jobs:
           docsEnabled: ${{ matrix.bazelVersion == fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
+          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
 
   all_tests:
     runs-on: ubuntu-latest

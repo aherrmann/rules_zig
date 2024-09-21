@@ -22,6 +22,9 @@ inputs:
   targetPattern:
     description: "The Bazel build and test target pattern."
     required: true
+  buildbuddyApiKey:
+    description: "The API key for BuildBuddy remote cache and execution."
+    required: true
 runs:
   using: composite
   steps:
@@ -50,7 +53,7 @@ runs:
       working-directory: ${{ inputs.folder }}
       shell: bash
       env:
-        BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+        BUILDBUDDY_API_KEY: ${{ inputs.buildbuddyApiKey }}
       run: |
         cat <<EOF >>.bazelrc.user
         build --build_metadata=ROLE=CI
