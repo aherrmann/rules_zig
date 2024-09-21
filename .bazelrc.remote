@@ -14,27 +14,31 @@ build:remote-bes --experimental_profile_include_primary_output
 build:remote-bes --nolegacy_important_outputs
 
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_results_url
-build:remote-bes --bes_results_url=https://app.buildbuddy.io/invocation/
+build:remote-bes --bes_results_url=https://aherrmann.buildbuddy.io/invocation/
 # docs: https://bazel.build/reference/command-line-reference#flag--bes_backend
-build:remote-bes --bes_backend=grpcs://remote.buildbuddy.io
+build:remote-bes --bes_backend=grpcs://aherrmann.buildbuddy.io
 
 # Remote cache setup.
 
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache
-build:remote-cache --remote_cache=grpcs://remote.buildbuddy.io
+build:remote-cache --remote_cache=grpcs://aherrmann.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_cache_compression
 build:remote-cache --remote_cache_compression
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_download_toplevel
 build:remote-cache --remote_download_toplevel
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_timeout
 build:remote-cache --remote_timeout=3600
+# docs: https://bazel.build/reference/command-line-reference#flag--experimental_remote_cache_ttl
+build:remote-cache --experimental_remote_cache_ttl=3h
+# docs: https://bazel.build/reference/command-line-reference#flag--experimental_remote_cache_lease_extension
+build:remote-cache --experimental_remote_cache_lease_extension
 
 # Remote execution setup.
 
 # docs: https://bazel.build/reference/command-line-reference#flag--remote_executor
-build:remote-exec --remote_executor=grpcs://remote.buildbuddy.io
+build:remote-exec --remote_executor=grpcs://aherrmann.buildbuddy.io
 # docs: https://bazel.build/reference/command-line-reference#flag--experimental_remote_downloader
-build:remote-exec --experimental_remote_downloader=grpcs://remote.buildbuddy.io
+build:remote-exec --experimental_remote_downloader=grpcs://aherrmann.buildbuddy.io
 
 # docs: https://bazel.build/reference/command-line-reference#flag--jobs
 build:remote-exec --jobs=80

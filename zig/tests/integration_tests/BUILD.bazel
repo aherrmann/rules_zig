@@ -1,3 +1,4 @@
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template_rule")
 load("@bazel_binaries//:defs.bzl", "bazel_binaries")
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
@@ -11,6 +12,24 @@ load("//zig:defs.bzl", "zig_module", "zig_test")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 # gazelle:exclude workspace
+
+expand_template_rule(
+    name = "build_metadata",
+    out = ".bazelrc.meta",
+    stamp = 1,
+    stamp_substitutions = {
+        "{{REPO_URL}}": "{{REPO_URL}}",
+        "{{GIT_BRANCH}}": "{{GIT_BRANCH}}",
+        "{{COMMIT_SHA}}": "{{COMMIT_SHA}}",
+    },
+    template = ".bazelrc.meta.tpl",
+)
+
+workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
+    "//:all_files",
+    "//:bazelrc",
+    ".bazelrc.meta",
+]
 
 zig_module(
     name = "integration_testing",
@@ -30,10 +49,7 @@ bazel_integration_tests(
     bazel_versions = bazel_binaries.versions.all,
     tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":integration_tests_runner",
-    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
-        "//:all_files",
-        "//:bazelrc",
-    ],
+    workspace_files = workspace_files,
     workspace_path = "workspace",
 )
 
@@ -44,10 +60,7 @@ bazel_integration_tests(
     env = {"BZLMOD_ENABLED": "true"},
     tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":integration_tests_runner",
-    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
-        "//:all_files",
-        "//:bazelrc",
-    ],
+    workspace_files = workspace_files,
     workspace_path = "workspace",
 )
 
@@ -97,10 +110,7 @@ bazel_integration_test(
     bazel_version = bazel_binaries.versions.current,
     tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":zig_version_tests_runner",
-    workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
-        "//:all_files",
-        "//:bazelrc",
-    ],
+    workspace_files = workspace_files,
     workspace_path = "workspace",
 )
 

@@ -11,6 +11,9 @@ import %workspace%/.bazelrc.flags
 # Remote cache configuration.
 import %workspace%/.bazelrc.remote
 
+# docs: https://bazel.build/reference/command-line-reference#flag--workspace_status_command
+build --workspace_status_command=$(pwd)/workspace_status.sh
+
 # Deleted packages for integration tests.
 # To update these lines, execute
 # `bazel run @rules_bazel_integration_test//tools:update_deleted_packages`

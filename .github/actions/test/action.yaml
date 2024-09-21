@@ -2,7 +2,7 @@ name: Run Tests
 description: Run all tests for a specific configuration.
 inputs:
   os:
-    description: "The runer's operating system, used in cache keys."
+    description: "The runner's operating system, used in cache keys."
     required: true
   folder:
     description: "The folder to run builds and tests in."
@@ -21,6 +21,9 @@ inputs:
     required: true
   targetPattern:
     description: "The Bazel build and test target pattern."
+    required: true
+  buildbuddyApiKey:
+    description: "The API key for BuildBuddy remote cache and execution."
     required: true
 runs:
   using: composite
@@ -49,14 +52,18 @@ runs:
     - name: Configure remote cache and execution
       working-directory: ${{ inputs.folder }}
       shell: bash
+      env:
+        BUILDBUDDY_API_KEY: ${{ inputs.buildbuddyApiKey }}
       run: |
         cat <<EOF >>.bazelrc.user
-        build --config=remote-bes --config=remote-cache
+        build --build_metadata=ROLE=CI
+        build --config=remote-bes --config=remote-cache --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY
         # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
         build:linux --config=remote
         EOF
         cat <<EOF >>.bazelrc.ic.user
-        build --config=remote-bes --config=remote-cache
+        build --build_metadata=ROLE=CI
+        build --config=remote-bes --config=remote-cache --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY
         # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
         build:linux --config=remote
         EOF
