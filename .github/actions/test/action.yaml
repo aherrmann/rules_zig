@@ -49,14 +49,16 @@ runs:
     - name: Configure remote cache and execution
       working-directory: ${{ inputs.folder }}
       shell: bash
+      env:
+        BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
       run: |
         cat <<EOF >>.bazelrc.user
-        build --config=remote-bes --config=remote-cache
+        build --config=remote-bes --config=remote-cache --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY
         # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
         build:linux --config=remote
         EOF
         cat <<EOF >>.bazelrc.ic.user
-        build --config=remote-bes --config=remote-cache
+        build --config=remote-bes --config=remote-cache --remote_header=x-buildbuddy-api-key=$BUILDBUDDY_API_KEY
         # Remote execution on non-Linux is only available for BuildBuddy Enterprise.
         build:linux --config=remote
         EOF
