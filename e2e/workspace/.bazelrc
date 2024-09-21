@@ -2,3 +2,6 @@
 try-import %workspace%/../../.bazelrc.common
 try-import %workspace%/../../.bazelrc.remote
 try-import %workspace%/.bazelrc.user
+
+# docs: https://bazel.build/reference/command-line-reference#flag--workspace_status_command
+build --workspace_status_command=$(pwd)/workspace_status.sh
