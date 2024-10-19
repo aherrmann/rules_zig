@@ -1,5 +1,5 @@
 bazel_dep(name = "rules_zig", version = "0.0.0", dev_dependency = True)
-bazel_dep(name = "aspect_bazel_lib", version = "2.9.2", dev_dependency = True)
+bazel_dep(name = "aspect_bazel_lib", version = "2.9.3", dev_dependency = True)
 bazel_dep(name = "bazel_skylib", version = "1.7.1", dev_dependency = True)
 bazel_dep(name = "platforms", version = "0.0.10", dev_dependency = True)
 bazel_dep(name = "protobuf", version = "28.2", dev_dependency = True)  # for buildbuddy toolchain
