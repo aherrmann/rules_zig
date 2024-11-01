@@ -60,6 +60,12 @@ load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_in
 
 bazel_integration_test_rules_dependencies()
 
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
+
+rules_shell_dependencies()
+
+rules_shell_toolchains()
+
 load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 
 bazel_starlib_dependencies()
