@@ -11,6 +11,10 @@ on:
 
   # Allows you to call this workflow from another workflow
   workflow_call:
+    secrets:
+      BUILDBUDDY_API_KEY:
+        description: The BuildBuddy remote execution access token.
+        required: true
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
