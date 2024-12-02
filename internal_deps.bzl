@@ -90,9 +90,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "rules_bazel_integration_test",
-        sha256 = "04d7816612a7aa25b1d9cd40e4bbad7e7da7a7731cf4a9bece69e9711ea26d4b",
+        sha256 = "44ed2cacf9dfdbfd0e2ef60022ca5ada9b11f337ecaec3c428d5003b38043589",
         urls = [
-            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.27.0/rules_bazel_integration_test.v0.27.0.tar.gz",
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.28.0/rules_bazel_integration_test.v0.28.0.tar.gz",
         ],
     )
 
