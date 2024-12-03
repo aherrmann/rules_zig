@@ -50,4 +50,4 @@ build:remote-exec --extra_execution_platforms=@buildbuddy_toolchain//:platform
 build:remote-exec --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
 # prefer host platform on non-remote builds
 # docs: https://bazel.build/reference/command-line-reference#flag--extra_execution_platforms
-build --extra_execution_platforms=@local_config_platform//:host
+build:local --extra_execution_platforms=@local_config_platform//:host
