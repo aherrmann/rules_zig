@@ -1,5 +1,28 @@
 # How to Contribute
 
+## Building
+
+To build with remote execution enabled, add the following to `.bazelrc.user`:
+
+```
+build --config=remote
+build --remote_header=x-buildbuddy-api-key=YOUR_TOKEN
+```
+
+To build locally instead, add the following to `.bazelrc.user`:
+
+```
+build --config=local
+```
+
+Build and test:
+
+```
+$ bazel test //...
+$ bazel test //zig/tests/integration_tests
+$ cd e2e/workspace; bazel test //...
+```
+
 ## Committing
 
 Follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)

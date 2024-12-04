@@ -43,7 +43,11 @@ build:remote-exec --experimental_remote_downloader=grpcs://aherrmann.buildbuddy.
 # docs: https://bazel.build/reference/command-line-reference#flag--jobs
 build:remote-exec --jobs=80
 
+# use BuildBuddy platform on remote builds
 # docs: https://bazel.build/reference/command-line-reference#flag--extra_execution_platforms
 build:remote-exec --extra_execution_platforms=@buildbuddy_toolchain//:platform
 # docs: https://bazel.build/reference/command-line-reference#flag--extra_toolchains
 build:remote-exec --extra_toolchains=@buildbuddy_toolchain//:cc_toolchain
+# prefer host platform on non-remote builds
+# docs: https://bazel.build/reference/command-line-reference#flag--extra_execution_platforms
+build:local --extra_execution_platforms=@local_config_platform//:host
