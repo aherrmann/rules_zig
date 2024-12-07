@@ -9,12 +9,6 @@ build --config=remote
 build --remote_header=x-buildbuddy-api-key=YOUR_TOKEN
 ```
 
-To build locally instead, add the following to `.bazelrc.user`:
-
-```
-build --config=local
-```
-
 Build and test:
 
 ```
