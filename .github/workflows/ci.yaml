@@ -216,7 +216,7 @@ jobs:
       - integration-tests
     if: ${{ always() }}
     steps:
-      - uses: cgrindel/gha_join_jobs@v1.2.0
+      - uses: cgrindel/gha_join_jobs@v1.4.0
         # Skip on release flows when invoked through the release workflow.
         # Otherwise gha_join_jobs discovers its own job in the job list and
         # fails since it is not yet succeeded, but still in progress.
