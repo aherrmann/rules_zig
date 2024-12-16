@@ -25,7 +25,7 @@ archive_override(
     module_name = "toolchains_buildbuddy",
     integrity = "sha256-UA+poYaWFbPxgtoA2re4mX89c3/8yYchpKwr4pvvGOw=",
     strip_prefix = "buildbuddy-toolchain-ffd296b7a9821174cdb2188d1373fd262cacb09d",
-    urls = "https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/ffd296b7a9821174cdb2188d1373fd262cacb09d.tar.gz",
+    urls = ["https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/ffd296b7a9821174cdb2188d1373fd262cacb09d.tar.gz"],
 )
 
 buildbuddy = use_extension(
