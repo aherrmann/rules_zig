@@ -1,3 +1,5 @@
+workspace(name = "integration_tests")
+
 local_repository(
     name = "rules_zig",
     path = "../../../..",

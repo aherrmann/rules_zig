@@ -75,12 +75,12 @@ runs:
 
     - name: Set bzlmod flag
       working-directory: ${{ inputs.folder }}
-      # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod.
+      # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod and --enable_workspace.
       id: set_bzlmod_flag
       shell: bash
       run: |
-        echo "common ${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> .bazelrc.user
-        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod' }}" >> $GITHUB_OUTPUT
+        echo "common ${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod --enable_workspace' }}" >> .bazelrc.user
+        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod --enable_workspace' }}" >> $GITHUB_OUTPUT
 
     - name: Configure documentation generation
       if: inputs.folder == '.' && inputs.targetPattern == '//...'

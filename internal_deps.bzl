@@ -20,6 +20,14 @@ def http_file(name, **kwargs):
 def rules_zig_internal_deps():
     "Fetch deps needed for local development"
     http_archive(
+        name = "rules_java",
+        urls = [
+            "https://github.com/bazelbuild/rules_java/releases/download/8.6.2/rules_java-8.6.2.tar.gz",
+        ],
+        sha256 = "a64ab04616e76a448c2c2d8165d836f0d2fb0906200d0b7c7376f46dd62e59cc",
+    )
+
+    http_archive(
         name = "io_bazel_rules_go",
         sha256 = "0936c9bc3c4321ee372cb8f66dd972d368cb940ed01a9ba9fd7debcf0093f09b",
         urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.51.0/rules_go-v0.51.0.zip"],

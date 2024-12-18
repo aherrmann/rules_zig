@@ -30,6 +30,26 @@ aspect_bazel_lib_dependencies()
 aspect_bazel_lib_register_toolchains()
 
 http_archive(
+    name = "rules_java",
+    sha256 = "a64ab04616e76a448c2c2d8165d836f0d2fb0906200d0b7c7376f46dd62e59cc",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/8.6.2/rules_java-8.6.2.tar.gz",
+    ],
+)
+
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
+rules_java_dependencies()
+
+load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+
+proto_bazel_features(name = "proto_bazel_features")
+
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
+rules_java_toolchains()
+
+http_archive(
     name = "io_buildbuddy_buildbuddy_toolchain",
     sha256 = "8cb7ccd18c226647fda5a98a0ae187d4857d134c7db25e2eb239de11d8a82a73",
     strip_prefix = "buildbuddy-toolchain-3ad658cf81923ed2325870a2aadcc0c80e5792af",
