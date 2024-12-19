@@ -1,18 +1,6 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 exports_files(
     ["WORKSPACE"],
     visibility = ["//util:__pkg__"],
-)
-
-bzl_library(
-    name = "internal_deps",
-    srcs = ["internal_deps.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@bazel_tools//tools/build_defs/repo:http.bzl",
-        "@bazel_tools//tools/build_defs/repo:utils.bzl",
-    ],
 )
 
 filegroup(
@@ -38,7 +26,6 @@ filegroup(
         ":BUILD.bazel",
         ":MODULE.bazel",
         ":WORKSPACE",
-        ":internal_deps.bzl",
         "//zig:all_files",
     ],
     visibility = ["//visibility:public"],
