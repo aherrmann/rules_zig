@@ -10,9 +10,6 @@ inputs:
   bazelVersion:
     description: "The Bazel version to run the build and tests with."
     required: true
-  bzlmodEnabled:
-    description: "Whether to use bzlmod or the legacy WORKSPACE mode."
-    required: true
   docsEnabled:
     description: "Whether to build Stardoc documentation."
     required: true
@@ -55,9 +52,9 @@ runs:
         path: |
           ~/.cache/bazel
           ~/.cache/bazel-repo
-        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ inputs.tagFilters }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
+        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ inputs.tagFilters }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'MODULE.bazel') }}
         restore-keys: |
-          bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
+          bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
 
     - name: Configure remote cache and execution
       if: ${{ inputs.remoteEnabled == 'true' }}
@@ -83,15 +80,6 @@ runs:
       working-directory: ${{ inputs.folder }}
       shell: bash
       run: echo "USE_BAZEL_VERSION=${{ inputs.bazelVersion }}" > .bazeliskrc
-
-    - name: Set bzlmod flag
-      working-directory: ${{ inputs.folder }}
-      # Set --enable_bzlmod if bzlmodEnabled is true, else --noenable_bzlmod and --enable_workspace.
-      id: set_bzlmod_flag
-      shell: bash
-      run: |
-        echo "common ${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod --enable_workspace' }}" >> .bazelrc.user
-        echo "bzlmod_flag=${{ inputs.bzlmodEnabled == 'true' && '--enable_bzlmod' || '--noenable_bzlmod --enable_workspace' }}" >> $GITHUB_OUTPUT
 
     - name: Configure documentation generation
       if: inputs.folder == '.' && inputs.targetPattern == '//...'
