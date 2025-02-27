@@ -3,7 +3,7 @@ module(name = "integration_tests")
 bazel_dep(name = "rules_zig", version = "0.0.0")
 bazel_dep(name = "platforms", version = "0.0.6")
 
-bazel_dep(name = "rules_cc", version = "0.0.9", dev_dependency = True)
+bazel_dep(name = "rules_cc", version = "0.1.1", dev_dependency = True)
 
 local_path_override(
     module_name = "rules_zig",
