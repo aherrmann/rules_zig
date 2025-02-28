@@ -42,9 +42,9 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "rules_python",
-        sha256 = "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
-        strip_prefix = "rules_python-1.0.0",
-        url = "https://github.com/bazelbuild/rules_python/releases/download/1.0.0/rules_python-1.0.0.tar.gz",
+        sha256 = "2ef40fdcd797e07f0b6abda446d1d84e2d9570d234fddf8fcd2aa262da852d1c",
+        strip_prefix = "rules_python-1.2.0",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/1.2.0/rules_python-1.2.0.tar.gz",
     )
 
     http_archive(
