@@ -65,7 +65,7 @@ bazel_integration_tests(
 )
 
 TEST_VERSIONS = TOOL_VERSIONS.keys() + [
-    "0.14.0-dev.2362+a47aa9dd9",
+    "0.14.0-dev.3388+e0a955afb",
 ]
 
 [
