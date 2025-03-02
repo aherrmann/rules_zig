@@ -71,7 +71,7 @@ def query_packages(bazel, enable_bzlmod):
     if enable_bzlmod:
         command += ["--enable_bzlmod"]
     else:
-        command += ["--noenable_bzlmod"]
+        command += ["--noenable_bzlmod", "--enable_workspace"]
     return subprocess.check_output(command).decode().split("\n")
 
 
@@ -94,7 +94,7 @@ def query_package_sources(bazel, package, enable_bzlmod):
     if enable_bzlmod:
         command += ["--enable_bzlmod"]
     else:
-        command += ["--noenable_bzlmod"]
+        command += ["--noenable_bzlmod", "--enable_workspace"]
     sources = set(subprocess.check_output(command).decode().split("\n"))
     sources.update(EXTRA_SRCS.get(package, []))
     sources.difference_update(IGNORE_SRCS.get(package, []))
