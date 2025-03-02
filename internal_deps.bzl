@@ -19,6 +19,17 @@ def http_file(name, **kwargs):
 
 def rules_zig_internal_deps():
     "Fetch deps needed for local development"
+
+    # Pick a Stardoc compatible version.
+    http_archive(
+        name = "rules_license",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
+            "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
+        ],
+        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
+    )
+
     http_archive(
         name = "rules_java",
         urls = [
