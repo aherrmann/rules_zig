@@ -29,8 +29,8 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "io_bazel_rules_go",
-        sha256 = "0936c9bc3c4321ee372cb8f66dd972d368cb940ed01a9ba9fd7debcf0093f09b",
-        urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.51.0/rules_go-v0.51.0.zip"],
+        sha256 = "b78f77458e77162f45b4564d6b20b6f92f56431ed59eaaab09e7819d1d850313",
+        urls = ["https://github.com/bazelbuild/rules_go/releases/download/v0.53.0/rules_go-v0.53.0.zip"],
     )
 
     http_archive(
