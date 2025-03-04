@@ -33,9 +33,9 @@ def rules_zig_internal_deps():
     http_archive(
         name = "rules_java",
         urls = [
-            "https://github.com/bazelbuild/rules_java/releases/download/8.9.0/rules_java-8.9.0.tar.gz",
+            "https://github.com/bazelbuild/rules_java/releases/download/8.10.0/rules_java-8.10.0.tar.gz",
         ],
-        sha256 = "8daa0e4f800979c74387e4cd93f97e576ec6d52beab8ac94710d2931c57f8d8b",
+        sha256 = "476bd403f284e5080037f1910a29ce4c482ac798a3560c2e0df6d6f1857011b6",
     )
 
     http_archive(
