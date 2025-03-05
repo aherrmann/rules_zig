@@ -431,4 +431,6 @@ def zig_build_impl(ctx, *, kind):
         )
         providers.append(run_environment)
 
-    return providers
+    output_groups = dict()
+
+    return providers, output_groups

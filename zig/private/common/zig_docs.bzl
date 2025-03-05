@@ -173,9 +173,8 @@ def zig_docs_impl(ctx, *, kind):
 
     providers = []
 
-    output_group = OutputGroupInfo(
+    output_groups = dict(
         zig_docs = files,
     )
-    providers.append(output_group)
 
-    return providers
+    return providers, output_groups
