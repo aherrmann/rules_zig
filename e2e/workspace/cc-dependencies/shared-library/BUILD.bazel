@@ -8,6 +8,7 @@ zig_shared_library(
 
 cc_test(
     name = "test",
+    size = "small",
     srcs = ["test.c"],
     deps = [":add"],
 )
