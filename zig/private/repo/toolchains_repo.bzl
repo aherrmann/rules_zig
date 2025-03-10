@@ -97,7 +97,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
     build_content += """
 # Use this build flag to select the Zig SDK version. E.g.
 #
-#     $ bazel build --@zig_toolchains//:version=0.13.0 //...
+#     $ bazel build --@zig_toolchains//:version=0.14.0 //...
 #
 string_flag(
     name = "version",

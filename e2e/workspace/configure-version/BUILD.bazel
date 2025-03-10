@@ -88,27 +88,27 @@ zig_configure_test(
 )
 
 zig_configure(
-    name = "zig_version_0.13.0",
+    name = "zig_version_0.14.0",
     actual = ":zig_version",
-    zig_version = "0.13.0",
+    zig_version = "0.14.0",
 )
 
 diff_test(
-    name = "zig_version_test_0.13.0",
+    name = "zig_version_test_0.14.0",
     size = "small",
-    file1 = ":zig_version_0.13.0.expected",
-    file2 = ":zig_version_0.13.0",
+    file1 = ":zig_version_0.14.0.expected",
+    file2 = ":zig_version_0.14.0",
 )
 
 zig_test(
-    name = "zig_test_0.13.0_manual",
-    main = "test-0.13.0.zig",
+    name = "zig_test_0.14.0_manual",
+    main = "test-0.14.0.zig",
     tags = ["manual"],
 )
 
 zig_configure_test(
-    name = "zig_test_0.13.0",
+    name = "zig_test_0.14.0",
     size = "small",
-    actual = ":zig_test_0.13.0_manual",
-    zig_version = "0.13.0",
+    actual = ":zig_test_0.14.0_manual",
+    zig_version = "0.14.0",
 )
