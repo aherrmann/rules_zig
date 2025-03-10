@@ -141,6 +141,8 @@ TOOLCHAINS = [
 
 SHARED_LIBRARY_TOOLCHAINS = use_cpp_toolchain(mandatory = False)
 
+SHARED_LIBRARY_FRAGMENTS = ["cpp"]
+
 def zig_build_impl(ctx, *, kind):
     """Common implementation for Zig build rules.
 
