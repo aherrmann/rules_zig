@@ -148,6 +148,7 @@ def zig_build_impl(ctx, *, kind):
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
     executable = None
+    library_to_link = None
     files = None
     direct_data = []
     transitive_data = []
@@ -203,11 +204,30 @@ def zig_build_impl(ctx, *, kind):
         args.add(dynamic, format = "-femit-bin=%s")
         args.add(dynamic.basename, format = "-fsoname=%s")
 
+        library_to_link = cc_common.create_library_to_link(
+            actions = ctx.actions,
+            dynamic_library = dynamic,
+        )
+
         files = depset([dynamic])
 
         solib_parents = [""]
     else:
         fail("Unknown rule kind '{}'.".format(kind))
+
+    cc_info = None
+    if library_to_link != None:
+        linker_input = cc_common.create_linker_input(
+            owner = ctx.label,
+            libraries = depset(direct = [library_to_link]),
+        )
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset(direct = [linker_input]),
+        )
+        cc_info = CcInfo(
+            compilation_context = None,
+            linking_context = linking_context,
+        )
 
     zig_lib_dir(
         zigtoolchaininfo = zigtoolchaininfo,
@@ -338,6 +358,9 @@ def zig_build_impl(ctx, *, kind):
         ),
     )
     providers.append(default)
+
+    if cc_info != None:
+        providers.append(cc_info)
 
     if kind in ["zig_binary", "zig_test"]:
         run_environment = RunEnvironmentInfo(
