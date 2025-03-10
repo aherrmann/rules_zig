@@ -218,6 +218,8 @@ def zig_build_impl(ctx, *, kind):
             feature_configuration = cc_common.configure_features(
                 ctx = ctx,
                 cc_toolchain = cctoolchain,
+                requested_features = ctx.features,
+                unsupported_features = ctx.disabled_features,
             )
             library_to_link = cc_common.create_library_to_link(
                 actions = ctx.actions,
