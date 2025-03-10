@@ -41,6 +41,41 @@ def _test_simple_binary(name):
     )
     return [":" + name]
 
+def _simple_shared_library_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+    cc = target[CcInfo]
+
+    linker_inputs = cc.linking_context.linker_inputs.to_list()
+    asserts.equals(env, 1, len(linker_inputs), "zig_shared_library should generate one linker input.")
+    libraries = linker_inputs[0].libraries
+    asserts.equals(env, 1, len(libraries), "zig_shared_library should generate one library.")
+    dynamic = libraries[0].dynamic_library
+    asserts.true(dynamic != None, "zig_shared_library should produce a dynamic library.")
+    asserts.true(sets.contains(sets.make(default.files.to_list()), dynamic), "zig_shared_library should return the dynamic library as an output.")
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildSharedLib"
+    ]
+    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildSharedLib action.")
+    build = build[0]
+    asserts.true(sets.contains(sets.make(build.outputs.to_list()), dynamic), "zig_shared_library should generate a ZigBuildSharedLib action that generates the dynamic library.")
+
+    return analysistest.end(env)
+
+_simple_shared_library_test = analysistest.make(_simple_shared_library_test_impl)
+
+def _test_simple_shared_library(name):
+    _simple_shared_library_test(
+        name = name,
+        target_under_test = "//zig/tests/simple-shared-library:shared",
+        size = "small",
+    )
+    return [":" + name]
+
 def _multiple_sources_binary_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
@@ -196,6 +231,7 @@ def rules_test_suite(name):
     """
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
+    tests += _test_simple_shared_library(name = "simple_shared_library_test")
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
     tests += _test_module_binary(name = "module_binary_test")
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
