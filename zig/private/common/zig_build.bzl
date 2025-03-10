@@ -1,5 +1,10 @@
 """Common implementation of the zig_binary|library|test rules."""
 
+load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+    "use_cpp_toolchain",
+)
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//zig/private/common:bazel_builtin.bzl",
@@ -134,6 +139,8 @@ TOOLCHAINS = [
     "//zig/target:toolchain_type",
 ]
 
+SHARED_LIBRARY_TOOLCHAINS = use_cpp_toolchain(mandatory = False)
+
 def zig_build_impl(ctx, *, kind):
     """Common implementation for Zig build rules.
 
@@ -146,6 +153,7 @@ def zig_build_impl(ctx, *, kind):
     """
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
+    cctoolchain = find_cpp_toolchain(ctx, mandatory = False)  # @unused
 
     executable = None
     library_to_link = None
