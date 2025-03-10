@@ -155,7 +155,7 @@ def zig_build_impl(ctx, *, kind):
     """
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
-    cctoolchain = find_cpp_toolchain(ctx, mandatory = False)  # @unused
+    cctoolchain = find_cpp_toolchain(ctx, mandatory = False)
 
     executable = None
     library_to_link = None
@@ -214,10 +214,17 @@ def zig_build_impl(ctx, *, kind):
         args.add(dynamic, format = "-femit-bin=%s")
         args.add(dynamic.basename, format = "-fsoname=%s")
 
-        library_to_link = cc_common.create_library_to_link(
-            actions = ctx.actions,
-            dynamic_library = dynamic,
-        )
+        if cctoolchain != None:
+            feature_configuration = cc_common.configure_features(
+                ctx = ctx,
+                cc_toolchain = cctoolchain,
+            )
+            library_to_link = cc_common.create_library_to_link(
+                actions = ctx.actions,
+                feature_configuration = feature_configuration,
+                cc_toolchain = cctoolchain,
+                dynamic_library = dynamic,
+            )
 
         files = depset([dynamic])
 
