@@ -155,7 +155,7 @@ def zig_build_impl(ctx, *, kind):
     """
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
-    cctoolchain = find_cpp_toolchain(ctx, mandatory = False)
+    cctoolchain = None
 
     executable = None
     library_to_link = None
@@ -214,6 +214,7 @@ def zig_build_impl(ctx, *, kind):
         args.add(dynamic, format = "-femit-bin=%s")
         args.add(dynamic.basename, format = "-fsoname=%s")
 
+        cctoolchain = find_cpp_toolchain(ctx, mandatory = False)
         if cctoolchain != None:
             feature_configuration = cc_common.configure_features(
                 ctx = ctx,
