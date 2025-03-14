@@ -1,0 +1,19 @@
+# Common configuration.
+import %workspace%/../../../../.bazelrc.common
+
+# Zig build mode flag aliases. See further explanation in that file.
+import %workspace%/../../../../.bazelrc.flags
+
+# Remote cache configuration.
+# Skip all remote configuration to not depend on the BuildBuddy toolchain
+# in this minimal rules_zig usage test.
+common:remote --show_progress
+common:remote-bes --show_progress
+common:remote-cache --show_progress
+common:remote-exec --show_progress
+
+# Build metadata
+import %workspace%/../.bazelrc.meta
+
+# Load any settings specific to the current user.
+try-import %workspace%/../../../../.bazelrc.ic.user
