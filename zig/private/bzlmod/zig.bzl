@@ -172,7 +172,7 @@ def _toolchain_extension(module_ctx):
 
     known_versions = merge_version_specs(version_specs)
 
-    (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions)
+    (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions.keys())
 
     if err != None:
         fail(*err)
