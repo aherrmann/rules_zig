@@ -1,16 +1,28 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_zig//zig:defs.bzl", "zig_shared_library")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_shared_library")
 
 zig_shared_library(
     name = "add",
     main = "add.zig",
 )
 
+# Transition build mode to avoid Zig debug symbols in the shared library.
+# Both Debug and ReleaseSafe incur a dependency on sin and cos IFUNC symbols.
+# These cause runtime failures if the Zig and CC toolchain and runtime
+# environment are not perfectly aligned. This is the case when CI uses Ubuntu
+# 24.04 while BuildBuddy uses Ubuntu 22.04 and we use the BuildBuddy default
+# toolchain.
+zig_configure(
+    name = "add-small",
+    actual = ":add",
+    mode = "release_small",
+)
+
 cc_test(
     name = "add-test",
     size = "small",
     srcs = ["add-test.c"],
-    deps = [":add"],
+    deps = [":add-small"],
 )
 
 # Pass through a cc_library to explicitly test transitive CcInfo handling.
@@ -25,9 +37,16 @@ zig_shared_library(
     main = "mul.zig",
 )
 
+# See add-small above for reasoning.
+zig_configure(
+    name = "mul-small",
+    actual = ":mul",
+    mode = "release_small",
+)
+
 cc_test(
     name = "mul-test",
     size = "small",
     srcs = ["mul-test.c"],
-    deps = [":mul"],
+    deps = [":mul-small"],
 )
