@@ -82,9 +82,9 @@ def _parse_zig_index_test_impl(ctx):
     content = """\
 {
   "master": {
-    "version": "0.14.0-dev.46+3648d7df1",
+    "version": "0.13.0-dev.46+3648d7df1",
     "x86_64-macos": {
-      "tarball": "https://ziglang.org/builds/zig-macos-x86_64-0.14.0-dev.46+3648d7df1.tar.xz",
+      "tarball": "https://ziglang.org/builds/zig-macos-x86_64-0.13.0-dev.46+3648d7df1.tar.xz",
       "shasum": "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
       "size": "47206948"
     }
@@ -92,9 +92,9 @@ def _parse_zig_index_test_impl(ctx):
 }
 """
     expected = {
-        "0.14.0-dev.46+3648d7df1": {
+        "0.13.0-dev.46+3648d7df1": {
             "x86_64-macos": struct(
-                url = "https://ziglang.org/builds/zig-macos-x86_64-0.14.0-dev.46+3648d7df1.tar.xz",
+                url = "https://ziglang.org/builds/zig-macos-x86_64-0.13.0-dev.46+3648d7df1.tar.xz",
                 sha256 = "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
             ),
         },
@@ -105,22 +105,22 @@ def _parse_zig_index_test_impl(ctx):
     content = """\
 {
   "master": {
-    "version": "0.14.0-dev.46+3648d7df1",
+    "version": "0.13.0-dev.46+3648d7df1",
     "date": "2024-04-26",
     "docs": "https://ziglang.org/documentation/master/",
     "stdDocs": "https://ziglang.org/documentation/master/std/",
     "src": {
-      "tarball": "https://ziglang.org/builds/zig-0.14.0-dev.46+3648d7df1.tar.xz",
+      "tarball": "https://ziglang.org/builds/zig-0.13.0-dev.46+3648d7df1.tar.xz",
       "shasum": "08190cb4482be355acaecaae9d7936e4fad47180c97ca8138b97a122a313cd99",
       "size": "17111524"
     },
     "bootstrap": {
-      "tarball": "https://ziglang.org/builds/zig-bootstrap-0.14.0-dev.46+3648d7df1.tar.xz",
+      "tarball": "https://ziglang.org/builds/zig-bootstrap-0.13.0-dev.46+3648d7df1.tar.xz",
       "shasum": "78569b44dbfb8ec0cddbd1fa69ce398b973bd05c7f3b87f070cc2a0ba9c86571",
       "size": "45555796"
     },
     "x86_64-macos": {
-      "tarball": "https://ziglang.org/builds/zig-macos-x86_64-0.14.0-dev.46+3648d7df1.tar.xz",
+      "tarball": "https://ziglang.org/builds/zig-macos-x86_64-0.13.0-dev.46+3648d7df1.tar.xz",
       "shasum": "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
       "size": "47206948"
     }
@@ -149,9 +149,9 @@ def _parse_zig_index_test_impl(ctx):
 }
 """
     expected = {
-        "0.14.0-dev.46+3648d7df1": {
+        "0.13.0-dev.46+3648d7df1": {
             "x86_64-macos": struct(
-                url = "https://ziglang.org/builds/zig-macos-x86_64-0.14.0-dev.46+3648d7df1.tar.xz",
+                url = "https://ziglang.org/builds/zig-macos-x86_64-0.13.0-dev.46+3648d7df1.tar.xz",
                 sha256 = "d8fb090bd69d7e191a3443520da5c52da430fbffc0de12ac87a114a6cc1f20ca",
             ),
         },
