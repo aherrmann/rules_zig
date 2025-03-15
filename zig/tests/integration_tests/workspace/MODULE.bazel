@@ -12,11 +12,12 @@ local_path_override(
 
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
 zig.index(file = "extra-versions.json")
-zig.toolchain(zig_version = "0.14.0-dev.3388+e0a955afb")
+zig.toolchain(zig_version = "0.15.0-dev.56+d0911786c")
 zig.toolchain(
     default = True,
-    zig_version = "0.13.0",
+    zig_version = "0.14.0",
 )
+zig.toolchain(zig_version = "0.13.0")
 zig.toolchain(zig_version = "0.12.1")
 zig.toolchain(zig_version = "0.12.0")
 zig.toolchain(zig_version = "0.11.0")

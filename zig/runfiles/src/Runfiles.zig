@@ -2,6 +2,8 @@ const std = @import("std");
 const builtin = @import("builtin");
 const log = std.log.scoped(.runfiles);
 
+const max_path_bytes = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 14) std.fs.MAX_PATH_BYTES else std.fs.max_path_bytes;
+
 const discovery = @import("discovery.zig");
 const Directory = @import("Directory.zig");
 const Manifest = @import("Manifest.zig");
@@ -303,7 +305,7 @@ test "Runfiles from manifest" {
     {
         var manifest_file = try tmp.dir.createFile("test.runfiles_manifest", .{});
         defer manifest_file.close();
-        var buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var buf: [max_path_bytes]u8 = undefined;
         try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
         try manifest_file.writer().print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
         try manifest_file.writer().print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
@@ -319,7 +321,7 @@ test "Runfiles from manifest" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
-        var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var buffer: [max_path_bytes]u8 = undefined;
         const file_path = try runfiles
             .withSourceRepo("")
             .rlocation(
@@ -407,7 +409,7 @@ test "Runfiles from directory" {
         });
     }
     {
-        var buf: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var buf: [max_path_bytes]u8 = undefined;
         try tmp.dir.makeDir("test.runfiles");
         try tmp.dir.symLink(
             try tmp.dir.realpath("test.repo_mapping", &buf),
@@ -438,7 +440,7 @@ test "Runfiles from directory" {
     defer runfiles.deinit(std.testing.allocator);
 
     {
-        var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+        var buffer: [max_path_bytes]u8 = undefined;
         const file_path = try runfiles
             .withSourceRepo("")
             .rlocation(

@@ -120,7 +120,7 @@ rules_zig_dependencies()
 
 zig_register_toolchains(
     name = "zig",
-    zig_version = "0.13.0",
+    zig_version = "0.14.0",
 )
 ```
 
