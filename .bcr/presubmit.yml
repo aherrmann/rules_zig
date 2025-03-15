@@ -8,6 +8,8 @@ tasks:
     bazel: ${{ bazel }}
     build_targets:
       - "//..."
+    build_flags:
+      - "--build_tag_filters=-zig-docs"
 bcr_test_module:
   module_path: "e2e/workspace"
   matrix:
@@ -20,3 +22,5 @@ bcr_test_module:
       bazel: ${{ bazel }}
       test_targets:
         - "//..."
+      test_flags:
+        - "--test_tag_filters=-zig-docs"
