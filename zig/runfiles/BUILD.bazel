@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load(
     "@rules_zig//zig:defs.bzl",
     "zig_library",
@@ -13,6 +14,14 @@ _SRCS = [
     "src/RPath.zig",
     "src/Runfiles.zig",
 ]
+
+selects.config_setting_group(
+    name = "macos-zig-0.12.0",
+    match_all = [
+        "@platforms//os:macos",
+        "@zig_toolchains//:0.12.0",
+    ],
+)
 
 zig_module(
     name = "runfiles",
@@ -44,6 +53,10 @@ filegroup(
     srcs = [":lib"],
     output_group = "zig_docs",
     tags = ["zig-docs"],
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//visibility:public"],
 )
 
