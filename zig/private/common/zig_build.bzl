@@ -1,11 +1,11 @@
 """Common implementation of the zig_binary|library|test rules."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     "find_cpp_toolchain",
     "use_cpp_toolchain",
 )
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",

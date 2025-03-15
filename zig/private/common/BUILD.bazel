@@ -31,9 +31,12 @@ bzl_library(
         ":zig_cache",
         ":zig_lib_dir",
         ":zig_target_triple",
+        "//zig:bazel_tools",
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
