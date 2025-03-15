@@ -51,9 +51,9 @@ def _simple_shared_library_test_impl(ctx):
     asserts.equals(env, 1, len(linker_inputs), "zig_shared_library should generate one linker input.")
     libraries = linker_inputs[0].libraries
     asserts.equals(env, 1, len(libraries), "zig_shared_library should generate one library.")
-    dynamic = libraries[0].dynamic_library
-    asserts.true(dynamic != None, "zig_shared_library should produce a dynamic library.")
-    asserts.true(sets.contains(sets.make(default.files.to_list()), dynamic), "zig_shared_library should return the dynamic library as an output.")
+    dynamic = libraries[0].resolved_symlink_dynamic_library
+    asserts.true(env, dynamic != None, "zig_shared_library should produce a dynamic library.")
+    asserts.true(env, sets.contains(sets.make(default.files.to_list()), dynamic), "zig_shared_library should return the dynamic library as an output.")
 
     build = [
         action
@@ -62,7 +62,7 @@ def _simple_shared_library_test_impl(ctx):
     ]
     asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildSharedLib action.")
     build = build[0]
-    asserts.true(sets.contains(sets.make(build.outputs.to_list()), dynamic), "zig_shared_library should generate a ZigBuildSharedLib action that generates the dynamic library.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), dynamic), "zig_shared_library should generate a ZigBuildSharedLib action that generates the dynamic library.")
 
     return analysistest.end(env)
 
