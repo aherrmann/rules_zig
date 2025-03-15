@@ -380,6 +380,10 @@ def zig_build_impl(ctx, *, kind):
     providers.append(default)
 
     if cc_info != None:
+        cc_info = cc_common.merge_cc_infos(
+            direct_cc_infos = [cc_info],
+            cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps],
+        )
         providers.append(cc_info)
 
     if kind in ["zig_binary", "zig_test"]:
