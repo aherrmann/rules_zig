@@ -12,3 +12,22 @@ cc_test(
     srcs = ["add-test.c"],
     deps = [":add"],
 )
+
+# Pass through a cc_library to explicitly test transitive CcInfo handling.
+cc_library(
+    name = "c-add",
+    deps = [":add"],
+)
+
+zig_shared_library(
+    name = "mul",
+    cdeps = [":c-add"],
+    main = "mul.zig",
+)
+
+cc_test(
+    name = "mul-test",
+    size = "small",
+    srcs = ["mul-test.c"],
+    deps = [":mul"],
+)
