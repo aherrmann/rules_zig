@@ -22,6 +22,9 @@ inputs:
   targetPattern:
     description: "The Bazel build and test target pattern."
     required: true
+  tagFilters:
+    description: "The Bazel build and test tag filters."
+    required: true
   buildbuddyApiKey:
     description: "The API key for BuildBuddy remote cache and execution."
     required: true
@@ -45,7 +48,7 @@ runs:
         path: |
           ~/.cache/bazel
           ~/.cache/bazel-repo
-        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
+        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ inputs.tagFilters }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
         restore-keys: |
           bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
 
@@ -115,4 +118,4 @@ runs:
       run: |
         # Bazelisk will download bazel to here, ensure it is cached between runs.
         export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
-        bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ inputs.targetPattern }}
+        bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ inputs.targetPattern }} ${{ inputs.tagFilters != '' && format('--build_tag_filters={0} --test_tag_filters={0}', inputs.tagFilters) || '' }}
