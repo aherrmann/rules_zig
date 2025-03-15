@@ -12,6 +12,10 @@ load(
 )
 
 _TARGET_PLATFORM = "//command_line_option:platforms"
+_EXTRA_TOOLCHAINS = "//command_line_option:extra_toolchains"
+
+_TOOLCHAIN_ZIG_ONLY_X86_64_LINUX = canonical_label("@//zig/tests/platforms:zig-only-x86_64-linux_toolchain")
+_PLATFORM_ZIG_ONLY_X86_64_LINUX = canonical_label("@//zig/tests/platforms:zig-only-x86_64-linux")
 
 _PLATFORM_X86_64_LINUX = canonical_label("@//zig/tests/platforms:x86_64-linux")
 _PLATFORM_X86_64_LINUX_MUSL = canonical_label("@//zig/tests/platforms:x86_64-linux-musl")
@@ -118,6 +122,28 @@ _shared_lib_file_extension_x86_64_windows_test = _define_file_extension_test(_PL
 _test_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
 _test_file_extension_x86_64_windows_test = _define_file_extension_test(_PLATFORM_X86_64_WINDOWS, ".exe")
 
+def _define_cc_info_test(target, cc_expected):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+        target = analysistest.target_under_test(env)
+
+        if cc_expected:
+            asserts.true(env, CcInfo in target, "Expected CcInfo.")
+        else:
+            asserts.false(env, CcInfo in target, "Expected no CcInfo.")
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings =
+            {_EXTRA_TOOLCHAINS: _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX} |
+            {_TARGET_PLATFORM: target} if target else {},
+    )
+
+_cc_info_host_test = _define_cc_info_test(None, True)
+_cc_info_zig_only_test = _define_cc_info_test(_PLATFORM_ZIG_ONLY_X86_64_LINUX, False)
+
 def target_platform_test_suite(name):
     unittest.suite(
         name,
@@ -164,4 +190,7 @@ def target_platform_test_suite(name):
         partial.make(_build_test_target_platform_x86_64_windows_none_test, target_under_test = "//zig/tests/simple-test:test", size = "small"),
         partial.make(_test_file_extension_x86_64_linux_test, target_under_test = "//zig/tests/simple-test:test", size = "small"),
         partial.make(_test_file_extension_x86_64_windows_test, target_under_test = "//zig/tests/simple-test:test", size = "small"),
+        # Test optional cc-toolchain dependency
+        partial.make(_cc_info_host_test, target_under_test = "//zig/tests/simple-shared-library:shared", size = "small"),
+        partial.make(_cc_info_zig_only_test, target_under_test = "//zig/tests/simple-shared-library:shared", size = "small"),
     )

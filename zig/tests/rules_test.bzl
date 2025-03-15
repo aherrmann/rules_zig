@@ -41,6 +41,88 @@ def _test_simple_binary(name):
     )
     return [":" + name]
 
+def _simple_shared_library_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+    cc = target[CcInfo]
+
+    linker_inputs = cc.linking_context.linker_inputs.to_list()
+    asserts.equals(env, 1, len(linker_inputs), "zig_shared_library should generate one linker input.")
+    libraries = linker_inputs[0].libraries
+    asserts.equals(env, 1, len(libraries), "zig_shared_library should generate one library.")
+    dynamic = libraries[0].resolved_symlink_dynamic_library
+    asserts.true(env, dynamic != None, "zig_shared_library should produce a dynamic library.")
+    asserts.true(env, sets.contains(sets.make(default.files.to_list()), dynamic), "zig_shared_library should return the dynamic library as an output.")
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildSharedLib"
+    ]
+    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildSharedLib action.")
+    build = build[0]
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), dynamic), "zig_shared_library should generate a ZigBuildSharedLib action that generates the dynamic library.")
+
+    return analysistest.end(env)
+
+_simple_shared_library_test = analysistest.make(_simple_shared_library_test_impl)
+
+def _test_simple_shared_library(name):
+    _simple_shared_library_test(
+        name = name,
+        target_under_test = "//zig/tests/simple-shared-library:shared",
+        size = "small",
+    )
+    return [":" + name]
+
+def _transitive_shared_library_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+    indirect_default = ctx.attr.indirect[DefaultInfo]
+    cc = target[CcInfo]
+
+    linker_inputs = cc.linking_context.linker_inputs.to_list()
+    asserts.equals(env, 2, len(linker_inputs), "zig_shared_library should generate two linker inputs.")
+    libraries = [lib for input in linker_inputs for lib in input.libraries]
+    asserts.equals(env, 2, len(libraries), "zig_shared_library should generate two libraries.")
+    dynamics = []
+    for lib in libraries:
+        if lib.resolved_symlink_dynamic_library != None:
+            dynamics.append(lib.resolved_symlink_dynamic_library)
+        elif lib.dynamic_library != None:
+            dynamics.append(lib.dynamic_library)
+    asserts.equals(env, 2, len(dynamics), "zig_shared_library should generate two dynamic libraries.")
+    asserts.true(
+        env,
+        sets.length(sets.intersection(sets.make(default.files.to_list()), sets.make(dynamics))) != 0,
+        "zig_shared_library should return the dynamic library as an output.",
+    )
+    asserts.true(
+        env,
+        sets.length(sets.intersection(sets.make(indirect_default.files.to_list()), sets.make(dynamics))) != 0,
+        "zig_shared_library should capture transitive dynamic library dependencies.",
+    )
+
+    return analysistest.end(env)
+
+_transitive_shared_library_test = analysistest.make(
+    _transitive_shared_library_test_impl,
+    attrs = {
+        "indirect": attr.label(mandatory = True),
+    },
+)
+
+def _test_transitive_shared_library(name):
+    _transitive_shared_library_test(
+        name = name,
+        target_under_test = "//zig/tests/transitive-shared-library:direct",
+        indirect = "//zig/tests/transitive-shared-library:indirect",
+        size = "small",
+    )
+    return [":" + name]
+
 def _multiple_sources_binary_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
@@ -196,6 +278,8 @@ def rules_test_suite(name):
     """
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
+    tests += _test_simple_shared_library(name = "simple_shared_library_test")
+    tests += _test_transitive_shared_library(name = "transitive_shared_library_test")
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
     tests += _test_module_binary(name = "module_binary_test")
     tests += _test_c_sources_binary(name = "c_sources_binary_test")

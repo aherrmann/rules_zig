@@ -1,0 +1,33 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_zig//zig:defs.bzl", "zig_shared_library")
+
+zig_shared_library(
+    name = "add",
+    main = "add.zig",
+)
+
+cc_test(
+    name = "add-test",
+    size = "small",
+    srcs = ["add-test.c"],
+    deps = [":add"],
+)
+
+# Pass through a cc_library to explicitly test transitive CcInfo handling.
+cc_library(
+    name = "c-add",
+    deps = [":add"],
+)
+
+zig_shared_library(
+    name = "mul",
+    cdeps = [":c-add"],
+    main = "mul.zig",
+)
+
+cc_test(
+    name = "mul-test",
+    size = "small",
+    srcs = ["mul-test.c"],
+    deps = [":mul"],
+)

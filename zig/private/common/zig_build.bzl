@@ -2,6 +2,11 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
+    "@bazel_tools//tools/cpp:toolchain_utils.bzl",
+    "find_cpp_toolchain",
+    "use_cpp_toolchain",
+)
+load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
@@ -134,6 +139,10 @@ TOOLCHAINS = [
     "//zig/target:toolchain_type",
 ]
 
+SHARED_LIBRARY_TOOLCHAINS = use_cpp_toolchain(mandatory = False)
+
+SHARED_LIBRARY_FRAGMENTS = ["cpp"]
+
 def zig_build_impl(ctx, *, kind):
     """Common implementation for Zig build rules.
 
@@ -146,8 +155,10 @@ def zig_build_impl(ctx, *, kind):
     """
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
+    cctoolchain = None
 
     executable = None
+    library_to_link = None
     files = None
     direct_data = []
     transitive_data = []
@@ -203,11 +214,40 @@ def zig_build_impl(ctx, *, kind):
         args.add(dynamic, format = "-femit-bin=%s")
         args.add(dynamic.basename, format = "-fsoname=%s")
 
+        cctoolchain = find_cpp_toolchain(ctx, mandatory = False)
+        if cctoolchain != None:
+            feature_configuration = cc_common.configure_features(
+                ctx = ctx,
+                cc_toolchain = cctoolchain,
+                requested_features = ctx.features,
+                unsupported_features = ctx.disabled_features,
+            )
+            library_to_link = cc_common.create_library_to_link(
+                actions = ctx.actions,
+                feature_configuration = feature_configuration,
+                cc_toolchain = cctoolchain,
+                dynamic_library = dynamic,
+            )
+
         files = depset([dynamic])
 
         solib_parents = [""]
     else:
         fail("Unknown rule kind '{}'.".format(kind))
+
+    cc_info = None
+    if library_to_link != None:
+        linker_input = cc_common.create_linker_input(
+            owner = ctx.label,
+            libraries = depset(direct = [library_to_link]),
+        )
+        linking_context = cc_common.create_linking_context(
+            linker_inputs = depset(direct = [linker_input]),
+        )
+        cc_info = CcInfo(
+            compilation_context = None,
+            linking_context = linking_context,
+        )
 
     zig_lib_dir(
         zigtoolchaininfo = zigtoolchaininfo,
@@ -338,6 +378,13 @@ def zig_build_impl(ctx, *, kind):
         ),
     )
     providers.append(default)
+
+    if cc_info != None:
+        cc_info = cc_common.merge_cc_infos(
+            direct_cc_infos = [cc_info],
+            cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps],
+        )
+        providers.append(cc_info)
 
     if kind in ["zig_binary", "zig_test"]:
         run_environment = RunEnvironmentInfo(

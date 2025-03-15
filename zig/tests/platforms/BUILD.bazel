@@ -1,5 +1,7 @@
 """Target platforms used for testing purposes."""
 
+load("//zig:toolchain.bzl", "zig_target_toolchain")
+
 platform(
     name = "x86_64-linux",
     constraint_values = [
@@ -49,4 +51,37 @@ platform(
         "@platforms//cpu:x86_64",
         "//zig/platforms/abi:none",
     ],
+)
+
+constraint_value(
+    name = "zig-only-linux",
+    constraint_setting = "@platforms//os",
+)
+
+constraint_value(
+    name = "zig-only-x86_64",
+    constraint_setting = "@platforms//cpu",
+)
+
+platform(
+    name = "zig-only-x86_64-linux",
+    constraint_values = [
+        ":zig-only-linux",
+        ":zig-only-x86_64",
+    ],
+)
+
+zig_target_toolchain(
+    name = "zig-only-x86_64-linux_target_toolchain",
+    target = "zig-x86_64-linux",
+)
+
+toolchain(
+    name = "zig-only-x86_64-linux_toolchain",
+    target_compatible_with = [
+        ":zig-only-linux",
+        ":zig-only-x86_64",
+    ],
+    toolchain = ":zig-only-x86_64-linux_target_toolchain",
+    toolchain_type = "//zig/target:toolchain_type",
 )
