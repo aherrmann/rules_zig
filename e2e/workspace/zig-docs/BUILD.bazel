@@ -4,11 +4,13 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "@rules_zig//zig:defs.bzl",
     "zig_binary",
+    "zig_configure_test",
     "zig_library",
     "zig_module",
     "zig_shared_library",
     "zig_test",
 )
+load("@rules_zig//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 zig_module(
     name = "hello_world",
@@ -133,3 +135,14 @@ build_test(
         ":test-docs-index-copy",
     ],
 )
+
+[
+    zig_configure_test(
+        name = "zig-docs-{}".format(version),
+        size = "small",
+        actual = ":zig-docs",
+        tags = ["zig-docs"],
+        zig_version = version,
+    )
+    for version in TOOL_VERSIONS.keys()
+]

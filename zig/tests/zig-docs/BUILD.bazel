@@ -1,4 +1,6 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_configure_test")
+load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 build_test(
     name = "zig-docs",
@@ -7,3 +9,14 @@ build_test(
         "//zig/runfiles:docs",
     ],
 )
+
+[
+    zig_configure_test(
+        name = "zig-docs-{}".format(version),
+        size = "small",
+        actual = ":zig-docs",
+        tags = ["zig-docs"],
+        zig_version = version,
+    )
+    for version in TOOL_VERSIONS.keys()
+]
