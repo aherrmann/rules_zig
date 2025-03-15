@@ -109,23 +109,6 @@ runs:
           exit 1
         }
 
-    - name: Check for test.sh
-      # Checks for the existence of test.sh in the folder. Downstream steps can use
-      # steps.has_test_sh.outputs.files_exists as a conditional.
-      id: has_test_sh
-      uses: andstor/file-existence-action@v3
-      with:
-        files: "${{ inputs.folder }}/test.sh"
-
-    - name: ./test.sh
-      # Run if there is a test.sh file in the folder
-      if: steps.has_test_sh.outputs.files_exists == 'true'
-      working-directory: ${{ inputs.folder }}
-      shell: bash
-      # Run the script potentially setting BZLMOD_FLAG=--enable_bzlmod. All test.sh
-      # scripts that run bazel directly should make use of this variable.
-      run: BZLMOD_FLAG=${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} ./test.sh
-
     - name: bazel test ${{ inputs.targetPattern }}
       working-directory: ${{ inputs.folder }}
       shell: bash
