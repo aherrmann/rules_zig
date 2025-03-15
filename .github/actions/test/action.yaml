@@ -25,6 +25,10 @@ inputs:
   tagFilters:
     description: "The Bazel build and test tag filters."
     required: true
+  remoteEnabled:
+    description: "Whether to enable remote execution."
+    default: true
+    required: false
   buildbuddyApiKey:
     description: "The API key for BuildBuddy remote cache and execution."
     required: true
@@ -53,6 +57,7 @@ runs:
           bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
 
     - name: Configure remote cache and execution
+      if: inputs.remoteEnabled
       working-directory: ${{ inputs.folder }}
       shell: bash
       env:
