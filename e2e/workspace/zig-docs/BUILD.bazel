@@ -48,18 +48,21 @@ filegroup(
     name = "binary-docs",
     srcs = [":binary"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 filegroup(
     name = "library-docs",
     srcs = [":library"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 filegroup(
     name = "shared-library-docs",
     srcs = [":shared-library"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 filegroup(
@@ -67,6 +70,7 @@ filegroup(
     testonly = True,
     srcs = [":test"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -75,8 +79,10 @@ copy_file(
         name = "binary-docs-index",
         directory = ":binary-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "binary-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -85,8 +91,10 @@ copy_file(
         name = "library-docs-index",
         directory = ":library-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "library-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -95,8 +103,10 @@ copy_file(
         name = "shared-library-docs-index",
         directory = ":shared-library-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "shared-library-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -107,12 +117,15 @@ copy_file(
         testonly = True,
         directory = ":test-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "test-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 build_test(
     name = "zig-docs",
+    tags = ["zig-docs"],
     targets = [
         ":binary-docs-index-copy",
         ":library-docs-index-copy",

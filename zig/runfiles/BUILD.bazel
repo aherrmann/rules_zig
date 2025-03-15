@@ -43,6 +43,7 @@ filegroup(
     name = "docs",
     srcs = [":lib"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
     visibility = ["//visibility:public"],
 )
 
