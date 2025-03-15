@@ -22,9 +22,19 @@ inputs:
   targetPattern:
     description: "The Bazel build and test target pattern."
     required: true
+  tagFilters:
+    description: "The Bazel build and test tag filters."
+    required: true
+  remoteEnabled:
+    description: "Whether to enable remote execution."
+    default: true
+    required: false
   buildbuddyApiKey:
     description: "The API key for BuildBuddy remote cache and execution."
     required: true
+  bazelFlags:
+    description: "Additional flags to pass to Bazel."
+    required: false
 runs:
   using: composite
   steps:
@@ -45,11 +55,12 @@ runs:
         path: |
           ~/.cache/bazel
           ~/.cache/bazel-repo
-        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
+        key: bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}-${{ inputs.tagFilters }}-${{ hashFiles('**/BUILD.bazel', '**/*.bzl', '**/*.zig', 'WORKSPACE', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
         restore-keys: |
           bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
 
     - name: Configure remote cache and execution
+      if: inputs.remoteEnabled
       working-directory: ${{ inputs.folder }}
       shell: bash
       env:
@@ -109,27 +120,10 @@ runs:
           exit 1
         }
 
-    - name: Check for test.sh
-      # Checks for the existence of test.sh in the folder. Downstream steps can use
-      # steps.has_test_sh.outputs.files_exists as a conditional.
-      id: has_test_sh
-      uses: andstor/file-existence-action@v3
-      with:
-        files: "${{ inputs.folder }}/test.sh"
-
-    - name: ./test.sh
-      # Run if there is a test.sh file in the folder
-      if: steps.has_test_sh.outputs.files_exists == 'true'
-      working-directory: ${{ inputs.folder }}
-      shell: bash
-      # Run the script potentially setting BZLMOD_FLAG=--enable_bzlmod. All test.sh
-      # scripts that run bazel directly should make use of this variable.
-      run: BZLMOD_FLAG=${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} ./test.sh
-
     - name: bazel test ${{ inputs.targetPattern }}
       working-directory: ${{ inputs.folder }}
       shell: bash
       run: |
         # Bazelisk will download bazel to here, ensure it is cached between runs.
         export XDG_CACHE_HOME="$HOME/.cache/bazel-repo"
-        bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ inputs.targetPattern }}
+        bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ inputs.targetPattern }} ${{ inputs.tagFilters != '' && format('--build_tag_filters={0} --test_tag_filters={0}', inputs.tagFilters) || '' }} ${{ inputs.bazelFlags }}

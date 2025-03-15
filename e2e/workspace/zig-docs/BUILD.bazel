@@ -1,13 +1,24 @@
 load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@aspect_bazel_lib//lib:directory_path.bzl", "make_directory_path")
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "@rules_zig//zig:defs.bzl",
     "zig_binary",
+    "zig_configure_test",
     "zig_library",
     "zig_module",
     "zig_shared_library",
     "zig_test",
+)
+load("@rules_zig//zig/private:versions.bzl", "TOOL_VERSIONS")
+
+selects.config_setting_group(
+    name = "macos-zig-0.12.0",
+    match_all = [
+        "@platforms//os:macos",
+        "@zig_toolchains//:0.12.0",
+    ],
 )
 
 zig_module(
@@ -19,6 +30,10 @@ zig_binary(
     name = "binary",
     extra_docs = ["guide.md"],
     main = "main.zig",
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":hello_world"],
 )
 
@@ -26,6 +41,10 @@ zig_library(
     name = "library",
     extra_docs = ["guide.md"],
     main = "main.zig",
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":hello_world"],
 )
 
@@ -33,6 +52,10 @@ zig_shared_library(
     name = "shared-library",
     extra_docs = ["guide.md"],
     main = "main.zig",
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":hello_world"],
 )
 
@@ -41,6 +64,10 @@ zig_test(
     size = "small",
     extra_docs = ["guide.md"],
     main = "main.zig",
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":hello_world"],
 )
 
@@ -48,18 +75,21 @@ filegroup(
     name = "binary-docs",
     srcs = [":binary"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 filegroup(
     name = "library-docs",
     srcs = [":library"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 filegroup(
     name = "shared-library-docs",
     srcs = [":shared-library"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 filegroup(
@@ -67,6 +97,7 @@ filegroup(
     testonly = True,
     srcs = [":test"],
     output_group = "zig_docs",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -75,8 +106,10 @@ copy_file(
         name = "binary-docs-index",
         directory = ":binary-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "binary-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -85,8 +118,10 @@ copy_file(
         name = "library-docs-index",
         directory = ":library-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "library-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -95,8 +130,10 @@ copy_file(
         name = "shared-library-docs-index",
         directory = ":shared-library-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "shared-library-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 copy_file(
@@ -107,12 +144,15 @@ copy_file(
         testonly = True,
         directory = ":test-docs",
         path = "index.html",
+        tags = ["zig-docs"],
     ),
     out = "test-docs-index-copy.html",
+    tags = ["zig-docs"],
 )
 
 build_test(
     name = "zig-docs",
+    tags = ["zig-docs"],
     targets = [
         ":binary-docs-index-copy",
         ":library-docs-index-copy",
@@ -120,3 +160,14 @@ build_test(
         ":test-docs-index-copy",
     ],
 )
+
+[
+    zig_configure_test(
+        name = "zig-docs-{}".format(version),
+        size = "small",
+        actual = ":zig-docs",
+        tags = ["zig-docs"],
+        zig_version = version,
+    )
+    for version in TOOL_VERSIONS.keys()
+]
