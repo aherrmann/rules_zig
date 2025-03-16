@@ -7,6 +7,7 @@ load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load(
     ":util.bzl",
     "assert_find_unique_surrounded_arguments",
+    "assert_flag_set",
     "assert_flag_unset",
 )
 
@@ -270,6 +271,68 @@ def _test_c_sources_binary(name):
     )
     return [":" + name + "_with_copts", ":" + name + "_without_copts"]
 
+def _compiler_runtime_test_impl(ctx):
+    env = analysistest.begin(ctx)
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic in ["ZigBuildExe", "ZigBuildTest", "ZigBuildLib", "ZigBuildSharedLib"]
+    ]
+    asserts.equals(env, 1, len(build), "Target should have one ZigBuild* action.")
+    build = build[0]
+
+    if ctx.attr.compiler_runtime == "include":
+        assert_flag_set(env, "-fcompiler-rt", build.argv)
+        assert_flag_unset(env, "-fno-compiler-rt", build.argv)
+    elif ctx.attr.compiler_runtime == "exclude":
+        assert_flag_set(env, "-fno-compiler-rt", build.argv)
+        assert_flag_unset(env, "-fcompiler-rt", build.argv)
+    else:
+        assert_flag_unset(env, "-fcompiler-rt", build.argv)
+        assert_flag_unset(env, "-fno-compiler-rt", build.argv)
+
+    return analysistest.end(env)
+
+_compiler_runtime_test = analysistest.make(
+    _compiler_runtime_test_impl,
+    attrs = {
+        "compiler_runtime": attr.string(mandatory = False),
+    },
+)
+
+def _test_compiler_runtime(name):
+    _compiler_runtime_test(
+        name = name + "-binary",
+        target_under_test = "//zig/tests/compiler_runtime:binary",
+        compiler_runtime = None,
+        size = "small",
+    )
+    _compiler_runtime_test(
+        name = name + "-library-exclude",
+        target_under_test = "//zig/tests/compiler_runtime:library-exclude",
+        compiler_runtime = "exclude",
+        size = "small",
+    )
+    _compiler_runtime_test(
+        name = name + "-shared-library-default",
+        target_under_test = "//zig/tests/compiler_runtime:shared-library-default",
+        compiler_runtime = "default",
+        size = "small",
+    )
+    _compiler_runtime_test(
+        name = name + "-test-include",
+        target_under_test = "//zig/tests/compiler_runtime:test-include",
+        compiler_runtime = "include",
+        size = "small",
+    )
+    return [
+        name + "-binary",
+        name + "-library-exclude",
+        name + "-shared-library-default",
+        name + "-test-include",
+    ]
+
 def rules_test_suite(name):
     """Generate test suite and test targets for common rule analysis tests.
 
@@ -283,6 +346,7 @@ def rules_test_suite(name):
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
     tests += _test_module_binary(name = "module_binary_test")
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
+    tests += _test_compiler_runtime(name = "compiler_runtime_test")
     native.test_suite(
         name = name,
         tests = tests,

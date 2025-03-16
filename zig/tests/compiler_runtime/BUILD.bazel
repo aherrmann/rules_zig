@@ -1,0 +1,35 @@
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_library",
+    "zig_shared_library",
+    "zig_test",
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_library(
+    name = "library-exclude",
+    compiler_runtime = "exclude",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_shared_library(
+    name = "shared-library-default",
+    compiler_runtime = "default",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_test(
+    name = "test-include",
+    size = "small",
+    compiler_runtime = "include",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
