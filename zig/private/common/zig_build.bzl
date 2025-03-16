@@ -90,6 +90,15 @@ Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:lib
         mandatory = False,
         providers = [CcInfo],
     ),
+    "compiler_runtime": attr.string(
+        doc = """\
+Whether to include Zig compiler runtime symbols in the generated output.
+The default behavior is to include them in executables and shared libraries.
+""",
+        mandatory = False,
+        values = ["exclude", "include", "default"],
+        default = "default",
+    ),
     "linker_script": attr.label(
         doc = "Custom linker script for the target.",
         allow_single_file = True,
@@ -234,6 +243,11 @@ def zig_build_impl(ctx, *, kind):
         solib_parents = [""]
     else:
         fail("Unknown rule kind '{}'.".format(kind))
+
+    if ctx.attr.compiler_runtime == "include":
+        args.add("-fcompiler-rt")
+    elif ctx.attr.compiler_runtime == "exclude":
+        args.add("-fno-compiler-rt")
 
     cc_info = None
     if library_to_link != None:
