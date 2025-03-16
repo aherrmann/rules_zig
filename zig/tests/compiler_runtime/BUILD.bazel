@@ -13,15 +13,15 @@ zig_binary(
 )
 
 zig_library(
-    name = "library-default",
-    compiler_runtime = "default",
+    name = "library-exclude",
+    compiler_runtime = "exclude",
     main = "main.zig",
     visibility = ["//zig/tests:__pkg__"],
 )
 
 zig_shared_library(
-    name = "shared-library-exclude",
-    compiler_runtime = "exclude",
+    name = "shared-library-default",
+    compiler_runtime = "default",
     main = "main.zig",
     visibility = ["//zig/tests:__pkg__"],
 )

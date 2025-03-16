@@ -309,15 +309,15 @@ def _test_compiler_runtime(name):
         size = "small",
     )
     _compiler_runtime_test(
-        name = name + "-library-default",
-        target_under_test = "//zig/tests/compiler_runtime:library-default",
-        compiler_runtime = "default",
+        name = name + "-library-exclude",
+        target_under_test = "//zig/tests/compiler_runtime:library-exclude",
+        compiler_runtime = "exclude",
         size = "small",
     )
     _compiler_runtime_test(
-        name = name + "-shared-library-exclude",
-        target_under_test = "//zig/tests/compiler_runtime:shared-library-exclude",
-        compiler_runtime = "exclude",
+        name = name + "-shared-library-default",
+        target_under_test = "//zig/tests/compiler_runtime:shared-library-default",
+        compiler_runtime = "default",
         size = "small",
     )
     _compiler_runtime_test(
@@ -328,8 +328,8 @@ def _test_compiler_runtime(name):
     )
     return [
         name + "-binary",
-        name + "-library-default",
-        name + "-shared-library-exclude",
+        name + "-library-exclude",
+        name + "-shared-library-default",
         name + "-test-include",
     ]
 
