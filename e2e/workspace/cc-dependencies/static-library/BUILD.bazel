@@ -1,0 +1,22 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library")
+
+zig_library(
+    name = "add",
+    compiler_runtime = "include",
+    main = "add.zig",
+)
+
+# Transition build mode to avoid Zig debug symbols in the static library.
+zig_configure(
+    name = "add-small",
+    actual = ":add",
+    mode = "release_small",
+)
+
+cc_test(
+    name = "add-test",
+    size = "small",
+    srcs = ["add-test.c"],
+    deps = [":add-small"],
+)
