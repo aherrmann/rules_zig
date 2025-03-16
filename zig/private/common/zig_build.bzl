@@ -212,6 +212,11 @@ def zig_build_impl(ctx, *, kind):
         outputs.append(static)
         args.add(static, format = "-femit-bin=%s")
 
+        library_to_link = cc_common.create_library_to_link(
+            actions = ctx.actions,
+            static_library = static,
+        )
+
         files = depset([static])
 
         solib_parents = []
