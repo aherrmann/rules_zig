@@ -3,7 +3,6 @@ load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library")
 
 zig_library(
     name = "add",
-    compiler_runtime = "include",
     main = "add.zig",
 )
 
