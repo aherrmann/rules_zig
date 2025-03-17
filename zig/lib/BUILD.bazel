@@ -20,6 +20,12 @@ zig_binary(
 """
 
 load("//zig/private:cc_linkopts.bzl", "cc_linkopts")
+load("//zig/private:zig_toolchain_header.bzl", "zig_toolchain_header")
+
+zig_toolchain_header(
+    name = "zig_header",
+    visibility = ["//visibility:public"],
+)
 
 cc_linkopts(
     name = "libc",
