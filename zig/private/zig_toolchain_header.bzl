@@ -14,7 +14,7 @@ TOOLCHAINS = [
     "//zig/target:toolchain_type",
 ]
 
-def _max_int_alignment(arch):
+def max_int_alignment(arch):
     """Architecture specific maximum integer alignment.
 
     See https://github.com/aherrmann/zig/blob/5ad91a646a753cc3eecd8751e61cf458dadd9ac4/src/Type.zig#L1641
@@ -90,7 +90,7 @@ def _zig_toolchain_header_impl(ctx):
             header_path = file.dirname
             break
 
-    alignment = _max_int_alignment(zigtargetinfo.triple.arch)
+    alignment = max_int_alignment(zigtargetinfo.triple.arch)
     defines = ["ZIG_TARGET_MAX_INT_ALIGNMENT={}".format(alignment)]
     if zigtargetinfo.triple.abi == "msvc":
         defines.append("ZIG_TARGET_ABI_MSVC")

@@ -9,6 +9,7 @@ load(":semver_test.bzl", "semver_test_suite")
 load(":target_platform_test.bzl", "target_platform_test_suite")
 load(":target_triple_test.bzl", "target_triple_test_suite")
 load(":threaded_test.bzl", "threaded_test_suite")
+load(":toolchain_header_test.bzl", "toolchain_header_test_suite")
 load(":versions_test.bzl", "versions_test_suite")
 
 bzlmod_zig_test_suite(name = "bzlmod_zig_test")
@@ -30,6 +31,8 @@ target_platform_test_suite(name = "target_platform_test")
 target_triple_test_suite(name = "target_triple_test")
 
 threaded_test_suite(name = "threaded_test")
+
+toolchain_header_test_suite(name = "toolchain_header_test")
 
 versions_test_suite(name = "versions_test")
 
