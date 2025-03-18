@@ -1,0 +1,65 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library")
+
+selects.config_setting_group(
+    name = "macos-zig-0.12.0",
+    match_all = [
+        "@platforms//os:macos",
+        "@zig_toolchains//:0.12.0",
+    ],
+)
+
+zig_library(
+    name = "add",
+    main = "add.zig",
+)
+
+# Transition build mode to avoid Zig debug symbols in the static library.
+zig_configure(
+    name = "add-small",
+    actual = ":add",
+    mode = "release_small",
+)
+
+cc_test(
+    name = "add-test",
+    size = "small",
+    srcs = ["add-test.c"],
+    deps = [":add-small"],
+)
+
+# Pass through a cc_library to explicitly test transitive CcInfo handling.
+cc_library(
+    name = "c-add",
+    deps = [":add"],
+)
+
+zig_library(
+    name = "mul",
+    cdeps = [":c-add"],
+    main = "mul.zig",
+    target_compatible_with = select({
+        # @abs was introduced in Zig 0.12.0.
+        "@zig_toolchains//:0.11.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+# See add-small above for reasoning.
+zig_configure(
+    name = "mul-small",
+    actual = ":mul",
+    mode = "release_small",
+)
+
+cc_test(
+    name = "mul-test",
+    size = "small",
+    srcs = ["mul-test.c"],
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [":mul-small"],
+)

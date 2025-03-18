@@ -42,6 +42,83 @@ def _test_simple_binary(name):
     )
     return [":" + name]
 
+def _simple_library_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+    cc = target[CcInfo]
+
+    linker_inputs = cc.linking_context.linker_inputs.to_list()
+    asserts.equals(env, 1, len(linker_inputs), "zig_library should generate one linker input.")
+    libraries = linker_inputs[0].libraries
+    asserts.equals(env, 1, len(libraries), "zig_library should generate one library.")
+    static = libraries[0].static_library
+    asserts.true(env, static != None, "zig_library should produce a static library.")
+    asserts.true(env, sets.contains(sets.make(default.files.to_list()), static), "zig_library should return the static library as an output.")
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildLib"
+    ]
+    asserts.equals(env, 1, len(build), "zig_library should generate one ZigBuildLib action.")
+    build = build[0]
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), static), "zig_library should generate a ZigBuildLib action that generates the static library.")
+
+    return analysistest.end(env)
+
+_simple_library_test = analysistest.make(_simple_library_test_impl)
+
+def _test_simple_library(name):
+    _simple_library_test(
+        name = name,
+        target_under_test = "//zig/tests/simple-library:library",
+        size = "small",
+    )
+    return [":" + name]
+
+def _transitive_library_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+    indirect_default = ctx.attr.indirect[DefaultInfo]
+    cc = target[CcInfo]
+
+    linker_inputs = cc.linking_context.linker_inputs.to_list()
+    asserts.equals(env, 2, len(linker_inputs), "zig_library should generate two linker inputs.")
+    libraries = [lib for input in linker_inputs for lib in input.libraries]
+    asserts.equals(env, 2, len(libraries), "zig_library should generate two libraries.")
+    statics = [lib.static_library for lib in libraries if lib.static_library != None]
+    asserts.equals(env, 2, len(statics), "zig_library should generate two static libraries.")
+    asserts.true(
+        env,
+        sets.length(sets.intersection(sets.make(default.files.to_list()), sets.make(statics))) != 0,
+        "zig_library should return the static library as an output.",
+    )
+    asserts.true(
+        env,
+        sets.length(sets.intersection(sets.make(indirect_default.files.to_list()), sets.make(statics))) != 0,
+        "zig_library should capture transitive static library dependencies.",
+    )
+
+    return analysistest.end(env)
+
+_transitive_library_test = analysistest.make(
+    _transitive_library_test_impl,
+    attrs = {
+        "indirect": attr.label(mandatory = True),
+    },
+)
+
+def _test_transitive_library(name):
+    _transitive_library_test(
+        name = name,
+        target_under_test = "//zig/tests/transitive-library:direct",
+        indirect = "//zig/tests/transitive-library:indirect",
+        size = "small",
+    )
+    return [":" + name]
+
 def _simple_shared_library_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
@@ -341,6 +418,8 @@ def rules_test_suite(name):
     """
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
+    tests += _test_simple_library(name = "simple_library_test")
+    tests += _test_transitive_library(name = "transitive_library_test")
     tests += _test_simple_shared_library(name = "simple_shared_library_test")
     tests += _test_transitive_shared_library(name = "transitive_shared_library_test")
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
