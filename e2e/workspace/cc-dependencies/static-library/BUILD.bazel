@@ -1,5 +1,14 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library")
+
+selects.config_setting_group(
+    name = "macos-zig-0.12.0",
+    match_all = [
+        "@platforms//os:macos",
+        "@zig_toolchains//:0.12.0",
+    ],
+)
 
 zig_library(
     name = "add",
@@ -48,5 +57,9 @@ cc_test(
     name = "mul-test",
     size = "small",
     srcs = ["mul-test.c"],
+    target_compatible_with = select({
+        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     deps = [":mul-small"],
 )
