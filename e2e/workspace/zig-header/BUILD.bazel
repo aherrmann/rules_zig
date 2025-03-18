@@ -1,0 +1,8 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "test",
+    size = "small",
+    srcs = ["main.c"],
+    deps = ["@rules_zig//zig/lib:zig_header"],
+)
