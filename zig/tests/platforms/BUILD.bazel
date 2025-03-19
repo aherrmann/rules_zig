@@ -37,6 +37,15 @@ platform(
 )
 
 platform(
+    name = "ppc-linux-musl",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc",
+        "//zig/platforms/abi:musl",
+    ],
+)
+
+platform(
     name = "x86_64-windows",
     constraint_values = [
         "@platforms//os:windows",
@@ -51,6 +60,31 @@ platform(
         "@platforms//cpu:x86_64",
         "//zig/platforms/abi:none",
     ],
+)
+
+platform(
+    name = "x86_64-windows-msvc",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:msvc",
+    ],
+)
+
+zig_target_toolchain(
+    name = "x86_64-windows-msvc_target_toolchain",
+    target = "x86_64-windows-msvc",
+)
+
+toolchain(
+    name = "x86_64-windows-msvc_toolchain",
+    target_compatible_with = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+        "//zig/platforms/abi:msvc",
+    ],
+    toolchain = ":x86_64-windows-msvc_target_toolchain",
+    toolchain_type = "//zig/target:toolchain_type",
 )
 
 constraint_value(
