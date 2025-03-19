@@ -1,0 +1,11 @@
+load("@rules_zig//zig:defs.bzl", "zig_library", "zig_shared_library")
+
+zig_library(
+    name = "static",
+    main = "lib.zig",
+)
+
+zig_shared_library(
+    name = "shared",
+    main = "lib.zig",
+)
