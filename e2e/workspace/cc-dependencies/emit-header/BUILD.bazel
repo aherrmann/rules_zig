@@ -3,12 +3,14 @@ load("@rules_zig//zig:defs.bzl", "zig_library", "zig_shared_library")
 
 zig_library(
     name = "static",
+    cdeps = ["@rules_zig//zig/lib:libc"],
     generate_header = True,
     main = "lib.zig",
 )
 
 zig_shared_library(
     name = "shared",
+    cdeps = ["@rules_zig//zig/lib:libc"],
     generate_header = True,
     main = "lib.zig",
 )
