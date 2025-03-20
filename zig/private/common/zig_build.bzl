@@ -269,13 +269,18 @@ def zig_build_impl(ctx, *, kind):
         args.add("-fno-compiler-rt")
 
     header = None
+    compilation_context = None
     if getattr(ctx.attr, "generate_header", False):
         header = ctx.actions.declare_file(ctx.label.name + ".h")
         outputs.append(header)
         args.add(header, format = "-femit-h=%s")
         output_groups["header"] = depset(direct = [header])
+        compilation_context = cc_common.create_compilation_context(
+            headers = depset(direct = [header]),
+            includes = depset(direct = [header.dirname]),
+        )
 
-    cc_info = None
+    linking_context = None
     if library_to_link != None:
         linker_input = cc_common.create_linker_input(
             owner = ctx.label,
@@ -284,8 +289,11 @@ def zig_build_impl(ctx, *, kind):
         linking_context = cc_common.create_linking_context(
             linker_inputs = depset(direct = [linker_input]),
         )
+
+    cc_info = None
+    if compilation_context != None or linking_context != None:
         cc_info = CcInfo(
-            compilation_context = None,
+            compilation_context = compilation_context,
             linking_context = linking_context,
         )
 
