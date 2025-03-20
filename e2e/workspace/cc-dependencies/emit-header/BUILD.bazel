@@ -30,11 +30,11 @@ filegroup(
 assert_outputs(
     name = "static_header_test",
     actual = ":static_header",
-    expected = ["static.h"],
+    expected = ["cc-dependencies/emit-header/static.h"],
 )
 
 assert_outputs(
     name = "shared_header_test",
     actual = ":shared_header",
-    expected = ["shared.h"],
+    expected = ["cc-dependencies/emit-header/shared.h"],
 )
