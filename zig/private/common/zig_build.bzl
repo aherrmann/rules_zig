@@ -433,11 +433,12 @@ def zig_build_impl(ctx, *, kind):
 
     if cc_info != None:
         direct_cc_infos = [cc_info]
+        cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps]
         if getattr(ctx.attr, "generate_header", False):
-            direct_cc_infos.append(ctx.attr._zig_header[CcInfo])
+            cc_infos.append(ctx.attr._zig_header[CcInfo])
         cc_info = cc_common.merge_cc_infos(
             direct_cc_infos = direct_cc_infos,
-            cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps],
+            cc_infos = cc_infos,
         )
         providers.append(cc_info)
 
