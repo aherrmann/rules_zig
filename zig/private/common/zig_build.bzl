@@ -187,6 +187,7 @@ def zig_build_impl(ctx, *, kind):
     transitive_runfiles = []
 
     outputs = []
+    output_groups = {}
 
     direct_inputs = []
     transitive_inputs = []
@@ -266,6 +267,13 @@ def zig_build_impl(ctx, *, kind):
         args.add("-fcompiler-rt")
     elif ctx.attr.compiler_runtime == "exclude":
         args.add("-fno-compiler-rt")
+
+    header = None
+    if getattr(ctx.attr, "generate_header", False):
+        header = ctx.actions.declare_file(ctx.label.name + ".h")
+        outputs.append(header)
+        args.add(header, format = "-femit-h=%s")
+        output_groups["header"] = depset(direct = [header])
 
     cc_info = None
     if library_to_link != None:
@@ -430,7 +438,5 @@ def zig_build_impl(ctx, *, kind):
             inherited_environment = getattr(ctx.attr, "env_inherit", []),
         )
         providers.append(run_environment)
-
-    output_groups = dict()
 
     return providers, output_groups
