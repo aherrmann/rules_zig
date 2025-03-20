@@ -116,6 +116,19 @@ The default behavior is to include them in executables and shared libraries.
     ),
 } | BAZEL_BUILTIN_ATTRS
 
+COMMON_LIBRARY_ATTRS = {
+    "generate_header": attr.bool(
+        doc = """\
+Generate a C header file for functions exported under the C ABI.
+NOTE: The target may need to depend on `@rules_zig//zig/lib:libc`,
+otherwise the compiler may crash with a segmentation fault.
+See https://github.com/ziglang/zig/issues/18188.
+        """,
+        mandatory = False,
+        default = False,
+    ),
+}
+
 BINARY_ATTRS = {
     "env": attr.string_dict(
         doc = """\
