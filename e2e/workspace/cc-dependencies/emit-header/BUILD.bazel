@@ -38,3 +38,15 @@ assert_outputs(
     actual = ":shared_header",
     expected = ["cc-dependencies/emit-header/shared.h"],
 )
+
+cc_test(
+    name = "static_include_test",
+    srcs = ["test_static.c"],
+    deps = [":static"],
+)
+
+cc_test(
+    name = "shared_include_test",
+    srcs = ["test_shared.c"],
+    deps = [":shared"],
+)
