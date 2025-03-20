@@ -1,3 +1,4 @@
+load("@aspect_bazel_lib//lib:testing.bzl", "assert_outputs")
 load("@rules_zig//zig:defs.bzl", "zig_library", "zig_shared_library")
 
 zig_library(
@@ -10,4 +11,28 @@ zig_shared_library(
     name = "shared",
     generate_header = True,
     main = "lib.zig",
+)
+
+filegroup(
+    name = "static_header",
+    srcs = [":static"],
+    output_group = "header",
+)
+
+filegroup(
+    name = "shared_header",
+    srcs = [":shared"],
+    output_group = "header",
+)
+
+assert_outputs(
+    name = "static_header_test",
+    actual = ":static_header",
+    expected = ["static.h"],
+)
+
+assert_outputs(
+    name = "shared_header_test",
+    actual = ":shared_header",
+    expected = ["shared.h"],
 )
