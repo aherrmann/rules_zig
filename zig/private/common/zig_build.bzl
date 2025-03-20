@@ -127,6 +127,10 @@ See https://github.com/ziglang/zig/issues/18188.
         mandatory = False,
         default = False,
     ),
+    "_zig_header": attr.label(
+        doc = "The Zig header file required by the generated header file.",
+        default = "@rules_zig//zig/lib:zig_header",
+    ),
 }
 
 BINARY_ATTRS = {
@@ -428,8 +432,11 @@ def zig_build_impl(ctx, *, kind):
     providers.append(default)
 
     if cc_info != None:
+        direct_cc_infos = [cc_info]
+        if getattr(ctx.attr, "generate_header", False):
+            direct_cc_infos.append(ctx.attr._zig_header[CcInfo])
         cc_info = cc_common.merge_cc_infos(
-            direct_cc_infos = [cc_info],
+            direct_cc_infos = direct_cc_infos,
             cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps],
         )
         providers.append(cc_info)
