@@ -6,6 +6,11 @@ zig_library(
     cdeps = ["@rules_zig//zig/lib:libc"],
     generate_header = True,
     main = "lib.zig",
+    target_compatible_with = select({
+        # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 zig_shared_library(
@@ -13,6 +18,11 @@ zig_shared_library(
     cdeps = ["@rules_zig//zig/lib:libc"],
     generate_header = True,
     main = "lib.zig",
+    target_compatible_with = select({
+        # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 zig_configure(

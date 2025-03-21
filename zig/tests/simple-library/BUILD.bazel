@@ -10,5 +10,10 @@ zig_library(
     name = "library-header",
     generate_header = True,
     main = "main.zig",
+    target_compatible_with = select({
+        # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     visibility = ["//zig/tests:__pkg__"],
 )
