@@ -120,9 +120,15 @@ COMMON_LIBRARY_ATTRS = {
     "generate_header": attr.bool(
         doc = """\
 Generate a C header file for functions exported under the C ABI.
+The generated header is exposed in the "header" output group
+as well as in the `CcInfo` provider.
+
 NOTE: The target may need to depend on `@rules_zig//zig/lib:libc`,
 otherwise the compiler may crash with a segmentation fault.
 See https://github.com/ziglang/zig/issues/18188.
+
+NOTE: Header generation has been disabled as of Zig 0.14.0.
+See https://github.com/ziglang/zig/issues/9698.
         """,
         mandatory = False,
         default = False,
