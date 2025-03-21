@@ -200,13 +200,13 @@ def _simple_shared_library_test_impl(ctx):
         env,
         0,
         len(headers),
-        "zig_library should not generate a header by default.",
+        "zig_shared_library should not generate a header by default.",
     )
 
     asserts.false(
         env,
         hasattr(output_groups, "header"),
-        "zig_library should not generate a header by default.",
+        "zig_shared_library should not generate a header by default.",
     )
 
     build = [
