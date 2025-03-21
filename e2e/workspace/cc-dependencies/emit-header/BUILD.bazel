@@ -53,12 +53,14 @@ assert_outputs(
 
 cc_test(
     name = "static_include_test",
+    size = "small",
     srcs = ["test_static.c"],
     deps = [":static-small"],
 )
 
 cc_test(
     name = "shared_include_test",
+    size = "small",
     srcs = ["test_shared.c"],
     deps = [":shared-small"],
 )
