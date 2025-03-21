@@ -1,5 +1,5 @@
 load("@aspect_bazel_lib//lib:testing.bzl", "assert_outputs")
-load("@rules_zig//zig:defs.bzl", "zig_library", "zig_shared_library")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library", "zig_shared_library")
 
 zig_library(
     name = "static",
@@ -15,15 +15,27 @@ zig_shared_library(
     main = "lib.zig",
 )
 
+zig_configure(
+    name = "static-small",
+    actual = ":static",
+    mode = "release_small",
+)
+
+zig_configure(
+    name = "shared-small",
+    actual = ":shared",
+    mode = "release_small",
+)
+
 filegroup(
     name = "static_header",
-    srcs = [":static"],
+    srcs = [":static-small"],
     output_group = "header",
 )
 
 filegroup(
     name = "shared_header",
-    srcs = [":shared"],
+    srcs = [":shared-small"],
     output_group = "header",
 )
 
@@ -42,11 +54,11 @@ assert_outputs(
 cc_test(
     name = "static_include_test",
     srcs = ["test_static.c"],
-    deps = [":static"],
+    deps = [":static-small"],
 )
 
 cc_test(
     name = "shared_include_test",
     srcs = ["test_shared.c"],
-    deps = [":shared"],
+    deps = [":shared-small"],
 )
