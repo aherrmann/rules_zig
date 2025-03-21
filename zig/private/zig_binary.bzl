@@ -45,9 +45,9 @@ ATTRS = COMMON_ATTRS | BINARY_ATTRS | DOCS_ATTRS
 TOOLCHAINS = COMMON_TOOLCHAINS
 
 def _zig_binary_impl(ctx):
-    build = zig_build_impl(ctx, kind = "zig_binary")
-    docs = zig_docs_impl(ctx, kind = "zig_binary")
-    return build + docs
+    build, build_groups = zig_build_impl(ctx, kind = "zig_binary")
+    docs, docs_groups = zig_docs_impl(ctx, kind = "zig_binary")
+    return build + docs + [OutputGroupInfo(**(build_groups | docs_groups))]
 
 zig_binary = rule(
     _zig_binary_impl,
