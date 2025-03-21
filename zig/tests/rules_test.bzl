@@ -47,6 +47,7 @@ def _simple_library_test_impl(ctx):
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
     cc = target[CcInfo]
+    output_groups = target[OutputGroupInfo]
 
     linker_inputs = cc.linking_context.linker_inputs.to_list()
     asserts.equals(env, 1, len(linker_inputs), "zig_library should generate one linker input.")
@@ -55,6 +56,21 @@ def _simple_library_test_impl(ctx):
     static = libraries[0].static_library
     asserts.true(env, static != None, "zig_library should produce a static library.")
     asserts.true(env, sets.contains(sets.make(default.files.to_list()), static), "zig_library should return the static library as an output.")
+
+    compilation_context = cc.compilation_context
+    headers = compilation_context.headers.to_list()
+    asserts.equals(
+        env,
+        0,
+        len(headers),
+        "zig_library should not generate a header by default.",
+    )
+
+    asserts.false(
+        env,
+        hasattr(output_groups, "header"),
+        "zig_library should not generate a header by default.",
+    )
 
     build = [
         action
@@ -124,6 +140,7 @@ def _simple_shared_library_test_impl(ctx):
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
     cc = target[CcInfo]
+    output_groups = target[OutputGroupInfo]
 
     linker_inputs = cc.linking_context.linker_inputs.to_list()
     asserts.equals(env, 1, len(linker_inputs), "zig_shared_library should generate one linker input.")
@@ -132,6 +149,21 @@ def _simple_shared_library_test_impl(ctx):
     dynamic = libraries[0].resolved_symlink_dynamic_library
     asserts.true(env, dynamic != None, "zig_shared_library should produce a dynamic library.")
     asserts.true(env, sets.contains(sets.make(default.files.to_list()), dynamic), "zig_shared_library should return the dynamic library as an output.")
+
+    compilation_context = cc.compilation_context
+    headers = compilation_context.headers.to_list()
+    asserts.equals(
+        env,
+        0,
+        len(headers),
+        "zig_library should not generate a header by default.",
+    )
+
+    asserts.false(
+        env,
+        hasattr(output_groups, "header"),
+        "zig_library should not generate a header by default.",
+    )
 
     build = [
         action
