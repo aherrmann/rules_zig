@@ -259,7 +259,7 @@ zig_configure_test(
 load("@rules_zig//zig:defs.bzl", "zig_library")
 
 zig_library(<a href="#zig_library-name">name</a>, <a href="#zig_library-deps">deps</a>, <a href="#zig_library-srcs">srcs</a>, <a href="#zig_library-data">data</a>, <a href="#zig_library-cdeps">cdeps</a>, <a href="#zig_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_library-copts">copts</a>, <a href="#zig_library-csrcs">csrcs</a>, <a href="#zig_library-extra_docs">extra_docs</a>, <a href="#zig_library-extra_srcs">extra_srcs</a>,
-            <a href="#zig_library-linker_script">linker_script</a>, <a href="#zig_library-main">main</a>)
+            <a href="#zig_library-generate_header">generate_header</a>, <a href="#zig_library-linker_script">linker_script</a>, <a href="#zig_library-main">main</a>)
 </pre>
 
 Builds a Zig library, produces a static archive.
@@ -303,6 +303,7 @@ zig_library(
 | <a id="zig_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-generate_header"></a>generate_header |  Generate a C header file for functions exported under the C ABI. The generated header is exposed in the "header" output group as well as in the `CcInfo` provider.<br><br>NOTE: The target may need to depend on `@rules_zig//zig/lib:libc`, otherwise the compiler may crash with a segmentation fault. See https://github.com/ziglang/zig/issues/18188.<br><br>NOTE: Header generation has been disabled as of Zig 0.14.0. See https://github.com/ziglang/zig/issues/9698.   | Boolean | optional |  `False`  |
 | <a id="zig_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
@@ -364,7 +365,7 @@ zig_module(
 load("@rules_zig//zig:defs.bzl", "zig_shared_library")
 
 zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-cdeps">cdeps</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>,
-                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>)
+                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-generate_header">generate_header</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>)
 </pre>
 
 Builds a Zig shared library, produces a shared or dynamic library.
@@ -408,6 +409,7 @@ zig_shared_library(
 | <a id="zig_shared_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_shared_library-generate_header"></a>generate_header |  Generate a C header file for functions exported under the C ABI. The generated header is exposed in the "header" output group as well as in the `CcInfo` provider.<br><br>NOTE: The target may need to depend on `@rules_zig//zig/lib:libc`, otherwise the compiler may crash with a segmentation fault. See https://github.com/ziglang/zig/issues/18188.<br><br>NOTE: Header generation has been disabled as of Zig 0.14.0. See https://github.com/ziglang/zig/issues/9698.   | Boolean | optional |  `False`  |
 | <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_shared_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
