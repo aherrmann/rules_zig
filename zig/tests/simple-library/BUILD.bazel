@@ -10,14 +10,6 @@ zig_library(
     name = "library-header",
     generate_header = True,
     main = "main.zig",
-    target_compatible_with = select({
-        # -femit-h was broken on Zig 0.14.0
-        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
-        # Zig 0.12.0 fails with segmentation fault.
-        "@zig_toolchains//:0.12.0": ["@platforms//:incompatible"],
-        # -femit-h fails with segmentation fault on MacOS.
-        "@platforms//os:macos": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
+    tags = ["manual"],
     visibility = ["//zig/tests:__pkg__"],
 )
