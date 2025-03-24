@@ -159,6 +159,7 @@ def _make_attrs(*, executable):
 
 _FORWARD_PROVIDERS = [
     CcInfo,
+    OutputGroupInfo,
 ]
 
 def _make_zig_configure_rule(*, executable, test):

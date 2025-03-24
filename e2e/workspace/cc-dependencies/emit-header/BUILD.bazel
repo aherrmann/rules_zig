@@ -1,0 +1,79 @@
+load("@aspect_bazel_lib//lib:testing.bzl", "assert_outputs")
+load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library", "zig_shared_library")
+
+zig_library(
+    name = "static",
+    cdeps = ["@rules_zig//zig/lib:libc"],
+    generate_header = True,
+    main = "lib.zig",
+    tags = ["manual"],
+    target_compatible_with = select({
+        # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+zig_shared_library(
+    name = "shared",
+    cdeps = ["@rules_zig//zig/lib:libc"],
+    generate_header = True,
+    main = "lib.zig",
+    tags = ["manual"],
+    target_compatible_with = select({
+        # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+)
+
+zig_configure(
+    name = "static-small",
+    actual = ":static",
+    mode = "release_small",
+)
+
+zig_configure(
+    name = "shared-small",
+    actual = ":shared",
+    mode = "release_small",
+)
+
+filegroup(
+    name = "static_header",
+    srcs = [":static-small"],
+    output_group = "header",
+)
+
+filegroup(
+    name = "shared_header",
+    srcs = [":shared-small"],
+    output_group = "header",
+)
+
+assert_outputs(
+    name = "static_header_test",
+    actual = ":static_header",
+    expected = ["cc-dependencies/emit-header/static.h"],
+)
+
+assert_outputs(
+    name = "shared_header_test",
+    actual = ":shared_header",
+    expected = ["cc-dependencies/emit-header/shared.h"],
+)
+
+cc_test(
+    name = "static_include_test",
+    size = "small",
+    srcs = ["test_static.c"],
+    deps = [":static-small"],
+)
+
+cc_test(
+    name = "shared_include_test",
+    size = "small",
+    srcs = ["test_shared.c"],
+    deps = [":shared-small"],
+)

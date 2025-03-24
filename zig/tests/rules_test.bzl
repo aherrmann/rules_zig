@@ -47,6 +47,7 @@ def _simple_library_test_impl(ctx):
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
     cc = target[CcInfo]
+    output_groups = target[OutputGroupInfo]
 
     linker_inputs = cc.linking_context.linker_inputs.to_list()
     asserts.equals(env, 1, len(linker_inputs), "zig_library should generate one linker input.")
@@ -55,6 +56,21 @@ def _simple_library_test_impl(ctx):
     static = libraries[0].static_library
     asserts.true(env, static != None, "zig_library should produce a static library.")
     asserts.true(env, sets.contains(sets.make(default.files.to_list()), static), "zig_library should return the static library as an output.")
+
+    compilation_context = cc.compilation_context
+    headers = compilation_context.headers.to_list()
+    asserts.equals(
+        env,
+        0,
+        len(headers),
+        "zig_library should not generate a header by default.",
+    )
+
+    asserts.false(
+        env,
+        hasattr(output_groups, "header"),
+        "zig_library should not generate a header by default.",
+    )
 
     build = [
         action
@@ -73,6 +89,50 @@ def _test_simple_library(name):
     _simple_library_test(
         name = name,
         target_under_test = "//zig/tests/simple-library:library",
+        size = "small",
+    )
+    return [":" + name]
+
+def _simple_library_header_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    cc = target[CcInfo]
+    output_groups = target[OutputGroupInfo]
+
+    compilation_context = cc.compilation_context
+    headers = compilation_context.direct_headers
+    asserts.equals(
+        env,
+        1,
+        len(headers),
+        "zig_library should generate a header when requested.",
+    )
+
+    asserts.true(
+        env,
+        hasattr(output_groups, "header"),
+        "zig_library should generate a header when requested.",
+    )
+
+    [header] = headers
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildLib"
+    ]
+    asserts.equals(env, 1, len(build), "zig_library should generate one ZigBuildLib action.")
+    build = build[0]
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_library should generate a ZigBuildLib action that generates the header.")
+
+    return analysistest.end(env)
+
+_simple_library_header_test = analysistest.make(_simple_library_header_test_impl)
+
+def _test_simple_library_header(name):
+    _simple_library_header_test(
+        name = name,
+        target_under_test = "//zig/tests/simple-library:library-header",
         size = "small",
     )
     return [":" + name]
@@ -124,6 +184,7 @@ def _simple_shared_library_test_impl(ctx):
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
     cc = target[CcInfo]
+    output_groups = target[OutputGroupInfo]
 
     linker_inputs = cc.linking_context.linker_inputs.to_list()
     asserts.equals(env, 1, len(linker_inputs), "zig_shared_library should generate one linker input.")
@@ -132,6 +193,21 @@ def _simple_shared_library_test_impl(ctx):
     dynamic = libraries[0].resolved_symlink_dynamic_library
     asserts.true(env, dynamic != None, "zig_shared_library should produce a dynamic library.")
     asserts.true(env, sets.contains(sets.make(default.files.to_list()), dynamic), "zig_shared_library should return the dynamic library as an output.")
+
+    compilation_context = cc.compilation_context
+    headers = compilation_context.headers.to_list()
+    asserts.equals(
+        env,
+        0,
+        len(headers),
+        "zig_shared_library should not generate a header by default.",
+    )
+
+    asserts.false(
+        env,
+        hasattr(output_groups, "header"),
+        "zig_shared_library should not generate a header by default.",
+    )
 
     build = [
         action
@@ -150,6 +226,50 @@ def _test_simple_shared_library(name):
     _simple_shared_library_test(
         name = name,
         target_under_test = "//zig/tests/simple-shared-library:shared",
+        size = "small",
+    )
+    return [":" + name]
+
+def _simple_shared_library_header_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    cc = target[CcInfo]
+    output_groups = target[OutputGroupInfo]
+
+    compilation_context = cc.compilation_context
+    headers = compilation_context.direct_headers
+    asserts.equals(
+        env,
+        1,
+        len(headers),
+        "zig_shared_library should generate a header when requested.",
+    )
+
+    asserts.true(
+        env,
+        hasattr(output_groups, "header"),
+        "zig_shared_library should generate a header when requested.",
+    )
+
+    [header] = headers
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildSharedLib"
+    ]
+    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildLib action.")
+    build = build[0]
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_shared_library should generate a ZigBuildLib action that generates the header.")
+
+    return analysistest.end(env)
+
+_simple_shared_library_header_test = analysistest.make(_simple_shared_library_header_test_impl)
+
+def _test_simple_shared_library_header(name):
+    _simple_shared_library_header_test(
+        name = name,
+        target_under_test = "//zig/tests/simple-shared-library:shared-header",
         size = "small",
     )
     return [":" + name]
@@ -419,8 +539,10 @@ def rules_test_suite(name):
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
     tests += _test_simple_library(name = "simple_library_test")
+    tests += _test_simple_library_header(name = "simple_library_header_test")
     tests += _test_transitive_library(name = "transitive_library_test")
     tests += _test_simple_shared_library(name = "simple_shared_library_test")
+    tests += _test_simple_shared_library_header(name = "simple_shared_library_header_test")
     tests += _test_transitive_shared_library(name = "transitive_shared_library_test")
     tests += _test_multiple_sources_binary(name = "multiple_sources_binary_test")
     tests += _test_module_binary(name = "module_binary_test")
