@@ -60,7 +60,7 @@ runs:
           bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.bzlmodEnabled }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
 
     - name: Configure remote cache and execution
-      if: inputs.remoteEnabled
+      if: ${{ inputs.remoteEnabled == 'true' }}
       working-directory: ${{ inputs.folder }}
       shell: bash
       env:
