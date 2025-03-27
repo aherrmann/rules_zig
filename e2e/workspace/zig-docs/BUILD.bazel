@@ -7,7 +7,6 @@ load(
     "zig_binary",
     "zig_configure_test",
     "zig_library",
-    "zig_module",
     "zig_shared_library",
     "zig_test",
 )
@@ -21,11 +20,6 @@ selects.config_setting_group(
     ],
 )
 
-zig_module(
-    name = "hello_world",
-    main = "hello_world.zig",
-)
-
 zig_binary(
     name = "binary",
     extra_docs = ["guide.md"],
@@ -34,7 +28,6 @@ zig_binary(
         ":macos-zig-0.12.0": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    deps = [":hello_world"],
 )
 
 zig_library(
@@ -45,7 +38,6 @@ zig_library(
         ":macos-zig-0.12.0": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    deps = [":hello_world"],
 )
 
 zig_shared_library(
@@ -56,7 +48,6 @@ zig_shared_library(
         ":macos-zig-0.12.0": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    deps = [":hello_world"],
 )
 
 zig_test(
@@ -68,7 +59,6 @@ zig_test(
         ":macos-zig-0.12.0": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    deps = [":hello_world"],
 )
 
 filegroup(
