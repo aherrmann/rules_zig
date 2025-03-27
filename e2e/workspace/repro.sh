@@ -15,6 +15,7 @@ zig_docs() {
     test) FLAGS=(test --test-no-exec);;
   esac
   mkdir -p "$WD"
+  cp zig-docs/main.zig "$WD/main.zig"
   (
     cd "$WD"
     mkdir out.docs
@@ -25,7 +26,7 @@ zig_docs() {
       --zig-lib-dir "$BASE/external/rules_zig++zig+zig_${VERSION}_x86_64-linux/lib" \
       --cache-dir "/tmp/zig-cache" \
       --global-cache-dir "/tmp/zig-cache" \
-      -Mtest="../../zig-docs/main.zig"
+      -Mtest="main.zig"
   )
   rm -rf $WD
 }
