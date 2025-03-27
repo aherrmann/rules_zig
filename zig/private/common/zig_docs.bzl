@@ -10,10 +10,6 @@ load(
     "zig_module_dependencies",
     "zig_module_specifications",
 )
-load(
-    "//zig/private/providers:zig_target_info.bzl",
-    "zig_target_platform",
-)
 
 ATTRS = {
     "extra_docs": attr.label_list(
@@ -114,11 +110,6 @@ def zig_docs_impl(ctx, *, kind):
         inputs = transitive_inputs,
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
-    )
-
-    zig_target_platform(
-        target = zigtargetinfo,
-        args = args,
     )
 
     inputs = depset(
