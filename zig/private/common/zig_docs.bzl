@@ -11,11 +11,6 @@ load(
     "zig_module_specifications",
 )
 load(
-    "//zig/private/providers:zig_settings_info.bzl",
-    "ZigSettingsInfo",
-    "zig_settings",
-)
-load(
     "//zig/private/providers:zig_target_info.bzl",
     "zig_target_platform",
 )
@@ -119,11 +114,6 @@ def zig_docs_impl(ctx, *, kind):
         inputs = transitive_inputs,
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
-    )
-
-    zig_settings(
-        settings = ctx.attr._settings[ZigSettingsInfo],
-        args = args,
     )
 
     zig_target_platform(
