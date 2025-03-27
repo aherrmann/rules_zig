@@ -21,16 +21,7 @@ zig_docs() {
     --zig-lib-dir "$BASE/external/rules_zig++zig+zig_${VERSION}_x86_64-linux/lib" \
     --cache-dir "/tmp/zig-cache" \
     --global-cache-dir "/tmp/zig-cache" \
-    --dep hello_world --dep \
-    bazel_builtin=bazel_builtin_A_S_Szig-docs_Ctest \
-    -Mtest=zig-docs/main.zig \
-    -Mbazel_builtin_A_S_Szig-docs_Chello_world="bazel-out/k8-fastbuild/bin/zig-docs/bazel_builtin_A_S_Szig-docs_Chello_world.zig" \
-    --dep bazel_builtin=bazel_builtin_A_S_Szig-docs_Chello_world \
-    -Mhello_world="zig-docs/hello_world.zig" \
-    -Mbazel_builtin_A_S_Szig-docs_Ctest="bazel-out/k8-fastbuild/bin/zig-docs/bazel_builtin_A_S_Szig-docs_Ctest.zig" \
-    -O Debug \
-    -fno-single-threaded \
-    -target x86_64-linux-gnu.2.17
+    -Mtest=zig-docs/main.zig
 }
 
 rm -rf /tmp/zig-cache
