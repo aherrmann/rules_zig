@@ -2,7 +2,6 @@
 
 load(
     "//zig/private/common:bazel_builtin.bzl",
-    "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
@@ -89,13 +88,11 @@ def _zig_module_impl(ctx):
         ),
     )
 
-    bazel_builtin = bazel_builtin_module(ctx)
-
     modules = [
         dep[ZigModuleInfo]
         for dep in ctx.attr.deps
         if ZigModuleInfo in dep
-    ] + [bazel_builtin]
+    ]
 
     module = zig_module_info(
         name = ctx.label.name,

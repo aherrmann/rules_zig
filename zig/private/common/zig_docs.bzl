@@ -1,9 +1,5 @@
 """Zig documentation generation."""
 
-load(
-    "//zig/private/common:bazel_builtin.bzl",
-    "bazel_builtin_module",
-)
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
@@ -106,11 +102,8 @@ def zig_docs_impl(ctx, *, kind):
     direct_inputs.extend(ctx.files.extra_srcs)
     direct_inputs.extend(ctx.files.extra_docs)
 
-    bazel_builtin = bazel_builtin_module(ctx)
-
     zig_module_dependencies(
         deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
     )
@@ -123,7 +116,6 @@ def zig_docs_impl(ctx, *, kind):
 
     zig_module_specifications(
         deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
         inputs = transitive_inputs,
         args = args,
         zig_version = zigtoolchaininfo.zig_version,

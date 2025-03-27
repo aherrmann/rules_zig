@@ -10,7 +10,6 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//zig/private/common:bazel_builtin.bzl",
-    "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
@@ -356,11 +355,11 @@ def zig_build_impl(ctx, *, kind):
     direct_inputs.extend(ctx.files.srcs)
     direct_inputs.extend(ctx.files.extra_srcs)
 
-    bazel_builtin = bazel_builtin_module(ctx)
+    #bazel_builtin = bazel_builtin_module(ctx)
 
     zig_module_dependencies(
         deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
+        #extra_deps = [bazel_builtin],
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
     )
@@ -383,7 +382,7 @@ def zig_build_impl(ctx, *, kind):
 
     zig_module_specifications(
         deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
+        #extra_deps = [bazel_builtin],
         inputs = transitive_inputs,
         args = args,
         zig_version = zigtoolchaininfo.zig_version,
