@@ -8,7 +8,7 @@ zig_docs() {
   IDX="$1"
   VERSION="$2"
   KIND="$3"
-  WD="repro-wd/$IDX-$VERSION"
+  WD="repro-wd/$IDX-$VERSION-$KIND"
   case $KIND in
     binary) FLAGS=(build-exe);;
     library) FLAGS=(build-lib);;
@@ -17,6 +17,7 @@ zig_docs() {
   mkdir -p "$WD"
   (
     cd "$WD"
+    mkdir out.docs
     "$BASE/external/rules_zig++zig+zig_${VERSION}_x86_64-linux/zig" "${FLAGS[@]}" \
       -femit-docs="out.docs" \
       -fno-emit-bin \
@@ -30,7 +31,7 @@ zig_docs() {
 }
 
 rm -rf /tmp/zig-cache repro-wd
-for i in `seq 10`; do
+for i in `seq 50`; do
   for kind in binary library test; do
     zig_docs $i 0.14.0 $kind &
     zig_docs $i 0.13.0 $kind &
