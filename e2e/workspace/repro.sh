@@ -24,7 +24,7 @@ zig_docs() {
     -Mtest=zig-docs/main.zig
 }
 
-rm -rf /tmp/zig-cache
+rm -rf /tmp/zig-cache repro-out
 for i in `seq 10`; do
   for kind in binary library test; do
     zig_docs $i 0.14.0 $kind &
