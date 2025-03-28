@@ -34,7 +34,7 @@ zig_docs() {
 }
 
 rm -rf /tmp/zig-cache repro-wd
-for i in `seq 50`; do
+for i in `seq 10`; do
   for kind in binary library test; do
     zig_docs $i 0.14.0 $kind &
     zig_docs $i 0.13.0 $kind &
