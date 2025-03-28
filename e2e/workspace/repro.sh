@@ -21,17 +21,21 @@ zig_docs() {
       library) FLAGS=(build-lib);;
       test) FLAGS=(test --test-no-exec);;
     esac
-    "external/rules_zig++zig+zig_${VERSION}_x86_64-linux/zig" "${FLAGS[@]}" \
-      -femit-docs="$OUT/main.docs" \
-      -fno-emit-bin \
-      -fno-emit-implib \
-      --zig-lib-dir "external/rules_zig++zig+zig_${VERSION}_x86_64-linux/lib" \
-      --cache-dir "/tmp/zig-cache" \
-      --global-cache-dir "/tmp/zig-cache" \
-      -Mtest="main.zig"
+    "/home/aj/.cache/bazel/_bazel_aj/install/7e4ce7b0d69e79cb6bd84c7f9dfefe6b/process-wrapper" \
+      "external/rules_zig++zig+zig_${VERSION}_x86_64-linux/zig" "${FLAGS[@]}" \
+        -femit-docs="$OUT/main.docs" \
+        -fno-emit-bin \
+        -fno-emit-implib \
+        --zig-lib-dir "external/rules_zig++zig+zig_${VERSION}_x86_64-linux/lib" \
+        --cache-dir "/tmp/zig-cache" \
+        --global-cache-dir "/tmp/zig-cache" \
+        -Mtest="main.zig"
   )
   #rm -rf $WD
 }
+
+#rm -rf /tmp/zig-cache repro-wd
+#zig_docs 0 0.14.0 binary
 
 rm -rf /tmp/zig-cache repro-wd
 for i in `seq 10`; do
