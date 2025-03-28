@@ -8,27 +8,29 @@ zig_docs() {
   IDX="$1"
   VERSION="$2"
   KIND="$3"
-  WD="repro-wd/$IDX-$VERSION-$KIND"
-  case $KIND in
-    binary) FLAGS=(build-exe);;
-    library) FLAGS=(build-lib);;
-    test) FLAGS=(test --test-no-exec);;
-  esac
-  mkdir -p "$WD"
-  cp zig-docs/main.zig "$WD/main.zig"
+  WD="repro-wd/$IDX-$VERSION-$KIND/_main"
+  OUT="out"
+  mkdir -p "$WD/$OUT"
+  ln -sr "$SCRIPT_DIR/zig-docs/main.zig" "$WD/main.zig"
+  mkdir -p "$WD/external"
+  ln -s "$BASE/external/rules_zig++zig+zig_${VERSION}_x86_64-linux" "$WD/external/rules_zig++zig+zig_${VERSION}_x86_64-linux"
   (
     cd "$WD"
-    mkdir out.docs
-    "$BASE/external/rules_zig++zig+zig_${VERSION}_x86_64-linux/zig" "${FLAGS[@]}" \
-      -femit-docs="out.docs" \
+    case $KIND in
+      binary) FLAGS=(build-exe);;
+      library) FLAGS=(build-lib);;
+      test) FLAGS=(test --test-no-exec);;
+    esac
+    "external/rules_zig++zig+zig_${VERSION}_x86_64-linux/zig" "${FLAGS[@]}" \
+      -femit-docs="$OUT/main.docs" \
       -fno-emit-bin \
       -fno-emit-implib \
-      --zig-lib-dir "$BASE/external/rules_zig++zig+zig_${VERSION}_x86_64-linux/lib" \
+      --zig-lib-dir "external/rules_zig++zig+zig_${VERSION}_x86_64-linux/lib" \
       --cache-dir "/tmp/zig-cache" \
       --global-cache-dir "/tmp/zig-cache" \
       -Mtest="main.zig"
   )
-  rm -rf $WD
+  #rm -rf $WD
 }
 
 rm -rf /tmp/zig-cache repro-wd
