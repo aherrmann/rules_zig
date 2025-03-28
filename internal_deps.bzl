@@ -73,10 +73,10 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "buildifier_prebuilt",
-        sha256 = "5dbf72e4f93917edfb91f53958d6289736adb845b2b89dbfb9bfc199a492030c",
-        strip_prefix = "buildifier-prebuilt-8.0.1",
+        sha256 = "bf9101bd5d657046674167986a18d44c5612e417194dc55aff8ca174344de031",
+        strip_prefix = "buildifier-prebuilt-8.0.3",
         urls = [
-            "http://github.com/keith/buildifier-prebuilt/archive/8.0.1.tar.gz",
+            "http://github.com/keith/buildifier-prebuilt/archive/8.0.3.tar.gz",
         ],
     )
 
