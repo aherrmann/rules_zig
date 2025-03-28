@@ -1,5 +1,3 @@
-//!zig-autodoc-guide: guide.md
-
 const std = @import("std");
 
 /// Prints "Hello World!".
