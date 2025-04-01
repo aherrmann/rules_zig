@@ -48,6 +48,7 @@ zig_test(
 
 build_test(
     name = "runfiles-docs-build-test",
+    tags = ["zig-docs"],
     targets = ["@rules_zig//zig/runfiles:docs"],
 )
 
