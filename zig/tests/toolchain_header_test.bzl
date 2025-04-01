@@ -7,6 +7,7 @@ load(
     "asserts",
     "unittest",
 )
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private:zig_toolchain_header.bzl", "max_int_alignment")
 load(":util.bzl", "canonical_label")
 

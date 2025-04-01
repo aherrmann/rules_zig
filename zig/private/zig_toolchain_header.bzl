@@ -1,5 +1,8 @@
 """Implementation of the zig_toolchain_header rule."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 DOC = """\
 Expose the Zig header file `zig.h` required by generated C headers.
 

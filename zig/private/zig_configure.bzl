@@ -1,6 +1,7 @@
 """Implementation of the zig_configure rule."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private:settings.bzl", "MODE_VALUES", "THREADED_VALUES")
 
 DOC = """\
