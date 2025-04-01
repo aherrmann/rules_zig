@@ -1,6 +1,8 @@
 """Handle C library dependencies."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 def zig_cdeps(*, cdeps, solib_parents, os, direct_inputs, transitive_inputs, args, data):
     """Handle C library dependencies.

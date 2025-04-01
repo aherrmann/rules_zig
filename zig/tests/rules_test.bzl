@@ -4,6 +4,7 @@ See https://bazel.build/rules/testing#testing-rules
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     ":util.bzl",
     "assert_find_unique_surrounded_arguments",

@@ -6,6 +6,8 @@ load(
     "find_cpp_toolchain",
     "use_cpp_toolchain",
 )
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",

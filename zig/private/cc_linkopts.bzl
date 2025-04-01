@@ -1,5 +1,8 @@
 """Implementation of the cc_linkopts rule."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 DOC = """\
 Configure C linker flags for targets that depend on this rule.
 
