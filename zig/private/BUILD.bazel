@@ -104,8 +104,7 @@ bzl_library(
     srcs = ["cc_linkopts.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
-        "@rules_cc//cc/common:cc_common",
-        "@rules_cc//cc/common:cc_info",
+        "@rules_cc//cc/common",
     ],
 )
 
@@ -114,8 +113,7 @@ bzl_library(
     srcs = ["zig_toolchain_header.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
-        "@rules_cc//cc/common:cc_common",
-        "@rules_cc//cc/common:cc_info",
+        "@rules_cc//cc/common",
     ],
 )
 
