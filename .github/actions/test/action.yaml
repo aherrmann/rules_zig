@@ -79,6 +79,28 @@ runs:
         build:linux --config=remote
         EOF
 
+    - name: Enable Linux sandbox
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        cat <<EOF >apparmor-config
+        # This profile allows user-namespaces for the linux-sandbox of a
+        # Bazelisk managed Bazel installation.
+        # See https://github.com/bazelbuild/bazel/issues/24081
+
+        abi <abi/4.0>,
+        include <tunables/global>
+
+        profile linux-sandbox /home/*/.cache/bazel/_bazel_*/install/*/linux-sandbox flags=(unconfined) {
+          userns,
+
+          # Site-specific additions and overrides. See local/README for details.
+          include if exists <local/linux-sandbox>
+        }
+        EOF
+        sudo mv apparmor-config /etc/apparmor.d/linux-sandbox-bazelisk
+        sudo apparmor_parser -r /etc/apparmor.d/linux-sandbox-bazelisk
+
     - name: Configure Bazel version
       working-directory: ${{ inputs.folder }}
       shell: bash
