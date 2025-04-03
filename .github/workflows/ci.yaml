@@ -217,7 +217,7 @@ jobs:
           # Disable remote execution and avoid concurrency to work around
           # https://github.com/aherrmann/rules_zig/issues/273
           remoteEnabled: false
-          bazelFlags: "--jobs=1"
+          bazelFlags: "--jobs=1 --local_cpu_resources=1"
           buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
 
   #integration-tests:
