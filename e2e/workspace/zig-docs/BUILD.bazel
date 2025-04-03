@@ -14,10 +14,13 @@ load(
 load("@rules_zig//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 selects.config_setting_group(
-    name = "macos-zig-0.12.0",
-    match_all = [
-        "@platforms//os:macos",
+    name = "skip_old_zig_versions",
+    match_any = [
+        # Flaky with older versions see
+        # https://github.com/aherrmann/rules_zig/issues/273
+        "@zig_toolchains//:0.11.0",
         "@zig_toolchains//:0.12.0",
+        "@zig_toolchains//:0.12.1",
     ],
 )
 
@@ -31,7 +34,7 @@ zig_binary(
     extra_docs = ["guide.md"],
     main = "main.zig",
     target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [":hello_world"],
@@ -42,7 +45,7 @@ zig_library(
     extra_docs = ["guide.md"],
     main = "main.zig",
     target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [":hello_world"],
@@ -53,7 +56,7 @@ zig_shared_library(
     extra_docs = ["guide.md"],
     main = "main.zig",
     target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [":hello_world"],
@@ -65,7 +68,7 @@ zig_test(
     extra_docs = ["guide.md"],
     main = "main.zig",
     target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [":hello_world"],
