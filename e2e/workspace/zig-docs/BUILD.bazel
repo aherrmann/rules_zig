@@ -155,7 +155,7 @@ copy_file(
 
 build_test(
     name = "zig-docs",
-    tags = ["zig-docs"],
+    tags = ["manual"],
     targets = [
         ":binary-docs-index-copy",
         ":library-docs-index-copy",

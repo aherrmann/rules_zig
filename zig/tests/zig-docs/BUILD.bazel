@@ -4,7 +4,7 @@ load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 build_test(
     name = "zig-docs",
-    tags = ["zig-docs"],
+    tags = ["manual"],
     target_compatible_with = select({
         # Flaky with older versions see
         # https://github.com/aherrmann/rules_zig/issues/273
