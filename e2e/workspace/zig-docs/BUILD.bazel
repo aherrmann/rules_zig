@@ -33,10 +33,6 @@ zig_binary(
     name = "binary",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":skip_old_zig_versions": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -44,10 +40,6 @@ zig_library(
     name = "library",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":skip_old_zig_versions": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -55,10 +47,6 @@ zig_shared_library(
     name = "shared-library",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":skip_old_zig_versions": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -67,10 +55,6 @@ zig_test(
     size = "small",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":skip_old_zig_versions": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -79,6 +63,10 @@ filegroup(
     srcs = [":binary"],
     output_group = "zig_docs",
     tags = ["zig-docs"],
+    target_compatible_with = select({
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 filegroup(
@@ -86,6 +74,10 @@ filegroup(
     srcs = [":library"],
     output_group = "zig_docs",
     tags = ["zig-docs"],
+    target_compatible_with = select({
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 filegroup(
@@ -93,6 +85,10 @@ filegroup(
     srcs = [":shared-library"],
     output_group = "zig_docs",
     tags = ["zig-docs"],
+    target_compatible_with = select({
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 filegroup(
@@ -101,6 +97,10 @@ filegroup(
     srcs = [":test"],
     output_group = "zig_docs",
     tags = ["zig-docs"],
+    target_compatible_with = select({
+        ":skip_old_zig_versions": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
 )
 
 copy_file(
