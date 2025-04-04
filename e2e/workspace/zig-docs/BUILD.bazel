@@ -16,8 +16,9 @@ load("@rules_zig//zig/private:versions.bzl", "TOOL_VERSIONS")
 selects.config_setting_group(
     name = "skip_old_zig_versions",
     match_any = [
-        # Flaky with older versions see
+        # Flaky with older versions and on MacOS, see
         # https://github.com/aherrmann/rules_zig/issues/273
+        "@platforms//os:macos",
         "@zig_toolchains//:0.11.0",
         "@zig_toolchains//:0.12.0",
         "@zig_toolchains//:0.12.1",

@@ -50,8 +50,9 @@ build_test(
     name = "runfiles-docs-build-test",
     tags = ["zig-docs"],
     target_compatible_with = select({
-        # Flaky with older versions see
+        # Flaky with older versions and on MacOS, see
         # https://github.com/aherrmann/rules_zig/issues/273
+        "@platforms//os:macos": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.11.0": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.12.0": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.12.1": ["@platforms//:incompatible"],
