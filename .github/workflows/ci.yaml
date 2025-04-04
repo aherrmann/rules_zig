@@ -25,6 +25,98 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  repro:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine OS and architecture
+        id: system-info
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            echo "os=linux" >> $GITHUB_OUTPUT
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "os=macos" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported OS: $RUNNER_OS"
+            exit 1
+          fi
+
+          ARCH=$(uname -m)
+          if [[ "$ARCH" == "x86_64" ]]; then
+            echo "arch=x86_64" >> $GITHUB_OUTPUT
+          elif [[ "$ARCH" == "arm64" || "$ARCH" == "aarch64" ]]; then
+            echo "arch=aarch64" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Setup Zig versions
+        id: setup-zig
+        run: |
+          ZIG_VERSIONS_DIR="${GITHUB_WORKSPACE}/zig-versions"
+          mkdir -p "${ZIG_VERSIONS_DIR}"
+          echo "ZIG_VERSIONS_DIR=${ZIG_VERSIONS_DIR}" >> $GITHUB_ENV
+
+          PLATFORM="${SYSTEM_ARCH}-${SYSTEM_OS}"
+          echo "Current platform: ${PLATFORM}"
+
+          VERSIONS_FILE="zig/private/versions.json"
+          VERSIONS=$(jq -r 'keys[]' "${VERSIONS_FILE}")
+          for VERSION in $VERSIONS; do
+            if jq -e ".\"${VERSION}\".\"${PLATFORM}\"" "${VERSIONS_FILE}" > /dev/null; then
+              echo "Processing Zig ${VERSION} for ${PLATFORM}..."
+
+              TARBALL=$(jq -r ".\"${VERSION}\".\"${PLATFORM}\".tarball" "${VERSIONS_FILE}")
+              SHASUM=$(jq -r ".\"${VERSION}\".\"${PLATFORM}\".shasum" "${VERSIONS_FILE}")
+
+              VERSION_DIR="${ZIG_VERSIONS_DIR}/${VERSION}"
+              mkdir -p "${VERSION_DIR}"
+
+              FILENAME=$(basename "${TARBALL}")
+              DOWNLOAD_PATH="${VERSION_DIR}/${FILENAME}"
+
+              echo "Downloading ${TARBALL} to ${DOWNLOAD_PATH}"
+              curl -L -o "${DOWNLOAD_PATH}" "${TARBALL}"
+
+              COMPUTED_SHA=$(shasum -a 256 "${DOWNLOAD_PATH}" | cut -d ' ' -f 1)
+              if [[ "${COMPUTED_SHA}" != "${SHASUM}" ]]; then
+                echo "Checksum mismatch for ${TARBALL}"
+                echo "Expected: ${SHASUM}"
+                echo "Got: ${COMPUTED_SHA}"
+                exit 1
+              fi
+
+              echo "Extracting ${DOWNLOAD_PATH} to ${VERSION_DIR}"
+              tar -xf "${DOWNLOAD_PATH}" -C "${VERSION_DIR}" --strip-components=1
+
+              rm "${DOWNLOAD_PATH}"
+
+              echo "Successfully installed Zig ${VERSION}"
+            else
+              echo "Skipping Zig ${VERSION}: not available for ${PLATFORM}"
+            fi
+          done
+
+          echo "All Zig versions installed successfully"
+        env:
+          SYSTEM_OS: ${{ steps.system-info.outputs.os }}
+          SYSTEM_ARCH: ${{ steps.system-info.outputs.arch }}
+        shell: bash
+
+      - name: Run repro script
+        run: |
+          echo ZIG_VERSIONS_DIR ${ZIG_VERSIONS_DIR}
+          tree -L 2 ${ZIG_VERSIONS_DIR}
+        shell: bash
+
   # matrix-prep-* steps generate JSON used to create a dynamic actions matrix.
   # Insanely complex for how simple this requirement is inspired from
   # https://stackoverflow.com/questions/65384420/how-to-make-a-github-action-matrix-element-conditional
