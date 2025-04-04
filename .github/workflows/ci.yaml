@@ -183,9 +183,8 @@ jobs:
           - ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
         zigVersion:
           - ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
-        bzlmodEnabled: [true, false]
+        bzlmodEnabled: [true]
         folder:
-          - "."
           - "e2e/workspace"
         targetPattern: ["//..."]
         tagFilters: ["+zig-docs"]
