@@ -55,7 +55,6 @@ build_test(
 test_suite(
     name = "runfiles-library",
     tests = [
-        ":runfiles-docs-build-test",
         ":test",
         "@runfiles_library_dependency//:test",
     ],
