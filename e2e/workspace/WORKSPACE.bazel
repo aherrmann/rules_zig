@@ -51,9 +51,9 @@ rules_java_toolchains()
 
 http_archive(
     name = "io_buildbuddy_buildbuddy_toolchain",
-    sha256 = "7ba81c80b1e6247bf108d35b0924383ab5fc15b1a7f13892ed7495a61335654f",
-    strip_prefix = "buildbuddy-toolchain-badf8034b2952ec613970a27f24fb140be7eaf73",
-    urls = ["https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/badf8034b2952ec613970a27f24fb140be7eaf73.tar.gz"],
+    sha256 = "62ab60d07205f98c4fc3735bb21630272490fce193c59c3bb2cb2b962176400c",
+    strip_prefix = "buildbuddy-toolchain-0c575cc56a0c5ed69a6dfb544a3f794b9d1b474d",
+    urls = ["https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/0c575cc56a0c5ed69a6dfb544a3f794b9d1b474d.tar.gz"],
 )
 
 load("@io_buildbuddy_buildbuddy_toolchain//:deps.bzl", "buildbuddy_deps")
