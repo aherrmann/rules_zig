@@ -9,8 +9,8 @@ zig_library(
     main = "lib.zig",
     tags = ["manual"],
     target_compatible_with = select({
-        # -femit-h was broken on Zig 0.14.0
-        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        # -femit-h was broken on Zig 0.14.1
+        "@zig_toolchains//:0.14.1": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
 )
@@ -22,8 +22,8 @@ zig_shared_library(
     main = "lib.zig",
     tags = ["manual"],
     target_compatible_with = select({
-        # -femit-h was broken on Zig 0.14.0
-        "@zig_toolchains//:0.14.0": ["@platforms//:incompatible"],
+        # -femit-h was broken on Zig 0.14.1
+        "@zig_toolchains//:0.14.1": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
 )

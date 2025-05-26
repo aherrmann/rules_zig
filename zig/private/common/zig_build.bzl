@@ -129,7 +129,7 @@ NOTE: The target may need to depend on `@rules_zig//zig/lib:libc`,
 otherwise the compiler may crash with a segmentation fault.
 See https://github.com/ziglang/zig/issues/18188.
 
-NOTE: Header generation has been disabled as of Zig 0.14.0.
+NOTE: Header generation has been disabled as of Zig 0.14.1.
 See https://github.com/ziglang/zig/issues/9698.
         """,
         mandatory = False,
