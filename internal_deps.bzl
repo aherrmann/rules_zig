@@ -102,7 +102,7 @@ def rules_zig_internal_deps():
     )
 
     http_archive(
-        name = "io_bazel_stardoc",
+        name = "stardoc",
         sha256 = "ca933f39f2a6e0ad392fa91fd662545afcbd36c05c62365538385d35a0323096",
         urls = ["https://github.com/bazelbuild/stardoc/releases/download/0.8.0/stardoc-0.8.0.tar.gz"],
     )

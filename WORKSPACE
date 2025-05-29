@@ -63,6 +63,12 @@ load("@buildifier_prebuilt//:defs.bzl", "buildifier_prebuilt_register_toolchains
 
 buildifier_prebuilt_register_toolchains()
 
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
+
+rules_shell_dependencies()
+
+rules_shell_toolchains()
+
 load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
 
 aspect_bazel_lib_dependencies()
@@ -73,12 +79,6 @@ aspect_bazel_lib_register_toolchains()
 load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
 
 bazel_integration_test_rules_dependencies()
-
-load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
-
-rules_shell_dependencies()
-
-rules_shell_toolchains()
 
 load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 
@@ -93,7 +93,7 @@ bazel_binaries(versions = [
 ])
 
 # Stardoc dependencies
-load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+load("@stardoc//:setup.bzl", "stardoc_repositories")
 
 stardoc_repositories()
 
@@ -105,7 +105,7 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
 
-load("@io_bazel_stardoc//:deps.bzl", "stardoc_external_deps")
+load("@stardoc//:deps.bzl", "stardoc_external_deps")
 
 stardoc_external_deps()
 
