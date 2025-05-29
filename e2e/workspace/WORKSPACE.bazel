@@ -95,6 +95,7 @@ zig_register_toolchains(
     name = "zig",
     zig_versions = [
         "0.14.1",
+        "0.14.0",
         "0.13.0",
         "0.12.1",
         "0.12.0",

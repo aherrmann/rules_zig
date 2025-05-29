@@ -27,7 +27,7 @@ def max_int_alignment(arch):
         "msp430": 2,
         "xcore": 4,
         "propeller": 4,
-        # removed in Zig 0.14.1
+        # removed in Zig 0.14.0
         "propeller1": 4,
         "propeller2": 4,
         #
