@@ -60,8 +60,8 @@ def rules_zig_internal_deps():
 
     http_archive(
         name = "bazel_gazelle",
-        sha256 = "7c40b746387cd0c9a4d5bb0b2035abd134b3f7511015710a5ee5e07591008dde",
-        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.43.0/bazel-gazelle-v0.43.0.tar.gz"],
+        sha256 = "49b14c691ceec841f445f8642d28336e99457d1db162092fd5082351ea302f1d",
+        urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.44.0/bazel-gazelle-v0.44.0.tar.gz"],
     )
 
     http_archive(
