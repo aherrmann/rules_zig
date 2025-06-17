@@ -26,7 +26,7 @@ def rules_zig_dependencies():
 
     _http_archive(
         name = "rules_cc",
-        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.1.1/rules_cc-0.1.1.tar.gz"],
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.1.2/rules_cc-0.1.1.tar.gz"],
         sha256 = "712d77868b3152dd618c4d64faaddefcc5965f90f5de6e6dd1d5ddcd0be82d42",
         strip_prefix = "rules_cc-0.1.1",
     )
