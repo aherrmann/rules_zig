@@ -119,7 +119,7 @@ def rules_zig_internal_deps():
     # https://github.com/bazel-contrib/rules_bazel_integration_test/issues/381
     http_archive(
         name = "rules_shell",
-        sha256 = "bc61ef94facc78e20a645726f64756e5e285a045037c7a61f65af2941f4c25e1",
-        strip_prefix = "rules_shell-0.4.1",
-        url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.4.1/rules_shell-v0.4.1.tar.gz",
+        sha256 = "fce2a7a974aa70e9367068122e19c39a6a27a5aca30698bcf9030beb529612b6",
+        strip_prefix = "rules_shell-0.6.0",
+        url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.6.0/rules_shell-v0.6.0.tar.gz",
     )
