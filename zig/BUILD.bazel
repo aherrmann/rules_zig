@@ -64,8 +64,11 @@ bzl_library(
     srcs = ["extensions.bzl"],
     visibility = ["//visibility:public"],
     deps = [
+        "//zig/private:platforms",
         "//zig/private/bzlmod:zig",
         "//zig/private/common:semver",
+        "//zig/private/repo:toolchains_repo",
+        "//zig/private/repo:zig_repository",
         "@bazel_skylib//lib:sets",
     ],
 )
