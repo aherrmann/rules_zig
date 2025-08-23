@@ -43,7 +43,7 @@ def _test_simple_binary(name):
     )
     return [":" + name]
 
-def _simple_library_test_impl(ctx):
+def _simple_static_library_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
@@ -51,12 +51,12 @@ def _simple_library_test_impl(ctx):
     output_groups = target[OutputGroupInfo]
 
     linker_inputs = cc.linking_context.linker_inputs.to_list()
-    asserts.equals(env, 1, len(linker_inputs), "zig_library should generate one linker input.")
+    asserts.equals(env, 1, len(linker_inputs), "zig_static_library should generate one linker input.")
     libraries = linker_inputs[0].libraries
-    asserts.equals(env, 1, len(libraries), "zig_library should generate one library.")
+    asserts.equals(env, 1, len(libraries), "zig_static_library should generate one library.")
     static = libraries[0].static_library
-    asserts.true(env, static != None, "zig_library should produce a static library.")
-    asserts.true(env, sets.contains(sets.make(default.files.to_list()), static), "zig_library should return the static library as an output.")
+    asserts.true(env, static != None, "zig_static_library should produce a static library.")
+    asserts.true(env, sets.contains(sets.make(default.files.to_list()), static), "zig_static_library should return the static library as an output.")
 
     compilation_context = cc.compilation_context
     headers = compilation_context.headers.to_list()
@@ -64,37 +64,37 @@ def _simple_library_test_impl(ctx):
         env,
         0,
         len(headers),
-        "zig_library should not generate a header by default.",
+        "zig_static_library should not generate a header by default.",
     )
 
     asserts.false(
         env,
         hasattr(output_groups, "header"),
-        "zig_library should not generate a header by default.",
+        "zig_static_library should not generate a header by default.",
     )
 
     build = [
         action
         for action in analysistest.target_actions(env)
-        if action.mnemonic == "ZigBuildLib"
+        if action.mnemonic == "ZigBuildStaticLib"
     ]
-    asserts.equals(env, 1, len(build), "zig_library should generate one ZigBuildLib action.")
+    asserts.equals(env, 1, len(build), "zig_static_library should generate one ZigBuildStaticLib action.")
     build = build[0]
-    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), static), "zig_library should generate a ZigBuildLib action that generates the static library.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), static), "zig_static_library should generate a ZigBuildStaticLib action that generates the static library.")
 
     return analysistest.end(env)
 
-_simple_library_test = analysistest.make(_simple_library_test_impl)
+_simple_static_library_test = analysistest.make(_simple_static_library_test_impl)
 
-def _test_simple_library(name):
-    _simple_library_test(
+def _test_simple_static_library(name):
+    _simple_static_library_test(
         name = name,
         target_under_test = "//zig/tests/simple-library:library",
         size = "small",
     )
     return [":" + name]
 
-def _simple_library_header_test_impl(ctx):
+def _simple_static_library_header_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     cc = target[CcInfo]
@@ -106,13 +106,13 @@ def _simple_library_header_test_impl(ctx):
         env,
         1,
         len(headers),
-        "zig_library should generate a header when requested.",
+        "zig_static_library should generate a header when requested.",
     )
 
     asserts.true(
         env,
         hasattr(output_groups, "header"),
-        "zig_library should generate a header when requested.",
+        "zig_static_library should generate a header when requested.",
     )
 
     [header] = headers
@@ -120,25 +120,25 @@ def _simple_library_header_test_impl(ctx):
     build = [
         action
         for action in analysistest.target_actions(env)
-        if action.mnemonic == "ZigBuildLib"
+        if action.mnemonic == "ZigBuildStaticLib"
     ]
-    asserts.equals(env, 1, len(build), "zig_library should generate one ZigBuildLib action.")
+    asserts.equals(env, 1, len(build), "zig_static_library should generate one ZigBuildStaticLib action.")
     build = build[0]
-    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_library should generate a ZigBuildLib action that generates the header.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_static_library should generate a ZigBuildStaticLib action that generates the header.")
 
     return analysistest.end(env)
 
-_simple_library_header_test = analysistest.make(_simple_library_header_test_impl)
+_simple_static_library_header_test = analysistest.make(_simple_static_library_header_test_impl)
 
-def _test_simple_library_header(name):
-    _simple_library_header_test(
+def _test_simple_static_library_header(name):
+    _simple_static_library_header_test(
         name = name,
         target_under_test = "//zig/tests/simple-library:library-header",
         size = "small",
     )
     return [":" + name]
 
-def _transitive_library_test_impl(ctx):
+def _transitive_static_library_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
@@ -146,33 +146,33 @@ def _transitive_library_test_impl(ctx):
     cc = target[CcInfo]
 
     linker_inputs = cc.linking_context.linker_inputs.to_list()
-    asserts.equals(env, 2, len(linker_inputs), "zig_library should generate two linker inputs.")
+    asserts.equals(env, 2, len(linker_inputs), "zig_static_library should generate two linker inputs.")
     libraries = [lib for input in linker_inputs for lib in input.libraries]
-    asserts.equals(env, 2, len(libraries), "zig_library should generate two libraries.")
+    asserts.equals(env, 2, len(libraries), "zig_static_library should generate two libraries.")
     statics = [lib.static_library for lib in libraries if lib.static_library != None]
-    asserts.equals(env, 2, len(statics), "zig_library should generate two static libraries.")
+    asserts.equals(env, 2, len(statics), "zig_static_library should generate two static libraries.")
     asserts.true(
         env,
         sets.length(sets.intersection(sets.make(default.files.to_list()), sets.make(statics))) != 0,
-        "zig_library should return the static library as an output.",
+        "zig_static_library should return the static library as an output.",
     )
     asserts.true(
         env,
         sets.length(sets.intersection(sets.make(indirect_default.files.to_list()), sets.make(statics))) != 0,
-        "zig_library should capture transitive static library dependencies.",
+        "zig_static_library should capture transitive static library dependencies.",
     )
 
     return analysistest.end(env)
 
-_transitive_library_test = analysistest.make(
-    _transitive_library_test_impl,
+_transitive_static_library_test = analysistest.make(
+    _transitive_static_library_test_impl,
     attrs = {
         "indirect": attr.label(mandatory = True),
     },
 )
 
-def _test_transitive_library(name):
-    _transitive_library_test(
+def _test_transitive_static_library(name):
+    _transitive_static_library_test(
         name = name,
         target_under_test = "//zig/tests/transitive-library:direct",
         indirect = "//zig/tests/transitive-library:indirect",
@@ -259,9 +259,9 @@ def _simple_shared_library_header_test_impl(ctx):
         for action in analysistest.target_actions(env)
         if action.mnemonic == "ZigBuildSharedLib"
     ]
-    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildLib action.")
+    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildSharedLib action.")
     build = build[0]
-    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_shared_library should generate a ZigBuildLib action that generates the header.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_shared_library should generate a ZigBuildStaticLib action that generates the header.")
 
     return analysistest.end(env)
 
@@ -475,7 +475,7 @@ def _compiler_runtime_test_impl(ctx):
     build = [
         action
         for action in analysistest.target_actions(env)
-        if action.mnemonic in ["ZigBuildExe", "ZigBuildTest", "ZigBuildLib", "ZigBuildSharedLib"]
+        if action.mnemonic in ["ZigBuildExe", "ZigBuildTest", "ZigBuildStaticLib", "ZigBuildSharedLib"]
     ]
     asserts.equals(env, 1, len(build), "Target should have one ZigBuild* action.")
     build = build[0]
@@ -539,9 +539,9 @@ def rules_test_suite(name):
     """
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
-    tests += _test_simple_library(name = "simple_library_test")
-    tests += _test_simple_library_header(name = "simple_library_header_test")
-    tests += _test_transitive_library(name = "transitive_library_test")
+    tests += _test_simple_static_library(name = "simple_static_library_test")
+    tests += _test_simple_static_library_header(name = "simple_static_library_header_test")
+    tests += _test_transitive_static_library(name = "transitive_static_library_test")
     tests += _test_simple_shared_library(name = "simple_shared_library_test")
     tests += _test_simple_shared_library_header(name = "simple_shared_library_header_test")
     tests += _test_transitive_shared_library(name = "transitive_shared_library_test")

@@ -34,7 +34,7 @@ zig_binary(
     main = "read_pe32_arch.zig",
 )
 
-# TODO[AH] Test target transition on zig_library.
+# TODO[AH] Test target transition on zig_static_library.
 #   Open question: how to extract the target platform from .a file?
 
 # ----------------------------------------------------------

@@ -6,12 +6,12 @@ load(
     "zig_configure",
     "zig_configure_binary",
     "zig_configure_test",
-    "zig_library",
+    "zig_static_library",
     "zig_test",
 )
 load(":defs.bzl", "run")
 
-zig_library(
+zig_static_library(
     name = "library",
     main = select({
         "@zig_toolchains//:any_0.13.": "library-0.13.0.zig",

@@ -37,7 +37,7 @@ def zig_docs_impl(ctx, *, kind):
 
     Args:
       ctx: Bazel rule context object.
-      kind: String; The kind of the rule, one of `zig_binary`, `zig_library`, `zig_shared_library`, `zig_test`.
+      kind: String; The kind of the rule, one of `zig_binary`, `zig_static_library`, `zig_shared_library`, `zig_test`.
 
     Returns:
       List of providers.
@@ -145,7 +145,7 @@ def zig_docs_impl(ctx, *, kind):
         command = ["build-exe"]
     elif kind == "zig_test":
         command = ["test", "--test-no-exec"]
-    elif kind == "zig_library":
+    elif kind == "zig_static_library":
         command = ["build-lib"]
     elif kind == "zig_shared_library":
         command = ["build-lib", "-dynamic"]

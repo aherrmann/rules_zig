@@ -52,8 +52,8 @@ def _define_build_threaded_test(mnemonic, threaded, flag_set, flag_not_set):
 _build_exe_threaded_single_test = _define_build_threaded_test("ZigBuildExe", "single", "-fsingle-threaded", "-fno-single-threaded")
 _build_exe_threaded_multi_test = _define_build_threaded_test("ZigBuildExe", "multi", "-fno-single-threaded", "-fsingle-threaded")
 
-_build_lib_threaded_single_test = _define_build_threaded_test("ZigBuildLib", "single", "-fsingle-threaded", "-fno-single-threaded")
-_build_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
+_build_static_lib_threaded_single_test = _define_build_threaded_test("ZigBuildStaticLib", "single", "-fsingle-threaded", "-fno-single-threaded")
+_build_static_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildStaticLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
 
 _build_shared_lib_threaded_single_test = _define_build_threaded_test("ZigBuildSharedLib", "single", "-fsingle-threaded", "-fno-single-threaded")
 _build_shared_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildSharedLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
@@ -71,8 +71,8 @@ def threaded_test_suite(name):
         partial.make(_build_exe_threaded_single_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
         partial.make(_build_exe_threaded_multi_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
         # Test Zig threaded setting on a library target
-        partial.make(_build_lib_threaded_single_test, target_under_test = "//zig/tests/simple-library:library", size = "small"),
-        partial.make(_build_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-library:library", size = "small"),
+        partial.make(_build_static_lib_threaded_single_test, target_under_test = "//zig/tests/simple-library:library", size = "small"),
+        partial.make(_build_static_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-library:library", size = "small"),
         # Test Zig threaded setting on a shared library target
         partial.make(_build_shared_lib_threaded_single_test, target_under_test = "//zig/tests/simple-shared-library:shared", size = "small"),
         partial.make(_build_shared_lib_threaded_multi_test, target_under_test = "//zig/tests/simple-shared-library:shared", size = "small"),

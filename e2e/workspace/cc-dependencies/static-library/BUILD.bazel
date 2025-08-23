@@ -1,7 +1,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_static_library")
 
-zig_library(
+zig_static_library(
     name = "add",
     main = "add.zig",
 )
@@ -26,7 +26,7 @@ cc_library(
     deps = [":add"],
 )
 
-zig_library(
+zig_static_library(
     name = "mul",
     cdeps = [":c-add"],
     main = "mul.zig",

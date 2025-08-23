@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_zig//zig:defs.bzl", "zig_library")
+load("@rules_zig//zig:defs.bzl", "zig_static_library")
 
-zig_library(
+zig_static_library(
     name = "library",
     main = "main.zig",
 )

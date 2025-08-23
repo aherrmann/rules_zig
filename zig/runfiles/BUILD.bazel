@@ -1,7 +1,7 @@
 load(
     "@rules_zig//zig:defs.bzl",
-    "zig_library",
     "zig_module",
+    "zig_static_library",
     "zig_test",
 )
 
@@ -31,7 +31,7 @@ zig_test(
 )
 
 # Only used for documentation generation.
-zig_library(
+zig_static_library(
     name = "lib",
     srcs = _SRCS,
     extra_docs = ["guide.md"],

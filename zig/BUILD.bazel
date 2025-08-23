@@ -42,9 +42,9 @@ bzl_library(
     deps = [
         "//zig/private:zig_binary",
         "//zig/private:zig_configure",
-        "//zig/private:zig_library",
         "//zig/private:zig_module",
         "//zig/private:zig_shared_library",
+        "//zig/private:zig_static_library",
         "//zig/private:zig_test",
     ],
 )

@@ -182,7 +182,7 @@ def zig_build_impl(ctx, *, kind):
 
     Args:
       ctx: Bazel rule context object.
-      kind: String; The kind of the rule, one of `zig_binary`, `zig_library`, `zig_shared_library`, `zig_test`.
+      kind: String; The kind of the rule, one of `zig_binary`, `zig_static_library`, `zig_shared_library`, `zig_test`.
 
     Returns:
       List of providers.
@@ -231,7 +231,7 @@ def zig_build_impl(ctx, *, kind):
             "/".join([".." for _ in ctx.label.package.split("/")]),
             paths.join(output.basename + ".runfiles", ctx.workspace_name),
         ]
-    elif kind == "zig_library":
+    elif kind == "zig_static_library":
         prefix = "" if zigtargetinfo.triple.os == "windows" else "lib"
         extension = ".lib" if zigtargetinfo.triple.os == "windows" else ".a"
         static = ctx.actions.declare_file(prefix + ctx.label.name + extension)
@@ -399,9 +399,9 @@ def zig_build_impl(ctx, *, kind):
         arguments = ["test", "--test-no-exec", args]
         mnemonic = "ZigBuildTest"
         progress_message = "Building %{input} as Zig test %{output}"
-    elif kind == "zig_library":
+    elif kind == "zig_static_library":
         arguments = ["build-lib", args]
-        mnemonic = "ZigBuildLib"
+        mnemonic = "ZigBuildStaticLib"
         progress_message = "Building %{input} as Zig library %{output}"
     elif kind == "zig_shared_library":
         arguments = ["build-lib", "-dynamic", args]
