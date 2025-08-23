@@ -82,17 +82,6 @@ def _render_dep(dep):
 
     return dep_spec
 
-def _render_args_0_11(args):
-    deps = [_render_dep(dep) for dep in args.deps]
-
-    spec = "{name}:{deps}:{main}".format(
-        name = args.name,
-        main = args.main,
-        deps = ",".join(deps),
-    )
-
-    return ["--mod", spec]
-
 def _render_args(args):
     rendered = []
 
@@ -127,10 +116,7 @@ def zig_module_dependencies(*, zig_version, deps, extra_deps = [], args):
     for module in modules:
         deps_args.append(_render_dep(module))
 
-    if zig_version.startswith("0.11."):
-        args.add_joined("--deps", deps_args, join_with = ",")
-    else:
-        args.add_all(deps_args, before_each = "--dep")
+    args.add_all(deps_args, before_each = "--dep")
 
 def zig_module_specifications(*, zig_version, deps, extra_deps = [], inputs, args):
     """Collect inputs and flags to build Zig modules.
@@ -142,6 +128,7 @@ def zig_module_specifications(*, zig_version, deps, extra_deps = [], inputs, arg
       inputs: List of depset of File; mutable, Append the needed inputs to this list.
       args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
+    _ = zig_version  # @unused
     transitive_args = []
 
     modules = [
@@ -155,7 +142,5 @@ def zig_module_specifications(*, zig_version, deps, extra_deps = [], inputs, arg
         inputs.append(module.transitive_inputs)
 
     render_args = _render_args
-    if zig_version.startswith("0.11."):
-        render_args = _render_args_0_11
 
     args.add_all(depset(transitive = transitive_args), map_each = render_args)

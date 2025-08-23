@@ -115,11 +115,7 @@ def zig_docs_impl(ctx, *, kind):
         zig_version = zigtoolchaininfo.zig_version,
     )
 
-    if zigtoolchaininfo.zig_version.startswith("0.11."):
-        args.add_all(["--main-pkg-path", "."])
-        args.add(ctx.file.main)
-    else:
-        args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
+    args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
 
     zig_module_specifications(
         deps = ctx.attr.deps,
