@@ -87,8 +87,8 @@ and the corresponding Bazel execution platform constraints
 can be declared using the builtin `toolchain` rule.
 
 You will rarely need to invoke this rule directly.
-Instead, use `zig_register_toolchains`
-provided by `@rules_zig//zig:repositories.bzl`.
+Instead, use the `zig` module extension
+provided by `@rules_zig//zig:extensions.bzl`.
 
 Use the target `@rules_zig//zig:resolved_toolchain`
 to access the resolved toolchain for the current execution platform.

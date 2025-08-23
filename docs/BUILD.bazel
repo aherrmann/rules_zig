@@ -39,12 +39,6 @@ stardoc_with_diff_test(
 )
 
 stardoc_with_diff_test(
-    name = "repositories",
-    bzl_library_target = "//zig:repositories",
-    target_compatible_with = _TARGET_COMPATIBLE_WITH,
-)
-
-stardoc_with_diff_test(
     name = "extensions",
     bzl_library_target = "//zig:extensions",
     target_compatible_with = _TARGET_COMPATIBLE_WITH,

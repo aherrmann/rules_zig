@@ -7,7 +7,6 @@ exports_files(
         "defs.bzl",
         "extensions.bzl",
         "toolchain.bzl",
-        "repositories.bzl",
     ],
     visibility = ["//docs:__pkg__"],
 )
@@ -34,20 +33,6 @@ bzl_library(
     name = "bazel_tools",
     srcs = ["@bazel_tools//tools:bzl_srcs"],
     visibility = ["//visibility:public"],
-)
-
-bzl_library(
-    name = "repositories",
-    srcs = ["repositories.bzl"],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":bazel_tools",
-        "//zig/private:platforms",
-        "//zig/private:versions",
-        "//zig/private/common:zig_cache",
-        "//zig/private/repo:toolchains_repo",
-        "//zig/private/repo:zig_repository",
-    ],
 )
 
 bzl_library(
@@ -79,9 +64,11 @@ bzl_library(
     srcs = ["extensions.bzl"],
     visibility = ["//visibility:public"],
     deps = [
-        ":repositories",
+        "//zig/private:platforms",
         "//zig/private/bzlmod:zig",
         "//zig/private/common:semver",
+        "//zig/private/repo:toolchains_repo",
+        "//zig/private/repo:zig_repository",
         "@bazel_skylib//lib:sets",
     ],
 )
@@ -93,7 +80,6 @@ filegroup(
         ":BUILD.bazel",
         ":defs.bzl",
         ":extensions.bzl",
-        ":repositories.bzl",
         ":toolchain.bzl",
         "//zig/config:all_files",
         "//zig/lib:all_files",

@@ -1,5 +1,7 @@
 # docs: https://bazel.build/reference/command-line-reference#flag--enable_bzlmod
 common --enable_bzlmod
+# docs: https://bazel.build/reference/command-line-reference#flag--enable_workspace
+common --noenable_workspace
 
 # The lockfile can cause issues when switching between Bazel versions.
 # docs: https://bazel.build/reference/command-line-reference#flag--lockfile_mode

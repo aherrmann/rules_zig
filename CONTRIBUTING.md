@@ -46,16 +46,16 @@ Run `bazel run //util:update` to keep them up-to-date.
 
 ## Using this as a development dependency of other rules
 
-You'll commonly find that you develop in another WORKSPACE, such as
+You'll commonly find that you develop in another Bazel module, such as
 some other ruleset that depends on rules_zig, or in a nested
-WORKSPACE in the integration_tests folder.
+module in the integration_tests folder.
 
 To always tell Bazel to use this directory rather than some release
 artifact or a version fetched from the internet, run this from this
 directory:
 
 ```sh
-OVERRIDE="--override_repository=rules_zig=$(pwd)/rules_zig"
+OVERRIDE="--override_module=rules_zig=$(pwd)"
 echo "common $OVERRIDE" >> ~/.bazelrc
 ```
 

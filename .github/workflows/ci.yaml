@@ -78,7 +78,6 @@ jobs:
         bazelVersion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
         zigVersion:
           - ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
-        bzlmodEnabled: [true, false]
         folder:
           - "."
           - "e2e/workspace"
@@ -86,7 +85,7 @@ jobs:
         tagFilters: ["-zig-docs"]
 
     # Configure a human readable name for each job
-    name: Test ${{ matrix.targetPattern }} ${{ matrix.tagFilters }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, Bazel ${{ matrix.bazelVersion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
+    name: Test ${{ matrix.targetPattern }} ${{ matrix.tagFilters }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, and Bazel ${{ matrix.bazelVersion }} on ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -98,7 +97,6 @@ jobs:
           os: ${{ matrix.os }}
           folder: ${{ matrix.folder }}
           bazelVersion: ${{ matrix.bazelVersion }}
-          bzlmodEnabled: ${{ matrix.bzlmodEnabled }}
           # Disable documentation generation for all but the first Bazel
           # version, by setting --no@rules_zig//docs:build_docs in
           # .bazelrc.user. The generated documentation can vary between Bazel
@@ -127,7 +125,6 @@ jobs:
         bazelVersion:
           - ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
         zigVersion: ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions) }}
-        bzlmodEnabled: [true, false]
         folder:
           - "."
           - "e2e/workspace"
@@ -139,7 +136,7 @@ jobs:
             zigVersion: ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
 
     # Configure a human readable name for each job
-    name: Test ${{ matrix.targetPattern }} ${{ matrix.tagFilters }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, Bazel ${{ matrix.bazelVersion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
+    name: Test ${{ matrix.targetPattern }} ${{ matrix.tagFilters }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, and Bazel ${{ matrix.bazelVersion }} on ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -151,7 +148,6 @@ jobs:
           os: ${{ matrix.os }}
           folder: ${{ matrix.folder }}
           bazelVersion: ${{ matrix.bazelVersion }}
-          bzlmodEnabled: ${{ matrix.bzlmodEnabled }}
           # Disable documentation generation for all but the first Bazel
           # version, by setting --no@rules_zig//docs:build_docs in
           # .bazelrc.user. The generated documentation can vary between Bazel
@@ -237,13 +233,12 @@ jobs:
           - ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions)[0] }}
         zigVersion:
           - ${{ fromJSON(needs.matrix-prep-zigversion.outputs.zigversions)[0] }}
-        bzlmodEnabled: [true, false]
         folder: ["."]
         targetPattern: ["//zig/tests/integration_tests"]
         tagFilters: [""]
 
     # Configure a human readable name for each job
-    name: Test ${{ matrix.targetPattern }} ${{ matrix.tagFilters }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, Bazel ${{ matrix.bazelVersion }}, and bzlmod ${{ matrix.bzlmodEnabled }} on ${{ matrix.os }}
+    name: Test ${{ matrix.targetPattern }} ${{ matrix.tagFilters }} in ${{ matrix.folder }} with Zig ${{ matrix.zigVersion }}, and Bazel ${{ matrix.bazelVersion }} on ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -255,7 +250,6 @@ jobs:
           os: ${{ matrix.os }}
           folder: ${{ matrix.folder }}
           bazelVersion: ${{ matrix.bazelVersion }}
-          bzlmodEnabled: ${{ matrix.bzlmodEnabled }}
           # Disable documentation generation for all but the first Bazel
           # version, by setting --no@rules_zig//docs:build_docs in
           # .bazelrc.user. The generated documentation can vary between Bazel

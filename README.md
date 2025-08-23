@@ -53,15 +53,11 @@ Consider the [_Additional Setup_](#additional-setup) section as well.
 
 [bazel-intro]: https://bazel.build/about/intro
 
-### Using Bzlmod with Bazel >=7
-
-Bzlmod is Bazel's new dependency manager. You can read more about it in the
-[Bazel documentation][bzlmod-doc]. If you use bzlmod, then you can skip the
-WORKSPACE section below. Take a look at [Bazel's migration
-guide][bzlmod-migration] if you are switching from WORKSPACE to bzlmod.
+Bazel dependencies are managed using Bzlmod, you can read more about it in the
+[Bazel documentation][bzlmod-doc].
+Note, the old WORKSPACE mechanmism is no longer supported by rules_zig.
 
 [bzlmod-doc]: https://bazel.build/external/overview#bzlmod
-[bzlmod-migration]: https://bazel.build/external/migration
 
 To install a [release version of rules_zig][rules-zig-releases] follow the
 installation instructions given in the corresponding release notes.
@@ -85,50 +81,6 @@ look at the [Bazel documentation][archive-override-doc] for further
 information.
 
 [archive-override-doc]: https://bazel.build/versions/7.0.0/rules/lib/globals/module#archive_override
-
-### Using WORKSPACE
-
-The old way of managing external dependencies with Bazel is to declare them in
-your WORKSPACE file. You can read more about it in the [Bazel
-documentation][workspace-doc]. If you use the WORKSPACE approach, then you can
-skip the bzlmod section above.
-
-[workspace-doc]: https://bazel.build/external/overview#workspace-system
-
-To install a [release version of rules_zig][rules-zig-releases] follow the
-installation instructions given in the corresponding release notes.
-
-To install a development version add the following to your WORKSPACE file:
-
-```bzl
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "rules_zig",
-    sha256 = "$SHA256",
-    strip_prefix = "rules_zig-$COMMIT",
-    urls = ["https://github.com/aherrmann/rules_zig/archive/$COMMIT.tar.gz"],
-)
-
-load(
-    "@rules_zig//zig:repositories.bzl",
-    "rules_zig_dependencies",
-    "zig_register_toolchains",
-)
-
-rules_zig_dependencies()
-
-zig_register_toolchains(
-    name = "zig",
-    zig_version = "0.14.1",
-)
-```
-
-Note, `$SHA256` and `$COMMIT` are placeholders that you need to fill in. Take a
-look at the [Bazel documentation][http-archive-doc] for further
-information.
-
-[http-archive-doc]: https://bazel.build/rules/lib/repo/http#http_archive
 
 <!-- TODO[AH] Write a user-guide
   https://github.com/aherrmann/rules_zig/issues/59
