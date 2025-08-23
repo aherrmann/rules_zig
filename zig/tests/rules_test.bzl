@@ -259,7 +259,7 @@ def _simple_shared_library_header_test_impl(ctx):
         for action in analysistest.target_actions(env)
         if action.mnemonic == "ZigBuildSharedLib"
     ]
-    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildLib action.")
+    asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildSharedLib action.")
     build = build[0]
     asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_shared_library should generate a ZigBuildLib action that generates the header.")
 
