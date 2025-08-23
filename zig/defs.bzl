@@ -12,9 +12,9 @@ load(
     _zig_configure_binary = "zig_configure_binary",
     _zig_configure_test = "zig_configure_test",
 )
-load("//zig/private:zig_static_library.bzl", _zig_static_library = "zig_static_library")
 load("//zig/private:zig_module.bzl", _zig_module = "zig_module")
 load("//zig/private:zig_shared_library.bzl", _zig_shared_library = "zig_shared_library")
+load("//zig/private:zig_static_library.bzl", _zig_static_library = "zig_static_library")
 load("//zig/private:zig_test.bzl", _zig_test = "zig_test")
 
 zig_binary = _zig_binary
