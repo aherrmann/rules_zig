@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_static_library", "zig_test")
 
 cc_binary(
     name = "add",
@@ -28,7 +28,7 @@ zig_binary(
     main = "main.zig",
 )
 
-zig_library(
+zig_static_library(
     name = "library",
     cdeps = [
         ":add_shared",

@@ -1,8 +1,8 @@
 load("@aspect_bazel_lib//lib:testing.bzl", "assert_outputs")
 load("@rules_cc//cc:defs.bzl", "cc_test")
-load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_library", "zig_shared_library")
+load("@rules_zig//zig:defs.bzl", "zig_configure", "zig_shared_library", "zig_static_library")
 
-zig_library(
+zig_static_library(
     name = "static",
     cdeps = ["@rules_zig//zig/lib:libc"],
     generate_header = True,

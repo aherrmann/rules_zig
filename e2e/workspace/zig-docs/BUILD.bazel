@@ -5,9 +5,9 @@ load(
     "@rules_zig//zig:defs.bzl",
     "zig_binary",
     "zig_configure_test",
-    "zig_library",
     "zig_module",
     "zig_shared_library",
+    "zig_static_library",
     "zig_test",
 )
 load("@rules_zig//zig/private:versions.bzl", "TOOL_VERSIONS")
@@ -24,7 +24,7 @@ zig_binary(
     deps = [":hello_world"],
 )
 
-zig_library(
+zig_static_library(
     name = "library",
     extra_docs = ["guide.md"],
     main = "main.zig",

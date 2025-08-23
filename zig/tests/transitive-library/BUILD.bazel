@@ -1,12 +1,12 @@
-load("@rules_zig//zig:defs.bzl", "zig_library")
+load("@rules_zig//zig:defs.bzl", "zig_static_library")
 
-zig_library(
+zig_static_library(
     name = "indirect",
     main = "indirect.zig",
     visibility = ["//zig/tests:__pkg__"],
 )
 
-zig_library(
+zig_static_library(
     name = "direct",
     cdeps = [":indirect"],
     main = "direct.zig",
