@@ -76,11 +76,11 @@ def _simple_library_test_impl(ctx):
     build = [
         action
         for action in analysistest.target_actions(env)
-        if action.mnemonic == "ZigBuildLib"
+        if action.mnemonic == "ZigBuildStaticLib"
     ]
-    asserts.equals(env, 1, len(build), "zig_static_library should generate one ZigBuildLib action.")
+    asserts.equals(env, 1, len(build), "zig_static_library should generate one ZigBuildStaticLib action.")
     build = build[0]
-    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), static), "zig_static_library should generate a ZigBuildLib action that generates the static library.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), static), "zig_static_library should generate a ZigBuildStaticLib action that generates the static library.")
 
     return analysistest.end(env)
 
@@ -120,11 +120,11 @@ def _simple_library_header_test_impl(ctx):
     build = [
         action
         for action in analysistest.target_actions(env)
-        if action.mnemonic == "ZigBuildLib"
+        if action.mnemonic == "ZigBuildStaticLib"
     ]
-    asserts.equals(env, 1, len(build), "zig_static_library should generate one ZigBuildLib action.")
+    asserts.equals(env, 1, len(build), "zig_static_library should generate one ZigBuildStaticLib action.")
     build = build[0]
-    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_static_library should generate a ZigBuildLib action that generates the header.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_static_library should generate a ZigBuildStaticLib action that generates the header.")
 
     return analysistest.end(env)
 
@@ -261,7 +261,7 @@ def _simple_shared_library_header_test_impl(ctx):
     ]
     asserts.equals(env, 1, len(build), "zig_shared_library should generate one ZigBuildSharedLib action.")
     build = build[0]
-    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_shared_library should generate a ZigBuildLib action that generates the header.")
+    asserts.true(env, sets.contains(sets.make(build.outputs.to_list()), header), "zig_shared_library should generate a ZigBuildStaticLib action that generates the header.")
 
     return analysistest.end(env)
 
@@ -475,7 +475,7 @@ def _compiler_runtime_test_impl(ctx):
     build = [
         action
         for action in analysistest.target_actions(env)
-        if action.mnemonic in ["ZigBuildExe", "ZigBuildTest", "ZigBuildLib", "ZigBuildSharedLib"]
+        if action.mnemonic in ["ZigBuildExe", "ZigBuildTest", "ZigBuildStaticLib", "ZigBuildSharedLib"]
     ]
     asserts.equals(env, 1, len(build), "Target should have one ZigBuild* action.")
     build = build[0]

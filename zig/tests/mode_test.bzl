@@ -54,10 +54,10 @@ _build_exe_mode_release_safe_test = _define_build_mode_test("ZigBuildExe", "rele
 _build_exe_mode_release_small_test = _define_build_mode_test("ZigBuildExe", "release_small", "ReleaseSmall")
 _build_exe_mode_release_fast_test = _define_build_mode_test("ZigBuildExe", "release_fast", "ReleaseFast")
 
-_build_lib_mode_debug_test = _define_build_mode_test("ZigBuildLib", "debug", "Debug")
-_build_lib_mode_release_safe_test = _define_build_mode_test("ZigBuildLib", "release_safe", "ReleaseSafe")
-_build_lib_mode_release_small_test = _define_build_mode_test("ZigBuildLib", "release_small", "ReleaseSmall")
-_build_lib_mode_release_fast_test = _define_build_mode_test("ZigBuildLib", "release_fast", "ReleaseFast")
+_build_lib_mode_debug_test = _define_build_mode_test("ZigBuildStaticLib", "debug", "Debug")
+_build_lib_mode_release_safe_test = _define_build_mode_test("ZigBuildStaticLib", "release_safe", "ReleaseSafe")
+_build_lib_mode_release_small_test = _define_build_mode_test("ZigBuildStaticLib", "release_small", "ReleaseSmall")
+_build_lib_mode_release_fast_test = _define_build_mode_test("ZigBuildStaticLib", "release_fast", "ReleaseFast")
 
 _build_shared_lib_mode_debug_test = _define_build_mode_test("ZigBuildSharedLib", "debug", "Debug")
 _build_shared_lib_mode_release_safe_test = _define_build_mode_test("ZigBuildSharedLib", "release_safe", "ReleaseSafe")

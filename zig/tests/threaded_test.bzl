@@ -52,8 +52,8 @@ def _define_build_threaded_test(mnemonic, threaded, flag_set, flag_not_set):
 _build_exe_threaded_single_test = _define_build_threaded_test("ZigBuildExe", "single", "-fsingle-threaded", "-fno-single-threaded")
 _build_exe_threaded_multi_test = _define_build_threaded_test("ZigBuildExe", "multi", "-fno-single-threaded", "-fsingle-threaded")
 
-_build_lib_threaded_single_test = _define_build_threaded_test("ZigBuildLib", "single", "-fsingle-threaded", "-fno-single-threaded")
-_build_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
+_build_lib_threaded_single_test = _define_build_threaded_test("ZigBuildStaticLib", "single", "-fsingle-threaded", "-fno-single-threaded")
+_build_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildStaticLib", "multi", "-fno-single-threaded", "-fsingle-threaded")
 
 _build_shared_lib_threaded_single_test = _define_build_threaded_test("ZigBuildSharedLib", "single", "-fsingle-threaded", "-fno-single-threaded")
 _build_shared_lib_threaded_multi_test = _define_build_threaded_test("ZigBuildSharedLib", "multi", "-fno-single-threaded", "-fsingle-threaded")

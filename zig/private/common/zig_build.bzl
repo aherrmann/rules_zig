@@ -401,7 +401,7 @@ def zig_build_impl(ctx, *, kind):
         progress_message = "Building %{input} as Zig test %{output}"
     elif kind == "zig_static_library":
         arguments = ["build-lib", args]
-        mnemonic = "ZigBuildLib"
+        mnemonic = "ZigBuildStaticLib"
         progress_message = "Building %{input} as Zig library %{output}"
     elif kind == "zig_shared_library":
         arguments = ["build-lib", "-dynamic", args]
