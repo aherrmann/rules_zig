@@ -14,8 +14,6 @@ load(":defs.bzl", "run")
 zig_library(
     name = "library",
     main = select({
-        "@zig_toolchains//:any_0.11.": "library-0.13.0.zig",
-        "@zig_toolchains//:any_0.12.": "library-0.13.0.zig",
         "@zig_toolchains//:any_0.13.": "library-0.13.0.zig",
         "//conditions:default": "library.zig",
     }),

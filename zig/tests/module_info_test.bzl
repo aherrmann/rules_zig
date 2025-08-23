@@ -14,7 +14,7 @@ load(
 def _mock_args():
     self_args = []
 
-    def add_all(args, *, map_each = None):
+    def add_all(args, *, map_each = None, before_each = None):
         if type(args) == "depset":
             args = args.to_list()
 
@@ -31,6 +31,14 @@ def _mock_args():
                     mapped.append(result)
 
             args = mapped
+
+        if before_each != None:
+            transformed = []
+
+            for arg in args:
+                transformed.extend([before_each, arg])
+
+            args = transformed
 
         for arg in args:
             if type(arg) == "File":
@@ -68,7 +76,7 @@ def _bazel_builtin_file_name(ctx, label):
     )
 
 def _bazel_builtin_mod_flags(ctx, label):
-    return ["--mod", "{}::{}".format(
+    return ["-M{}={}".format(
         _bazel_builtin_name(label),
         _bazel_builtin_file_name(ctx, label),
     )]
@@ -86,11 +94,11 @@ def _single_module_test_impl(ctx):
     zig_module_dependencies(
         deps = [ctx.attr.mod],
         args = args,
-        zig_version = "0.11.0",
+        zig_version = "0.14.1",
     )
 
     expected = []
-    expected.extend(["--deps", module.name])
+    expected.extend(["--dep", module.name])
 
     asserts.equals(
         env,
@@ -106,14 +114,14 @@ def _single_module_test_impl(ctx):
         deps = [ctx.attr.mod],
         inputs = transitive_inputs,
         args = args,
-        zig_version = "0.11.0",
+        zig_version = "0.14.1",
     )
 
     expected = []
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.mod.label))
-    expected.extend(["--mod", "{name}:{deps}:{src}".format(
+    expected.extend(["--dep", _bazel_builtin_dep(ctx.attr.mod.label)])
+    expected.extend(["-M{name}={src}".format(
         name = module.name,
-        deps = _bazel_builtin_dep(ctx.attr.mod.label),
         src = ctx.file.mod_main.path,
     )])
 
@@ -180,11 +188,11 @@ def _nested_modules_test_impl(ctx):
     zig_module_dependencies(
         deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
         args = args,
-        zig_version = "0.11.0",
+        zig_version = "0.14.1",
     )
 
     expected = []
-    expected.extend(["--deps", "a"])
+    expected.extend(["--dep", "a"])
 
     asserts.equals(
         env,
@@ -200,22 +208,60 @@ def _nested_modules_test_impl(ctx):
         deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
         inputs = transitive_inputs,
         args = args,
-        zig_version = "0.11.0",
+        zig_version = "0.14.1",
     )
 
     expected = []
     expected.extend(bazel_builtins["e"].mod_flags)
-    expected.extend(["--mod", "e:{}:{}".format(bazel_builtins["e"].dep, mod_mains["e"].path)])
+    expected.extend([
+        "--dep",
+        bazel_builtins["e"].dep,
+        "-Me={}".format(mod_mains["e"].path),
+    ])
     expected.extend(bazel_builtins["b"].mod_flags)
-    expected.extend(["--mod", "b:e,{}:{}".format(bazel_builtins["b"].dep, mod_mains["b"].path)])
+    expected.extend([
+        "--dep",
+        "e",
+        "--dep",
+        bazel_builtins["b"].dep,
+        "-Mb={}".format(mod_mains["b"].path),
+    ])
     expected.extend(bazel_builtins["c"].mod_flags)
-    expected.extend(["--mod", "c:e,{}:{}".format(bazel_builtins["c"].dep, mod_mains["c"].path)])
+    expected.extend([
+        "--dep",
+        "e",
+        "--dep",
+        bazel_builtins["c"].dep,
+        "-Mc={}".format(mod_mains["c"].path),
+    ])
     expected.extend(bazel_builtins["f"].mod_flags)
-    expected.extend(["--mod", "f:e,{}:{}".format(bazel_builtins["f"].dep, mod_mains["f"].path)])
+    expected.extend([
+        "--dep",
+        "e",
+        "--dep",
+        bazel_builtins["f"].dep,
+        "-Mf={}".format(mod_mains["f"].path),
+    ])
     expected.extend(bazel_builtins["d"].mod_flags)
-    expected.extend(["--mod", "d:f,{}:{}".format(bazel_builtins["d"].dep, mod_mains["d"].path)])
+    expected.extend([
+        "--dep",
+        "f",
+        "--dep",
+        bazel_builtins["d"].dep,
+        "-Md={}".format(mod_mains["d"].path),
+    ])
     expected.extend(bazel_builtins["a"].mod_flags)
-    expected.extend(["--mod", "a:b,c,d,{}:{}".format(bazel_builtins["a"].dep, mod_mains["a"].path)])
+    expected.extend([
+        "--dep",
+        "b",
+        "--dep",
+        "c",
+        "--dep",
+        "d",
+        "--dep",
+        bazel_builtins["a"].dep,
+        "-Ma={}".format(mod_mains["a"].path),
+    ])
 
     asserts.equals(
         env,

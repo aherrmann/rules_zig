@@ -1,6 +1,5 @@
 load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@aspect_bazel_lib//lib:directory_path.bzl", "make_directory_path")
-load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load(
     "@rules_zig//zig:defs.bzl",
@@ -13,14 +12,6 @@ load(
 )
 load("@rules_zig//zig/private:versions.bzl", "TOOL_VERSIONS")
 
-selects.config_setting_group(
-    name = "macos-zig-0.12.0",
-    match_all = [
-        "@platforms//os:macos",
-        "@zig_toolchains//:0.12.0",
-    ],
-)
-
 zig_module(
     name = "hello_world",
     main = "hello_world.zig",
@@ -30,10 +21,6 @@ zig_binary(
     name = "binary",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -41,10 +28,6 @@ zig_library(
     name = "library",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -52,10 +35,6 @@ zig_shared_library(
     name = "shared-library",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
@@ -64,10 +43,6 @@ zig_test(
     size = "small",
     extra_docs = ["guide.md"],
     main = "main.zig",
-    target_compatible_with = select({
-        ":macos-zig-0.12.0": ["@platforms//:incompatible"],
-        "//conditions:default": [],
-    }),
     deps = [":hello_world"],
 )
 
