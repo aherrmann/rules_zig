@@ -51,7 +51,7 @@ FRAGMENTS = SHARED_LIBRARY_FRAGMENTS
 
 def _zig_shared_library_impl(ctx):
     build, build_groups = zig_build_impl(ctx, kind = "zig_shared_library")
-    docs, docs_groups = zig_docs_impl(ctx, kind = "zig_library")
+    docs, docs_groups = zig_docs_impl(ctx, kind = "zig_shared_library")
     return build + docs + [OutputGroupInfo(**(build_groups | docs_groups))]
 
 zig_shared_library = rule(
