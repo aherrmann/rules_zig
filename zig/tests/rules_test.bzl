@@ -43,7 +43,7 @@ def _test_simple_binary(name):
     )
     return [":" + name]
 
-def _simple_library_test_impl(ctx):
+def _simple_static_library_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
@@ -84,17 +84,17 @@ def _simple_library_test_impl(ctx):
 
     return analysistest.end(env)
 
-_simple_library_test = analysistest.make(_simple_library_test_impl)
+_simple_static_library_test = analysistest.make(_simple_static_library_test_impl)
 
-def _test_simple_library(name):
-    _simple_library_test(
+def _test_simple_static_library(name):
+    _simple_static_library_test(
         name = name,
         target_under_test = "//zig/tests/simple-library:library",
         size = "small",
     )
     return [":" + name]
 
-def _simple_library_header_test_impl(ctx):
+def _simple_static_library_header_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     cc = target[CcInfo]
@@ -128,17 +128,17 @@ def _simple_library_header_test_impl(ctx):
 
     return analysistest.end(env)
 
-_simple_library_header_test = analysistest.make(_simple_library_header_test_impl)
+_simple_static_library_header_test = analysistest.make(_simple_static_library_header_test_impl)
 
-def _test_simple_library_header(name):
-    _simple_library_header_test(
+def _test_simple_static_library_header(name):
+    _simple_static_library_header_test(
         name = name,
         target_under_test = "//zig/tests/simple-library:library-header",
         size = "small",
     )
     return [":" + name]
 
-def _transitive_library_test_impl(ctx):
+def _transitive_static_library_test_impl(ctx):
     env = analysistest.begin(ctx)
     target = analysistest.target_under_test(env)
     default = target[DefaultInfo]
@@ -164,15 +164,15 @@ def _transitive_library_test_impl(ctx):
 
     return analysistest.end(env)
 
-_transitive_library_test = analysistest.make(
-    _transitive_library_test_impl,
+_transitive_static_library_test = analysistest.make(
+    _transitive_static_library_test_impl,
     attrs = {
         "indirect": attr.label(mandatory = True),
     },
 )
 
-def _test_transitive_library(name):
-    _transitive_library_test(
+def _test_transitive_static_library(name):
+    _transitive_static_library_test(
         name = name,
         target_under_test = "//zig/tests/transitive-library:direct",
         indirect = "//zig/tests/transitive-library:indirect",
@@ -539,9 +539,9 @@ def rules_test_suite(name):
     """
     tests = []
     tests += _test_simple_binary(name = "simple_binary_test")
-    tests += _test_simple_library(name = "simple_library_test")
-    tests += _test_simple_library_header(name = "simple_library_header_test")
-    tests += _test_transitive_library(name = "transitive_library_test")
+    tests += _test_simple_static_library(name = "simple_static_library_test")
+    tests += _test_simple_static_library_header(name = "simple_static_library_header_test")
+    tests += _test_transitive_static_library(name = "transitive_static_library_test")
     tests += _test_simple_shared_library(name = "simple_shared_library_test")
     tests += _test_simple_shared_library_header(name = "simple_shared_library_header_test")
     tests += _test_transitive_shared_library(name = "transitive_shared_library_test")
