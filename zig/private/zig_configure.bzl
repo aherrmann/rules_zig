@@ -60,7 +60,7 @@ load(
     "zig_configure",
 )
 
-zig_library(
+zig_static_library(
     name = "library",
     main = "library.zig",
     tags = ["manual"],  # optional, exclude from `bazel build //...`.

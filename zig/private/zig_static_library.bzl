@@ -1,4 +1,4 @@
-"""Implementation of the zig_library rule."""
+"""Implementation of the zig_static_library rule."""
 
 load(
     "//zig/private/common:zig_build.bzl",
@@ -26,9 +26,9 @@ using the command `bazel build //my:target --output_groups=zig_docs`.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_library")
+load("@rules_zig//zig:defs.bzl", "zig_static_library")
 
-zig_library(
+zig_static_library(
     name = "my-library",
     main = "main.zig",
     srcs = [
@@ -45,13 +45,13 @@ ATTRS = COMMON_ATTRS | COMMON_LIBRARY_ATTRS | DOCS_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
-def _zig_library_impl(ctx):
-    build, build_groups = zig_build_impl(ctx, kind = "zig_library")
-    docs, docs_groups = zig_docs_impl(ctx, kind = "zig_library")
+def _zig_static_library_impl(ctx):
+    build, build_groups = zig_build_impl(ctx, kind = "zig_static_library")
+    docs, docs_groups = zig_docs_impl(ctx, kind = "zig_static_library")
     return build + docs + [OutputGroupInfo(**(build_groups | docs_groups))]
 
-zig_library = rule(
-    _zig_library_impl,
+zig_static_library = rule(
+    _zig_static_library_impl,
     attrs = ATTRS,
     doc = DOC,
     toolchains = TOOLCHAINS,
