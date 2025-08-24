@@ -24,7 +24,7 @@ Optionally add the following to your \`MODULE.bazel\` file to install a specific
 
 \`\`\`starlark
 zig = use_extension("//zig:extensions.bzl", "zig")
-zig.toolchain(zig_version = "0.13.0")
+zig.toolchain(zig_version = "0.14.1")
 \`\`\`
 
 You can call \`zig.toolchain\` multiple times to install multiple Zig versions.
