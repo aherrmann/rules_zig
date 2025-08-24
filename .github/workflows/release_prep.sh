@@ -6,6 +6,10 @@ set -o errexit -o nounset -o pipefail
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
 TAG=${GITHUB_REF_NAME}
 VERSION=${TAG:1}
+# The prefix is chosen to match what GitHub generates for source archives
+PREFIX="rules_zig-$VERSION"
+ARCHIVE="$PREFIX.tar.gz"
+git archive --format=tar --prefix=${PREFIX}/ ${TAG} | gzip > $ARCHIVE
 
 cat << EOF
 ## Setup Instructions
@@ -20,7 +24,7 @@ Optionally add the following to your \`MODULE.bazel\` file to install a specific
 
 \`\`\`starlark
 zig = use_extension("//zig:extensions.bzl", "zig")
-zig.toolchain(zig_version = "0.13.0")
+zig.toolchain(zig_version = "0.14.1")
 \`\`\`
 
 You can call \`zig.toolchain\` multiple times to install multiple Zig versions.
