@@ -6,6 +6,10 @@ set -o errexit -o nounset -o pipefail
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
 TAG=${GITHUB_REF_NAME}
 VERSION=${TAG:1}
+# The prefix is chosen to match what GitHub generates for source archives
+PREFIX="rules_zig-$VERSION"
+ARCHIVE="$PREFIX.tar.gz"
+git archive --format=tar --prefix=${PREFIX}/ ${TAG} | gzip > $ARCHIVE
 
 cat << EOF
 ## Setup Instructions
