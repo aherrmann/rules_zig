@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - id: versions_from_bazel_versions_bzl
-        run: echo "bazelversions=$(.github/workflows/bazel_versions.py)" >> $GITHUB_OUTPUT
+        run: echo "bazelversions=$(.github/scripts/bazel_versions.py)" >> $GITHUB_OUTPUT
     outputs:
       # Will look like ["<version from .bazelversion>","<version from bazel_versions.bzl>"]
       bazelversions: ${{ steps.versions_from_bazel_versions_bzl.outputs.bazelversions }}
