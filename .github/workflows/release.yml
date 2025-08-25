@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Prepare release notes and artifacts
-        run: .github/workflows/release_prep.sh > release_notes.txt
+        run: .github/scripts/release_prep.sh > release_notes.txt
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
