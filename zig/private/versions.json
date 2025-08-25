@@ -1,4 +1,38 @@
 {
+  "0.15.1": {
+    "aarch64-linux": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-aarch64-linux-0.15.1.tar.xz",
+      "shasum": "bb4a8d2ad735e7fba764c497ddf4243cb129fece4148da3222a7046d3f1f19fe"
+    },
+    "aarch64-macos": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-aarch64-macos-0.15.1.tar.xz",
+      "shasum": "c4bd624d901c1268f2deb9d8eb2d86a2f8b97bafa3f118025344242da2c54d7b"
+    },
+    "aarch64-windows": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-aarch64-windows-0.15.1.zip",
+      "shasum": "1f1bf16228b0ffcc882b713dc5e11a6db4219cb30997e13c72e8e723c2104ec6"
+    },
+    "x86-linux": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-x86-linux-0.15.1.tar.xz",
+      "shasum": "dff166f25fdd06e8341d831a71211b5ba7411463a6b264bdefa8868438690b6a"
+    },
+    "x86-windows": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-x86-windows-0.15.1.zip",
+      "shasum": "fb1c07cffbb43615d3158ab8b8f5db5da1d48875eca99e1d7a8a0064ff63fc5b"
+    },
+    "x86_64-linux": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-x86_64-linux-0.15.1.tar.xz",
+      "shasum": "c61c5da6edeea14ca51ecd5e4520c6f4189ef5250383db33d01848293bfafe05"
+    },
+    "x86_64-macos": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-x86_64-macos-0.15.1.tar.xz",
+      "shasum": "9919392e0287cccc106dfbcbb46c7c1c3fa05d919567bb58d7eb16bca4116184"
+    },
+    "x86_64-windows": {
+      "tarball": "https://ziglang.org/download/0.15.1/zig-x86_64-windows-0.15.1.zip",
+      "shasum": "91e69e887ca8c943ce9a515df3af013d95a66a190a3df3f89221277ebad29e34"
+    }
+  },
   "0.14.1": {
     "aarch64-linux": {
       "tarball": "https://ziglang.org/download/0.14.1/zig-aarch64-linux-0.14.1.tar.xz",
