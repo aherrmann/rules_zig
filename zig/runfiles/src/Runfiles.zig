@@ -286,12 +286,10 @@ test "Runfiles from manifest" {
         try tmp.dir.writeFile("some/package/some_file", "some_content");
         try tmp.dir.writeFile("other/package/other_file", "other_content");
     } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.repo_mapping",
-            .data =
-                \\,my_module,my_workspace
-                \\,other_module,other~3.4.5
-                \\their_module~1.2.3,another_module,other~3.4.5
+        try tmp.dir.writeFile(.{ .sub_path = "test.repo_mapping", .data = 
+            \\,my_module,my_workspace
+            \\,other_module,other~3.4.5
+            \\their_module~1.2.3,another_module,other~3.4.5
         });
         try tmp.dir.writeFile(.{
             .sub_path = "some/package/some_file",
@@ -306,9 +304,20 @@ test "Runfiles from manifest" {
         var manifest_file = try tmp.dir.createFile("test.runfiles_manifest", .{});
         defer manifest_file.close();
         var buf: [max_path_bytes]u8 = undefined;
-        try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
-        try manifest_file.writer().print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
-        try manifest_file.writer().print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
+
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+            var buffer: [1024]u8 = undefined;
+            var writer = manifest_file.writer(&buffer);
+            const file_writer = &writer.interface;
+            try file_writer.print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
+            try file_writer.print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
+            try file_writer.print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
+            try file_writer.flush();
+        } else {
+            try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
+            try manifest_file.writer().print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
+            try manifest_file.writer().print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
+        }
     }
     const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
@@ -392,12 +401,10 @@ test "Runfiles from directory" {
         try tmp.dir.writeFile("some/package/some_file", "some_content");
         try tmp.dir.writeFile("other/package/other_file", "other_content");
     } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.repo_mapping",
-            .data =
-                \\,my_module,my_workspace
-                \\,other_module,other~3.4.5
-                \\their_module~1.2.3,another_module,other~3.4.5
+        try tmp.dir.writeFile(.{ .sub_path = "test.repo_mapping", .data = 
+            \\,my_module,my_workspace
+            \\,other_module,other~3.4.5
+            \\their_module~1.2.3,another_module,other~3.4.5
         });
         try tmp.dir.writeFile(.{
             .sub_path = "some/package/some_file",

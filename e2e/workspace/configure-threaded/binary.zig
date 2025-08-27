@@ -2,8 +2,19 @@ const std = @import("std");
 const builtin = @import("builtin");
 
 pub fn main() void {
-    std.io.getStdOut().writer().print(
-        "{}\n",
-        .{builtin.single_threaded},
-    ) catch unreachable;
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        var buffer: [512]u8 = undefined;
+        var writer = std.fs.File.stdout().writer(&buffer);
+        const stdout = &writer.interface;
+        stdout.print(
+            "{}\n",
+            .{builtin.single_threaded},
+        ) catch unreachable;
+        stdout.flush() catch unreachable;
+    } else {
+        std.io.getStdOut().writer().print(
+            "{}\n",
+            .{builtin.single_threaded},
+        ) catch unreachable;
+    }
 }

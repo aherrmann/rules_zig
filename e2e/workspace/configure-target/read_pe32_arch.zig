@@ -6,7 +6,15 @@ pub fn main() !void {
     defer std.process.argsFree(std.heap.page_allocator, args);
 
     if (args.len < 2) {
-        try std.io.getStdErr().writer().print("Usage: {s} <binary_path>\n", .{args[0]});
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+            var buffer: [512]u8 = undefined;
+            var writer = std.fs.File.stderr().writer(&buffer);
+            const stderr = &writer.interface;
+            try stderr.print("Usage: {s} <binary_path>\n", .{args[0]});
+            try stderr.flush();
+        } else {
+            try std.io.getStdErr().writer().print("Usage: {s} <binary_path>\n", .{args[0]});
+        }
         return;
     }
 
@@ -21,5 +29,13 @@ fn printMachineType(allocator: std.mem.Allocator, binary_path: []const u8) !void
     else
         try std.coff.Coff.init(content, false);
 
-    try std.io.getStdOut().writer().print("{s}\n", .{@tagName(coff.getCoffHeader().machine)});
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        var buffer: [512]u8 = undefined;
+        var writer = std.fs.File.stdout().writer(&buffer);
+        const stdout = &writer.interface;
+        try stdout.print("{s}\n", .{@tagName(coff.getCoffHeader().machine)});
+        try stdout.flush();
+    } else {
+        try std.io.getStdOut().writer().print("{s}\n", .{@tagName(coff.getCoffHeader().machine)});
+    }
 }

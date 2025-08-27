@@ -1,3 +1,4 @@
+const builtin = @import("builtin");
 const std = @import("std");
 
 pub fn main() !void {
@@ -18,8 +19,26 @@ pub fn main() !void {
     };
     defer if (env_inherit) |value| allocator.free(value);
 
-    if (env_attr) |value|
-        try std.io.getStdOut().writer().print("ENV_ATTR: '{s}'\n", .{value});
-    if (env_inherit) |value|
-        try std.io.getStdOut().writer().print("ENV_INHERIT: '{s}'\n", .{value});
+    if (env_attr) |value| {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+            var buffer: [512]u8 = undefined;
+            var writer = std.fs.File.stdout().writer(&buffer);
+            const stdout = &writer.interface;
+            try stdout.print("ENV_ATTR: '{s}'\n", .{value});
+            try stdout.flush();
+        } else {
+            try std.io.getStdOut().writer().print("ENV_ATTR: '{s}'\n", .{value});
+        }
+    }
+    if (env_inherit) |value| {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+            var buffer: [512]u8 = undefined;
+            var writer = std.fs.File.stdout().writer(&buffer);
+            const stdout = &writer.interface;
+            try stdout.print("ENV_INHERIT: '{s}'\n", .{value});
+            try stdout.flush();
+        } else {
+            try std.io.getStdOut().writer().print("ENV_INHERIT: '{s}'\n", .{value});
+        }
+    }
 }
