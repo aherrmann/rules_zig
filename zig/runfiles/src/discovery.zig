@@ -86,7 +86,10 @@ pub fn discoverRunfiles(options: DiscoverOptions) DiscoverError!?Location {
     const argv0 = options.argv0 orelse iter.next() orelse
         return error.MissingArg0;
 
-    var buffer = std.ArrayList(u8).init(options.allocator);
+    var buffer = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15)
+        std.array_list.Managed(u8).init(options.allocator)
+    else
+        std.ArrayList(u8).init(options.allocator);
     defer buffer.deinit();
 
     buffer.clearRetainingCapacity();
