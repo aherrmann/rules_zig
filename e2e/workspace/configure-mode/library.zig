@@ -1,5 +1,9 @@
 const std = @import("std");
 const builtin = @import("builtin");
+const c = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15)
+    std.builtin.CallingConvention.c
+else
+    std.builtin.CallingConvention.C;
 
 comptime {
     @export(&internalName, .{
@@ -11,4 +15,4 @@ comptime {
     });
 }
 
-fn internalName() callconv(.C) void {}
+fn internalName() callconv(c) void {}
