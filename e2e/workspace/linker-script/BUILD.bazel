@@ -6,14 +6,24 @@ zig_binary(
     name = "binary",
     linker_script = "custom.ld",
     main = "bin.zig",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        # apparent linker-script support regression in 0.15.1, see
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": ["@platforms//os:linux"],
+    }),
 )
 
 genrule(
     name = "bin_output",
     outs = ["bin_output.actual"],
     cmd = "$(execpath :binary) > $(OUTS)",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        # apparent linker-script support regression in 0.15.1, see
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": ["@platforms//os:linux"],
+    }),
     tools = [":binary"],
 )
 
@@ -22,19 +32,34 @@ diff_test(
     size = "small",
     file1 = ":bin_output.expected",
     file2 = ":bin_output.actual",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        # apparent linker-script support regression in 0.15.1, see
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": ["@platforms//os:linux"],
+    }),
 )
 
 zig_static_library(
     name = "library",
     linker_script = "custom.ld",
     main = "lib.zig",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        # apparent linker-script support regression in 0.15.1, see
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": ["@platforms//os:linux"],
+    }),
 )
 
 build_test(
     name = "library_build_test",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        # apparent linker-script support regression in 0.15.1, see
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": ["@platforms//os:linux"],
+    }),
     targets = [
         ":library",
     ],
@@ -45,5 +70,10 @@ zig_test(
     size = "small",
     linker_script = "custom.ld",
     main = "test.zig",
-    target_compatible_with = ["@platforms//os:linux"],
+    target_compatible_with = select({
+        # apparent linker-script support regression in 0.15.1, see
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": ["@platforms//os:linux"],
+    }),
 )
