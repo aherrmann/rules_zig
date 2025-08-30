@@ -54,10 +54,7 @@ py_binary(
     args = [
         "--buildozer",
         "$(rlocationpath @buildifier_prebuilt//:buildozer)",
-    ] + select({
-        "@aspect_bazel_lib//lib:bzlmod": ["--enable_bzlmod"],
-        "//conditions:default": [],
-    }),
+    ],
     data = ["@buildifier_prebuilt//:buildozer"],
     deps = ["@rules_python//python/runfiles"],
 )

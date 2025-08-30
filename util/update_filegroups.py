@@ -61,17 +61,13 @@ def get_buildozer(r, path):
     return buildozer
 
 
-def query_packages(bazel, enable_bzlmod):
+def query_packages(bazel):
     """Query for all the packages that we need to cover.
 
     A package is a directory that contains a BUILD file in Bazel parlance.
     """
     pattern = PACKAGE_PATTERN
     command = [bazel, "query", pattern, "--output=package"]
-    if enable_bzlmod:
-        command += ["--enable_bzlmod"]
-    else:
-        command += ["--noenable_bzlmod", "--enable_workspace"]
     return subprocess.check_output(command).decode().split("\n")
 
 
@@ -87,14 +83,10 @@ def calculate_sub_packages(packages):
     return subpackages
 
 
-def query_package_sources(bazel, package, enable_bzlmod):
+def query_package_sources(bazel, package):
     """Query for all Bazel relevant source files in the given package."""
     pattern = f'kind("source file", //{package}:*)'
     command = [bazel, "query", pattern]
-    if enable_bzlmod:
-        command += ["--enable_bzlmod"]
-    else:
-        command += ["--noenable_bzlmod", "--enable_workspace"]
     sources = set(subprocess.check_output(command).decode().split("\n"))
     sources.update(EXTRA_SRCS.get(package, []))
     sources.difference_update(IGNORE_SRCS.get(package, []))
@@ -124,7 +116,6 @@ def main():
             prog = "update_filegroups",
             description = "Update generate all_files filegroup targets.")
     parser.add_argument("--buildozer", required=True, type=str, help="Runfiles path to the buildozer binary.")
-    parser.add_argument("--enable_bzlmod", action="store_true", help="Pass the '--enable_bzlmod' flag to Bazel.")
     args = parser.parse_args()
 
     runfiles, runfiles_env = get_runfiles()
@@ -135,11 +126,11 @@ def main():
     bazel = get_bazel()
     buildozer = get_buildozer(runfiles, args.buildozer)
 
-    packages = query_packages(bazel, args.enable_bzlmod)
+    packages = query_packages(bazel)
     subpackages = calculate_sub_packages(packages)
 
     for package in packages:
-        sources = query_package_sources(bazel, package, args.enable_bzlmod)
+        sources = query_package_sources(bazel, package)
         generate_all_files_target(runfiles_env, buildozer, package, sources, subpackages)
 
 
