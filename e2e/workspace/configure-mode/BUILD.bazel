@@ -13,10 +13,7 @@ load(":defs.bzl", "run")
 
 zig_static_library(
     name = "library",
-    main = select({
-        "@zig_toolchains//:any_0.13.": "library-0.13.0.zig",
-        "//conditions:default": "library.zig",
-    }),
+    main = "library.zig",
     tags = ["manual"],
 )
 
