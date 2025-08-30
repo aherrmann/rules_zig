@@ -18,7 +18,6 @@ else
 pub const BitContext = struct {
     workspace_path: []const u8,
     bazel_path: []const u8,
-    bzlmod_enabled: bool,
 
     pub fn init() !BitContext {
         const getenv = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
@@ -33,14 +32,9 @@ pub const BitContext = struct {
             std.log.err("Required environment variable not found: {s}", .{BIT_BAZEL_BINARY});
             return error.EnvironmentVariableNotFound;
         };
-        const bzlmod_enabled = if (getenv("BZLMOD_ENABLED")) |val|
-            std.mem.eql(u8, val, "true")
-        else
-            false;
         return BitContext{
             .workspace_path = workspace_path,
             .bazel_path = bazel_path,
-            .bzlmod_enabled = bzlmod_enabled,
         };
     }
 
@@ -61,22 +55,15 @@ pub const BitContext = struct {
         args: struct {
             argv: []const []const u8,
             print_on_error: bool = true,
-            omit_bzlmod_flag: bool = false,
             extra_env: ?*const std.process.EnvMap = null,
         },
     ) !BazelResult {
-        var argc = 1 + args.argv.len;
-        if (self.bzlmod_enabled and !args.omit_bzlmod_flag) {
-            argc += 1;
-        }
+        const argc = 1 + args.argv.len;
         var argv = try std.testing.allocator.alloc([]const u8, argc);
         defer std.testing.allocator.free(argv);
         argv[0] = self.bazel_path;
         for (args.argv, 0..) |arg, i| {
             argv[i + 1] = arg;
-        }
-        if (self.bzlmod_enabled and !args.omit_bzlmod_flag) {
-            argv[argc - 1] = "--enable_bzlmod";
         }
         var env_map: ?std.process.EnvMap = null;
         defer if (env_map) |*env| env.deinit();
