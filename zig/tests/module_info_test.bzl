@@ -94,7 +94,7 @@ def _single_module_test_impl(ctx):
     zig_module_dependencies(
         deps = [ctx.attr.mod],
         args = args,
-        zig_version = "0.14.1",
+        zig_version = "0.15.1",
     )
 
     expected = []
@@ -114,7 +114,7 @@ def _single_module_test_impl(ctx):
         deps = [ctx.attr.mod],
         inputs = transitive_inputs,
         args = args,
-        zig_version = "0.14.1",
+        zig_version = "0.15.1",
     )
 
     expected = []
@@ -188,7 +188,7 @@ def _nested_modules_test_impl(ctx):
     zig_module_dependencies(
         deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
         args = args,
-        zig_version = "0.14.1",
+        zig_version = "0.15.1",
     )
 
     expected = []
@@ -208,7 +208,7 @@ def _nested_modules_test_impl(ctx):
         deps = [dep for dep in ctx.attr.mods if dep.label.name == "a"],
         inputs = transitive_inputs,
         args = args,
-        zig_version = "0.14.1",
+        zig_version = "0.15.1",
     )
 
     expected = []

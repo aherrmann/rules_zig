@@ -10,6 +10,7 @@ zig_static_library(
     tags = ["manual"],
     target_compatible_with = select({
         # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.14.1": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
@@ -23,6 +24,7 @@ zig_shared_library(
     tags = ["manual"],
     target_compatible_with = select({
         # -femit-h was broken on Zig 0.14.0
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.14.1": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),

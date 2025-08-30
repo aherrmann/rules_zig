@@ -1,13 +1,20 @@
 //!zig-autodoc-guide: guide.md
 
+const builtin = @import("builtin");
 const std = @import("std");
 pub const hello_world = @import("hello_world");
 
 /// Prints "Hello World!".
 pub fn say_hello_world() !void {
-    try std.io.getStdOut().writeAll(
-        hello_world.msg ++ "\n",
-    );
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        try std.fs.File.stdout().writeAll(
+            hello_world.msg ++ "\n",
+        );
+    } else {
+        try std.io.getStdOut().writeAll(
+            hello_world.msg ++ "\n",
+        );
+    }
 }
 
 /// Program entry-point.
