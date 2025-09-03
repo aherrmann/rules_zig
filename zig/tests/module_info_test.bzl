@@ -1,5 +1,6 @@
 """Unit tests for ZigModuleInfo functions.
 """
+
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load(
@@ -33,7 +34,6 @@ def _bazel_builtin_dep(label):
     return "'bazel_builtin={}'".format(_bazel_builtin_name(label))
 
 def _write_simple_module_expected_specs_args_impl(ctx):
-
     mod = ctx.attr.mod[ZigModuleInfo]
 
     expected = []
@@ -59,7 +59,6 @@ _write_simple_module_expected_specs_args = rule(
 )
 
 def _write_module_specs_args_impl(ctx):
-
     args = ctx.actions.args()
 
     zig_module_specifications(
@@ -174,8 +173,6 @@ _write_nested_module_expected_specs_args = rule(
 )
 
 def module_info_test_suite(name):
-
-
     _write_simple_module_expected_specs_args(
         name = "simple_expected",
         mod = "//zig/tests/multiple-sources-module:data",
@@ -197,7 +194,6 @@ def module_info_test_suite(name):
         file2 = "simple_actual.txt",
         size = "small",
     )
-
 
     _write_nested_module_expected_specs_args(
         name = "nested_expected",
