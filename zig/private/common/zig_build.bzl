@@ -28,7 +28,7 @@ load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_module_info.bzl",
     "ZigModuleInfo",
-    "zig_module_dependencies",
+    "zig_module_info",
     "zig_module_specifications",
 )
 load(
@@ -360,17 +360,18 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    direct_inputs.append(ctx.file.main)
-    direct_inputs.extend(ctx.files.srcs)
-    direct_inputs.extend(ctx.files.extra_srcs)
+    zdeps = []
+    for dep in ctx.attr.deps:
+        if ZigModuleInfo in dep:
+            zdeps.append(dep[ZigModuleInfo])
 
-    bazel_builtin = bazel_builtin_module(ctx)
-
-    zig_module_dependencies(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
-        args = args,
-        zig_version = zigtoolchaininfo.zig_version,
+    root_module = zig_module_info(
+        name = ctx.attr.name,
+        canonical_name = ctx.label.name,
+        main = ctx.file.main,
+        srcs = ctx.files.srcs,
+        extra_srcs = ctx.files.extra_srcs,
+        deps = zdeps + [bazel_builtin_module(ctx)],
     )
 
     zig_settings(
@@ -383,14 +384,10 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
-
     zig_module_specifications(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
+        root_module = root_module,
         inputs = transitive_inputs,
         args = args,
-        zig_version = zigtoolchaininfo.zig_version,
     )
 
     inputs = depset(

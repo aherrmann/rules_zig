@@ -13,8 +13,11 @@ instead the Zig compiler performs whole program compilation.
 FIELDS = {
     "name": "string, The import name of the module.",
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
-    "transitive_args": "depset of struct, All module CLI specifications required when depending on the module, including transitive dependencies, to be rendered.",
-    "transitive_inputs": "depset of File, All build inputs files required when depending on the module, including transitive dependencies.",
+    "main": "File, The main source file of the module.",
+    "srcs": "list of File, Other Zig source files that belong to the module.",
+    "extra_srcs": "list of File, Other files that belong to the module.",
+    "deps": "list of ZigModuleInfo, Import dependencies of this module.",
+    "transitive_deps": "depset of ZigModuleInfo, All dependencies required when depending on the module, including transitive dependencies.",
 }
 
 ZigModuleInfo = provider(
@@ -22,7 +25,7 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
-def zig_module_info(*, name, canonical_name, main, srcs, extra_srcs, deps):
+def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], deps = []):
     """Create `ZigModuleInfo` for a new Zig module.
 
     Args:
@@ -36,111 +39,46 @@ def zig_module_info(*, name, canonical_name, main, srcs, extra_srcs, deps):
     Returns:
       `ZigModuleInfo`
     """
-    args_transitive = []
-    srcs_transitive = []
-
-    for dep in deps:
-        args_transitive.append(dep.transitive_args)
-        srcs_transitive.append(dep.transitive_inputs)
-
-    arg_direct = _module_args(
-        canonical_name = canonical_name,
-        main = main,
-        deps = deps,
-    )
-    srcs_direct = [main] + srcs + extra_srcs
-
-    transitive_args = depset(direct = [arg_direct], transitive = args_transitive)
-    transitive_inputs = depset(direct = srcs_direct, transitive = srcs_transitive)
     module = ZigModuleInfo(
         name = name,
         canonical_name = canonical_name,
-        transitive_args = transitive_args,
-        transitive_inputs = transitive_inputs,
+        main = main,
+        srcs = tuple(srcs),
+        extra_srcs = tuple(extra_srcs),
+        deps = tuple(deps),
+        transitive_deps = depset(direct = deps, transitive = [dep.transitive_deps for dep in deps], order = "postorder"),
     )
 
     return module
 
-def _dep_arg(dep):
-    if dep.canonical_name != dep.name:
-        return struct(name = dep.name, canonical_name = dep.canonical_name)
-    else:
-        return struct(name = dep.name)
-
-def _module_args(*, canonical_name, main, deps):
-    return struct(
-        name = canonical_name,
-        main = main.path,
-        deps = tuple([_dep_arg(dep) for dep in deps]),
-    )
-
 def _render_dep(dep):
-    dep_spec = dep.name
+    return dep.name + "=" + dep.canonical_name
 
-    if hasattr(dep, "canonical_name") and dep.canonical_name != dep.name:
-        dep_spec += "=" + dep.canonical_name
+def _add_module_files(inputs, module):
+    deps = (module.main,) + module.srcs + module.extra_srcs
+    inputs.append(depset(direct = deps))
 
-    return dep_spec
+def _render_args(*, module, inputs, args):
+    args.add_all(module.deps, before_each = "--dep", map_each = _render_dep)
+    args.add(module.main, format = "-M{}=%s".format(module.canonical_name))
+    _add_module_files(inputs, module)
 
-def _render_args(args):
-    rendered = []
-
-    for dep in args.deps:
-        rendered.extend(["--dep", _render_dep(dep)])
-
-    rendered.extend(["-M{name}={main}".format(
-        name = args.name,
-        main = args.main,
-    )])
-
-    return rendered
-
-def zig_module_dependencies(*, zig_version, deps, extra_deps = [], args):
-    """Collect flags for the Zig main module to depend on other modules.
-
-    Args:
-      zig_version: string, The version of the Zig SDK.
-      deps: List of Target, Considers the targets that have a ZigModuleInfo provider.
-      extra_deps: List of ZigModuleInfo.
-      args: Args; mutable, Append the needed Zig compiler flags to this object.
-    """
-    _ = zig_version  # @unused
-    deps_args = []
-
-    modules = [
-        dep[ZigModuleInfo]
-        for dep in deps
-        if ZigModuleInfo in dep
-    ] + extra_deps
-
-    for module in modules:
-        deps_args.append(_render_dep(module))
-
-    args.add_all(deps_args, before_each = "--dep")
-
-def zig_module_specifications(*, zig_version, deps, extra_deps = [], inputs, args):
+def zig_module_specifications(*, root_module, inputs, args):
     """Collect inputs and flags to build Zig modules.
 
     Args:
-      zig_version: string, The version of the Zig SDK.
-      deps: List of Target, Considers the targets that have a ZigModuleInfo provider.
-      extra_deps: List of ZigModuleInfo.
-      inputs: List of depset of File; mutable, Append the needed inputs to this list.
-      args: Args; mutable, Append the needed Zig compiler flags to this object.
+        root_module: TODO(corentin)
+        inputs: List of depset of File; mutable, Append the needed inputs to this list.
+        args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
-    _ = zig_version  # @unused
-    transitive_args = []
-
-    modules = [
-        dep[ZigModuleInfo]
-        for dep in deps
-        if ZigModuleInfo in dep
-    ] + extra_deps
-
-    for module in modules:
-        transitive_args.append(module.transitive_args)
-        inputs.append(module.transitive_inputs)
-
-    render_args = _render_args
-
-    args.add_all(depset(transitive = transitive_args), map_each = render_args)
+    _render_args(
+        module = root_module,
+        inputs = inputs,
+        args = args,
+    )
+    for dep in root_module.transitive_deps.to_list():
+        _render_args(
+            module = dep,
+            inputs = inputs,
+            args = args,
+        )
