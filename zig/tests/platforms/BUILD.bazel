@@ -1,6 +1,7 @@
 """Target platforms used for testing purposes."""
 
 load("//zig:toolchain.bzl", "zig_target_toolchain")
+load(":defs.bzl", "empty_toolchain")
 
 platform(
     name = "x86_64-linux",
@@ -118,4 +119,12 @@ toolchain(
     ],
     toolchain = ":zig-only-x86_64-linux_target_toolchain",
     toolchain_type = "//zig/target:toolchain_type",
+)
+
+empty_toolchain(name = "empty_toolchain")
+
+toolchain(
+    name = "unconstrained_default_test_toolchain",
+    toolchain = ":empty_toolchain",
+    toolchain_type = "@bazel_tools//tools/test:default_test_toolchain_type",
 )

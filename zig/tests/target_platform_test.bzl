@@ -15,6 +15,8 @@ load(
 _TARGET_PLATFORM = "//command_line_option:platforms"
 _EXTRA_TOOLCHAINS = "//command_line_option:extra_toolchains"
 
+_TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST = canonical_label("@//zig/tests/platforms:unconstrained_default_test_toolchain")
+
 _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX = canonical_label("@//zig/tests/platforms:zig-only-x86_64-linux_toolchain")
 _PLATFORM_ZIG_ONLY_X86_64_LINUX = canonical_label("@//zig/tests/platforms:zig-only-x86_64-linux")
 
@@ -39,7 +41,10 @@ def _define_target_platform_test(target, option):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {_TARGET_PLATFORM: target},
+        config_settings = {
+            _TARGET_PLATFORM: target,
+            _EXTRA_TOOLCHAINS: _TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST,
+        },
     )
 
 _target_platform_x86_64_linux_test = _define_target_platform_test(_PLATFORM_X86_64_LINUX, "x86_64-linux-gnu.2.17")
@@ -61,7 +66,10 @@ def _define_build_target_platform_test(mnemonic, target, option):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {_TARGET_PLATFORM: target},
+        config_settings = {
+            _TARGET_PLATFORM: target,
+            _EXTRA_TOOLCHAINS: _TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST,
+        },
     )
 
 _build_exe_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_LINUX, "x86_64-linux-gnu.2.17")
@@ -108,7 +116,10 @@ def _define_file_extension_test(target, extension, basename_pattern = "%s"):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {_TARGET_PLATFORM: target},
+        config_settings = {
+            _TARGET_PLATFORM: target,
+            _EXTRA_TOOLCHAINS: _TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST,
+        },
     )
 
 _exe_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
@@ -138,7 +149,10 @@ def _define_cc_info_test(target, cc_expected):
     return analysistest.make(
         _test_impl,
         config_settings =
-            {_EXTRA_TOOLCHAINS: _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX} |
+            {_EXTRA_TOOLCHAINS: ",".join([
+                _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX,
+                _TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST,
+            ])} |
             {_TARGET_PLATFORM: target} if target else {},
     )
 
