@@ -1,5 +1,5 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:3",
+  "image": "mcr.microsoft.com/devcontainers/universal:4",
   "features": {
     "ghcr.io/balazs23/devcontainers-features/bazel:1": {}
   }
