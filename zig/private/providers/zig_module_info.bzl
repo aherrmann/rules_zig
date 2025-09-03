@@ -67,7 +67,7 @@ def zig_module_specifications(*, root_module, inputs, args):
     """Collect inputs and flags to build Zig modules.
 
     Args:
-        root_module: TODO(corentin)
+        root_module: ZigModuleInfo; The root module for which to render args.
         inputs: List of depset of File; mutable, Append the needed inputs to this list.
         args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
