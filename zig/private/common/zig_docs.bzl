@@ -120,7 +120,6 @@ def zig_docs_impl(ctx, *, kind):
 
     zig_module_specifications(
         root_module = root_module,
-        inputs = transitive_inputs,
         args = args,
     )
 
@@ -136,7 +135,7 @@ def zig_docs_impl(ctx, *, kind):
 
     inputs = depset(
         direct = direct_inputs,
-        transitive = transitive_inputs,
+        transitive = transitive_inputs + [root_module.transitive_inputs],
         order = "preorder",
     )
 
