@@ -14,9 +14,8 @@ FIELDS = {
     "name": "string, The import name of the module.",
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
     "main": "File, The main source file of the module.",
-    "srcs": "list of File, Other Zig source files that belong to the module.",
-    "extra_srcs": "list of File, Other files that belong to the module.",
     "deps": "list of ZigModuleInfo, Import dependencies of this module.",
+    "transitive_inputs": "depset of File, All dependencies required when depending on the module, including transitive dependencies.",
     "transitive_deps": "depset of ZigModuleInfo, All dependencies required when depending on the module, including transitive dependencies.",
 }
 
@@ -43,9 +42,8 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
         name = name,
         canonical_name = canonical_name,
         main = main,
-        srcs = tuple(srcs),
-        extra_srcs = tuple(extra_srcs),
         deps = tuple(deps),
+        transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps]),
         transitive_deps = depset(direct = deps, transitive = [dep.transitive_deps for dep in deps], order = "postorder"),
     )
 
@@ -54,31 +52,23 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
 def _render_dep(dep):
     return dep.name + "=" + dep.canonical_name
 
-def _add_module_files(inputs, module):
-    deps = (module.main,) + module.srcs + module.extra_srcs
-    inputs.append(depset(direct = deps))
-
-def _render_args(*, module, inputs, args):
+def _render_args(*, module, args):
     args.add_all(module.deps, before_each = "--dep", map_each = _render_dep)
     args.add(module.main, format = "-M{}=%s".format(module.canonical_name))
-    _add_module_files(inputs, module)
 
-def zig_module_specifications(*, root_module, inputs, args):
+def zig_module_specifications(*, root_module, args):
     """Collect inputs and flags to build Zig modules.
 
     Args:
         root_module: ZigModuleInfo; The root module for which to render args.
-        inputs: List of depset of File; mutable, Append the needed inputs to this list.
         args: Args; mutable, Append the needed Zig compiler flags to this object.
     """
     _render_args(
         module = root_module,
-        inputs = inputs,
         args = args,
     )
     for dep in root_module.transitive_deps.to_list():
         _render_args(
             module = dep,
-            inputs = inputs,
             args = args,
         )
