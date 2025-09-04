@@ -40,7 +40,7 @@ def _write_simple_module_expected_specs_args_impl(ctx):
     expected.extend(["--dep", _bazel_builtin_dep(ctx.attr.mod.label)])
     expected.extend(["'-M{name}={src}'".format(
         name = mod.name,
-        src = mod.main.path,
+        src = ctx.file.mod_main.path,
     )])
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.mod.label))
 
@@ -63,7 +63,6 @@ def _write_module_specs_args_impl(ctx):
 
     zig_module_specifications(
         root_module = ctx.attr.mod[ZigModuleInfo],
-        inputs = [],
         args = args,
     )
 
@@ -96,9 +95,9 @@ def _write_nested_module_expected_specs_args_impl(ctx):
             mod_flags = _bazel_builtin_mod_flags(ctx, mod.label),
             dep = _bazel_builtin_dep(mod.label),
             file = [
-                zmod.main
-                for zmod in mods[mod.label.name].transitive_deps.to_list()
-                if zmod.main.path == _bazel_builtin_file_name(ctx, mod.label)
+                file
+                for file in mods[mod.label.name].transitive_inputs.to_list()
+                if file.path == _bazel_builtin_file_name(ctx, mod.label)
             ],
         )
         for mod in ctx.attr.mods
@@ -176,6 +175,7 @@ def module_info_test_suite(name):
     _write_simple_module_expected_specs_args(
         name = "simple_expected",
         mod = "//zig/tests/multiple-sources-module:data",
+        mod_main = "//zig/tests/multiple-sources-module:data.zig",
         out = "simple_expected.txt",
         tags = ["manual"],
     )
