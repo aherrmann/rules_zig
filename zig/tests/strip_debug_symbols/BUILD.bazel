@@ -1,0 +1,34 @@
+load(
+    "@rules_zig//zig:defs.bzl",
+    "zig_binary",
+    "zig_shared_library",
+    "zig_test",
+)
+
+zig_binary(
+    name = "binary-strip",
+    main = "main.zig",
+    strip_debug_symbols = True,
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_shared_library(
+    name = "library-shared-strip",
+    main = "main.zig",
+    strip_debug_symbols = True,
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_test(
+    name = "test-strip",
+    size = "small",
+    main = "main.zig",
+    strip_debug_symbols = True,
+    visibility = ["//zig/tests:__pkg__"],
+)
