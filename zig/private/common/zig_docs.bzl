@@ -11,7 +11,8 @@ load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
     "//zig/private/providers:zig_module_info.bzl",
-    "zig_module_dependencies",
+    "ZigModuleInfo",
+    "zig_module_info",
     "zig_module_specifications",
 )
 load(
@@ -101,28 +102,25 @@ def zig_docs_impl(ctx, *, kind):
         data = direct_data,
     )
 
-    direct_inputs.append(ctx.file.main)
-    direct_inputs.extend(ctx.files.srcs)
-    direct_inputs.extend(ctx.files.extra_srcs)
     direct_inputs.extend(ctx.files.extra_docs)
 
-    bazel_builtin = bazel_builtin_module(ctx)
+    zdeps = []
+    for dep in ctx.attr.deps:
+        if ZigModuleInfo in dep:
+            zdeps.append(dep[ZigModuleInfo])
 
-    zig_module_dependencies(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
-        args = args,
-        zig_version = zigtoolchaininfo.zig_version,
+    root_module = zig_module_info(
+        name = ctx.attr.name,
+        canonical_name = ctx.label.name,
+        main = ctx.file.main,
+        srcs = ctx.files.srcs,
+        extra_srcs = ctx.files.extra_srcs,
+        deps = zdeps + [bazel_builtin_module(ctx)],
     )
 
-    args.add(ctx.file.main, format = "-M{}=%s".format(ctx.label.name))
-
     zig_module_specifications(
-        deps = ctx.attr.deps,
-        extra_deps = [bazel_builtin],
-        inputs = transitive_inputs,
+        root_module = root_module,
         args = args,
-        zig_version = zigtoolchaininfo.zig_version,
     )
 
     zig_settings(
@@ -137,7 +135,7 @@ def zig_docs_impl(ctx, *, kind):
 
     inputs = depset(
         direct = direct_inputs,
-        transitive = transitive_inputs,
+        transitive = transitive_inputs + [root_module.transitive_inputs],
         order = "preorder",
     )
 
