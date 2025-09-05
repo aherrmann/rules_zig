@@ -531,6 +531,64 @@ def _test_compiler_runtime(name):
         name + "-test-include",
     ]
 
+def _strip_debug_symbols_test_impl(ctx):
+    env = analysistest.begin(ctx)
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic in ["ZigBuildExe", "ZigBuildTest", "ZigBuildStaticLib", "ZigBuildSharedLib"]
+    ]
+    asserts.equals(env, 1, len(build), "Target should have one ZigBuild* action.")
+    build = build[0]
+
+    if ctx.attr.strip_debug_symbols:
+        assert_flag_set(env, "-fstrip", build.argv)
+    else:
+        assert_flag_unset(env, "-fstrip", build.argv)
+
+    return analysistest.end(env)
+
+_strip_debug_symbols_test = analysistest.make(
+    _strip_debug_symbols_test_impl,
+    attrs = {
+        "strip_debug_symbols": attr.bool(mandatory = False),
+    },
+)
+
+def _test_strip_debug_symbols(name):
+    _strip_debug_symbols_test(
+        name = name + "-binary",
+        target_under_test = "//zig/tests/strip_debug_symbols:binary",
+        strip_debug_symbols = False,
+        size = "small",
+    )
+    _strip_debug_symbols_test(
+        name = name + "-binary-strip",
+        target_under_test = "//zig/tests/strip_debug_symbols:binary-strip",
+        strip_debug_symbols = True,
+        size = "small",
+    )
+    _strip_debug_symbols_test(
+        name = name + "-library-shared-strip",
+        target_under_test = "//zig/tests/strip_debug_symbols:library-shared-strip",
+        strip_debug_symbols = True,
+        size = "small",
+    )
+    _strip_debug_symbols_test(
+        name = name + "-test-strip",
+        target_under_test = "//zig/tests/strip_debug_symbols:test-strip",
+        strip_debug_symbols = True,
+        size = "small",
+    )
+
+    return [
+        name + "-binary",
+        name + "-binary-strip",
+        name + "-library-shared-strip",
+        name + "-test-strip",
+    ]
+
 def rules_test_suite(name):
     """Generate test suite and test targets for common rule analysis tests.
 
@@ -549,6 +607,7 @@ def rules_test_suite(name):
     tests += _test_module_binary(name = "module_binary_test")
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
     tests += _test_compiler_runtime(name = "compiler_runtime_test")
+    tests += _test_strip_debug_symbols(name = "strip_debug_symbols_test")
     native.test_suite(
         name = name,
         tests = tests,
