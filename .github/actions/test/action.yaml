@@ -24,11 +24,12 @@ inputs:
     required: true
   remoteEnabled:
     description: "Whether to enable remote execution."
-    default: true
+    default: "true"
     required: false
   buildbuddyApiKey:
     description: "The API key for BuildBuddy remote cache and execution."
-    required: true
+    default: ""
+    required: false
   bazelFlags:
     description: "Additional flags to pass to Bazel."
     required: false
@@ -57,7 +58,7 @@ runs:
           bazel-cache-${{ inputs.os }}-${{ inputs.zigVersion }}-${{ inputs.bazelVersion }}-${{ inputs.folder }}-${{ inputs.targetPattern }}
 
     - name: Configure remote cache and execution
-      if: ${{ inputs.remoteEnabled == 'true' }}
+      if: ${{ inputs.remoteEnabled == 'true' && inputs.buildbuddyApiKey != '' }}
       working-directory: ${{ inputs.folder }}
       shell: bash
       env:

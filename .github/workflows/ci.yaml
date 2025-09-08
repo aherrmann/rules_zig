@@ -14,7 +14,7 @@ on:
     secrets:
       BUILDBUDDY_API_KEY:
         description: The BuildBuddy remote execution access token.
-        required: true
+        required: false
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -107,7 +107,7 @@ jobs:
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
           tagFilters: ${{ matrix.tagFilters }}
-          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
+          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY || '' }}
 
   test-zig-versions:
     # The type of runner that the job will run on
@@ -158,7 +158,7 @@ jobs:
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
           tagFilters: ${{ matrix.tagFilters }}
-          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
+          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY || '' }}
 
   # Zig documentation builds are separated to work around the following issue:
   # https://github.com/aherrmann/rules_zig/issues/273
@@ -258,7 +258,7 @@ jobs:
           zigVersion: ${{ matrix.zigVersion }}
           targetPattern: ${{ matrix.targetPattern }}
           tagFilters: ${{ matrix.tagFilters }}
-          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
+          buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY || '' }}
 
   all_tests:
     runs-on: ubuntu-latest

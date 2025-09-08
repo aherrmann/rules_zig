@@ -106,6 +106,11 @@ The default behavior is to include them in executables and shared libraries.
         allow_single_file = True,
         mandatory = False,
     ),
+    "strip_debug_symbols": attr.bool(
+        doc = "Whether to pass '-fstrip' to the zig compiler to remove debug symbols.",
+        mandatory = False,
+        default = False,
+    ),
     "data": attr.label_list(
         allow_files = True,
         doc = "Files required by the target during runtime.",
@@ -279,6 +284,9 @@ def zig_build_impl(ctx, *, kind):
         args.add("-fcompiler-rt")
     elif ctx.attr.compiler_runtime == "exclude":
         args.add("-fno-compiler-rt")
+
+    if ctx.attr.strip_debug_symbols:
+        args.add("-fstrip")
 
     header = None
     compilation_context = None
