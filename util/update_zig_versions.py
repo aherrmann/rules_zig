@@ -10,6 +10,7 @@ _ZIG_INDEX_URL = "https://ziglang.org/download/index.json"
 
 _UNSUPPORTED_VERSIONS = [
     "0.14.0",
+    "0.13.0",
     "0.12.1",
     "0.12.0",
     "0.11.0",
