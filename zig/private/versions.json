@@ -66,5 +66,39 @@
       "tarball": "https://ziglang.org/download/0.14.1/zig-x86_64-windows-0.14.1.zip",
       "shasum": "554f5378228923ffd558eac35e21af020c73789d87afeabf4bfd16f2e6feed2c"
     }
+  },
+  "0.13.0": {
+    "aarch64-linux": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-aarch64-0.13.0.tar.xz",
+      "shasum": "041ac42323837eb5624068acd8b00cd5777dac4cf91179e8dad7a7e90dd0c556"
+    },
+    "aarch64-macos": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-macos-aarch64-0.13.0.tar.xz",
+      "shasum": "46fae219656545dfaf4dce12fb4e8685cec5b51d721beee9389ab4194d43394c"
+    },
+    "aarch64-windows": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-windows-aarch64-0.13.0.zip",
+      "shasum": "95ff88427af7ba2b4f312f45d2377ce7a033e5e3c620c8caaa396a9aba20efda"
+    },
+    "x86-linux": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-x86-0.13.0.tar.xz",
+      "shasum": "876159cc1e15efb571e61843b39a2327f8925951d48b9a7a03048c36f72180f7"
+    },
+    "x86-windows": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-windows-x86-0.13.0.zip",
+      "shasum": "eb3d533c3cf868bff7e74455dc005d18fd836c42e50b27106b31e9fec6dffc4a"
+    },
+    "x86_64-linux": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz",
+      "shasum": "d45312e61ebcc48032b77bc4cf7fd6915c11fa16e4aad116b66c9468211230ea"
+    },
+    "x86_64-macos": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-macos-x86_64-0.13.0.tar.xz",
+      "shasum": "8b06ed1091b2269b700b3b07f8e3be3b833000841bae5aa6a09b1a8b4773effd"
+    },
+    "x86_64-windows": {
+      "tarball": "https://ziglang.org/download/0.13.0/zig-windows-x86_64-0.13.0.zip",
+      "shasum": "d859994725ef9402381e557c60bb57497215682e355204d754ee3df75ee3c158"
+    }
   }
 }
