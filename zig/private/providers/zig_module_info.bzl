@@ -52,7 +52,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
         canonical_name = canonical_name,
         module_context = module_context,
         transitive_module_contexts = depset(direct = [dep.module_context for dep in deps], transitive = [dep.transitive_module_contexts for dep in deps], order = "postorder"),
-        transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps]),
+        transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps], order = "preorder"),
     )
 
     return module
