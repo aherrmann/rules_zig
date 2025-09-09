@@ -8,7 +8,7 @@ zig_shared_library(
 
 zig_shared_library(
     name = "direct",
-    cdeps = [":indirect"],
     main = "direct.zig",
     visibility = ["//zig/tests:__pkg__"],
+    deps = [":indirect"],
 )
