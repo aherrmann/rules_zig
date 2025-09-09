@@ -6,6 +6,7 @@ load(
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
+    COMMON_FRAGMENTS = "FRAGMENTS"
 )
 load(
     "//zig/private/common:zig_docs.bzl",
@@ -44,6 +45,8 @@ ATTRS = COMMON_ATTRS | BINARY_ATTRS | DOCS_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
+FRAGMENTS = COMMON_FRAGMENTS
+
 def _zig_binary_impl(ctx):
     build, build_groups = zig_build_impl(ctx, kind = "zig_binary")
     docs, docs_groups = zig_docs_impl(ctx, kind = "zig_binary")
@@ -55,4 +58,5 @@ zig_binary = rule(
     doc = DOC,
     executable = True,
     toolchains = TOOLCHAINS,
+    fragments = FRAGMENTS,
 )

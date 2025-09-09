@@ -1,17 +1,16 @@
 """Implementation of the zig_module rule."""
 
+load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load(
     "//zig/private/common:bazel_builtin.bzl",
-    "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
-load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
-load(
-    "//zig/private/providers:zig_module_info.bzl",
-    "ZigModuleInfo",
-    "zig_module_info",
-)
+
+load("//zig/private/common:translate_c.bzl", "zig_translate_c")
+
+load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
+load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 
 DOC = """\
 Defines a Zig module.
@@ -42,24 +41,10 @@ zig_module(
 """
 
 ATTRS = {
-    "main": attr.label(
-        allow_single_file = ZIG_SOURCE_EXTENSIONS,
-        doc = "The main source file.",
-        mandatory = True,
-    ),
-    "srcs": attr.label_list(
-        allow_files = ZIG_SOURCE_EXTENSIONS,
-        doc = "Other Zig source files required when building the module, e.g. files imported using `@import`.",
-        mandatory = False,
-    ),
-    "extra_srcs": attr.label_list(
-        allow_files = True,
-        doc = "Other files required when building the module, e.g. files embedded using `@embedFile`.",
-        mandatory = False,
-    ),
-    "deps": attr.label_list(
+    "cdeps": attr.label_list(
         doc = "Other modules required when building the module.",
-        mandatory = False,
+        mandatory = True,
+        providers = [CcInfo],
     ),
     "data": attr.label_list(
         allow_files = True,
@@ -68,15 +53,30 @@ ATTRS = {
     ),
 } | BAZEL_BUILTIN_ATTRS
 
-def _zig_module_impl(ctx):
+def _zig_c_module_impl(ctx):
+    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
+
     transitive_data = []
     transitive_runfiles = []
 
     zig_collect_data(
         data = ctx.attr.data,
-        deps = ctx.attr.deps,
+        deps = ctx.attr.cdeps,
         transitive_data = transitive_data,
         transitive_runfiles = transitive_runfiles,
+    )
+
+    global_args = ctx.actions.args()
+    global_args.use_param_file("@%s")
+
+    zig_lib_dir(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = global_args,
+    )
+
+    zig_cache_output(
+        zigtoolchaininfo = zigtoolchaininfo,
+        args = global_args,
     )
 
     default = DefaultInfo(
@@ -88,29 +88,21 @@ def _zig_module_impl(ctx):
         ),
     )
 
-    zdeps = []
-    cdeps = []
-    for dep in ctx.attr.deps:
-        if ZigModuleInfo in dep:
-            zdeps.append(dep[ZigModuleInfo])
-        elif CcInfo in dep:
-            cdeps.append(dep[CcInfo])
-
-    module = zig_module_info(
+    cc_infos = [dep[CcInfo] for dep in ctx.attr.cdeps]
+    module = zig_translate_c(
+        ctx = ctx,
         name = ctx.label.name,
-        canonical_name = ctx.label.name,
-        main = ctx.file.main,
-        srcs = ctx.files.srcs,
-        extra_srcs = ctx.files.extra_srcs,
-        deps = zdeps + [bazel_builtin_module(ctx)],
-        cdeps = cdeps,
+        zigtoolchaininfo = zigtoolchaininfo,
+        global_args = global_args,
+        cc_infos = cc_infos,
     )
 
     return [default, module]
 
-zig_module = rule(
-    _zig_module_impl,
+zig_c_module = rule(
+    _zig_c_module_impl,
     attrs = ATTRS,
     doc = DOC,
-    toolchains = ["//zig:toolchain_type"],
+    toolchains = ["//zig:toolchain_type"] + use_cc_toolchain(mandatory = True),
+    fragments = ["cpp"],
 )

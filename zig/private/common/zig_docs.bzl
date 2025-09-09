@@ -4,7 +4,6 @@ load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
 )
-load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
@@ -90,16 +89,6 @@ def zig_docs_impl(ctx, *, kind):
         csrcs = ctx.files.csrcs,
         inputs = direct_inputs,
         args = args,
-    )
-
-    zig_cdeps(
-        cdeps = ctx.attr.cdeps,
-        solib_parents = [],
-        os = zigtargetinfo.triple.os,
-        direct_inputs = direct_inputs,
-        transitive_inputs = transitive_inputs,
-        args = args,
-        data = direct_data,
     )
 
     direct_inputs.extend(ctx.files.extra_docs)

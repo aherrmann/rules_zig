@@ -6,6 +6,7 @@ load(
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
+    COMMON_FRAGMENTS = "FRAGMENTS",
 )
 load(
     "//zig/private/common:zig_docs.bzl",
@@ -45,6 +46,8 @@ ATTRS = COMMON_ATTRS | COMMON_LIBRARY_ATTRS | DOCS_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
+FRAGMENTS = COMMON_FRAGMENTS
+
 def _zig_static_library_impl(ctx):
     build, build_groups = zig_build_impl(ctx, kind = "zig_static_library")
     docs, docs_groups = zig_docs_impl(ctx, kind = "zig_static_library")
@@ -55,4 +58,5 @@ zig_static_library = rule(
     attrs = ATTRS,
     doc = DOC,
     toolchains = TOOLCHAINS,
+    fragments = FRAGMENTS,
 )
