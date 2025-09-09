@@ -172,31 +172,36 @@ _write_nested_module_expected_specs_args = rule(
 )
 
 def module_info_test_suite(name):
+    """Generate module info test suite.
+
+    Args:
+        name: The name of the test suite.
+    """
     _write_simple_module_expected_specs_args(
-        name = "simple_expected",
+        name = name + "_simple_expected",
         mod = "//zig/tests/multiple-sources-module:data",
         mod_main = "//zig/tests/multiple-sources-module:data.zig",
-        out = "simple_expected.txt",
+        out = name + "_simple_expected.txt",
         tags = ["manual"],
     )
 
     _write_module_specs_args(
-        name = "simple_actual",
+        name = name + "_simple_actual",
         mod = "//zig/tests/multiple-sources-module:data",
-        out = "simple_actual.txt",
+        out = name + "_simple_actual.txt",
         tags = ["manual"],
     )
 
     diff_test(
-        name = "simple_diff_test",
+        name = name + "_simple_diff_test",
         failure_message = "generated module specifications do not match",
-        file1 = "simple_expected.txt",
-        file2 = "simple_actual.txt",
+        file1 = name + "_simple_expected.txt",
+        file2 = name + "_simple_actual.txt",
         size = "small",
     )
 
     _write_nested_module_expected_specs_args(
-        name = "nested_expected",
+        name = name + "_nested_expected",
         mods = [
             "//zig/tests/nested-modules:a",
             "//zig/tests/nested-modules:b",
@@ -213,29 +218,29 @@ def module_info_test_suite(name):
             "//zig/tests/nested-modules:e.zig",
             "//zig/tests/nested-modules:f.zig",
         ],
-        out = "nested_expected.txt",
+        out = name + "_nested_expected.txt",
         tags = ["manual"],
     )
 
     _write_module_specs_args(
-        name = "nested_actual",
+        name = name + "_nested_actual",
         mod = "//zig/tests/nested-modules:a",
-        out = "nested_actual.txt",
+        out = name + "_nested_actual.txt",
         tags = ["manual"],
     )
 
     diff_test(
-        name = "nested_diff_test",
+        name = name + "_nested_diff_test",
         failure_message = "generated module specifications do not match",
-        file1 = "nested_expected.txt",
-        file2 = "nested_actual.txt",
+        file1 = name + "_nested_expected.txt",
+        file2 = name + "_nested_actual.txt",
         size = "small",
     )
 
     native.test_suite(
         name = name,
         tests = [
-            "simple_diff_test",
-            "nested_diff_test",
+            name + "_simple_diff_test",
+            name + "_nested_diff_test",
         ],
     )
