@@ -13,8 +13,8 @@ the current target name or current repository name.
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_binary")
 
-zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-cdeps">cdeps</a>, <a href="#zig_binary-compiler_runtime">compiler_runtime</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-env">env</a>, <a href="#zig_binary-extra_docs">extra_docs</a>,
-           <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>, <a href="#zig_binary-strip_debug_symbols">strip_debug_symbols</a>)
+zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-compiler_runtime">compiler_runtime</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-env">env</a>, <a href="#zig_binary-extra_docs">extra_docs</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>,
+           <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>, <a href="#zig_binary-strip_debug_symbols">strip_debug_symbols</a>)
 </pre>
 
 Builds a Zig binary.
@@ -51,7 +51,6 @@ zig_binary(
 | <a id="zig_binary-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_binary-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_binary-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_binary-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -61,6 +60,52 @@ zig_binary(
 | <a id="zig_binary-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_binary-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_binary-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
+
+
+<a id="zig_c_module"></a>
+
+## zig_c_module
+
+<pre>
+load("@rules_zig//zig:defs.bzl", "zig_c_module")
+
+zig_c_module(<a href="#zig_c_module-name">name</a>, <a href="#zig_c_module-data">data</a>, <a href="#zig_c_module-cdeps">cdeps</a>)
+</pre>
+
+Defines a Zig module.
+
+A Zig module is a collection of Zig sources with a main source file
+that defines the module's entry point.
+
+This rule does not perform compilation by itself.
+Instead, modules are compiled at the use-site.
+Zig performs whole program compilation.
+
+**EXAMPLE**
+
+```bzl
+load("@rules_zig//zig:defs.bzl", "zig_module")
+
+zig_module(
+    name = "my-module",
+    main = "main.zig",
+    srcs = [
+        "utils.zig",  # to support `@import("utils.zig")`.
+    ],
+    deps = [
+        ":other-module",  # to support `@import("other-module")`.
+    ],
+)
+```
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig_c_module-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_c_module-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_c_module-cdeps"></a>cdeps |  Other modules required when building the module.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
 
 
 <a id="zig_configure"></a>
@@ -311,8 +356,8 @@ zig_module(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_shared_library")
 
-zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-cdeps">cdeps</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>,
-                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-generate_header">generate_header</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>)
+zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>, <a href="#zig_shared_library-extra_srcs">extra_srcs</a>,
+                   <a href="#zig_shared_library-generate_header">generate_header</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>)
 </pre>
 
 Builds a Zig shared library, produces a shared or dynamic library.
@@ -350,7 +395,6 @@ zig_shared_library(
 | <a id="zig_shared_library-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_shared_library-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_shared_library-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_shared_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -369,8 +413,8 @@ zig_shared_library(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_static_library")
 
-zig_static_library(<a href="#zig_static_library-name">name</a>, <a href="#zig_static_library-deps">deps</a>, <a href="#zig_static_library-srcs">srcs</a>, <a href="#zig_static_library-data">data</a>, <a href="#zig_static_library-cdeps">cdeps</a>, <a href="#zig_static_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_static_library-copts">copts</a>, <a href="#zig_static_library-csrcs">csrcs</a>, <a href="#zig_static_library-extra_docs">extra_docs</a>,
-                   <a href="#zig_static_library-extra_srcs">extra_srcs</a>, <a href="#zig_static_library-generate_header">generate_header</a>, <a href="#zig_static_library-linker_script">linker_script</a>, <a href="#zig_static_library-main">main</a>, <a href="#zig_static_library-strip_debug_symbols">strip_debug_symbols</a>)
+zig_static_library(<a href="#zig_static_library-name">name</a>, <a href="#zig_static_library-deps">deps</a>, <a href="#zig_static_library-srcs">srcs</a>, <a href="#zig_static_library-data">data</a>, <a href="#zig_static_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_static_library-copts">copts</a>, <a href="#zig_static_library-csrcs">csrcs</a>, <a href="#zig_static_library-extra_docs">extra_docs</a>, <a href="#zig_static_library-extra_srcs">extra_srcs</a>,
+                   <a href="#zig_static_library-generate_header">generate_header</a>, <a href="#zig_static_library-linker_script">linker_script</a>, <a href="#zig_static_library-main">main</a>, <a href="#zig_static_library-strip_debug_symbols">strip_debug_symbols</a>)
 </pre>
 
 Builds a Zig library, produces a static archive.
@@ -408,7 +452,6 @@ zig_static_library(
 | <a id="zig_static_library-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_static_library-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_static_library-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_static_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -427,8 +470,8 @@ zig_static_library(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_test")
 
-zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-cdeps">cdeps</a>, <a href="#zig_test-compiler_runtime">compiler_runtime</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>,
-         <a href="#zig_test-extra_docs">extra_docs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>)
+zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-compiler_runtime">compiler_runtime</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>, <a href="#zig_test-extra_docs">extra_docs</a>,
+         <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>)
 </pre>
 
 Builds a Zig test.
@@ -464,7 +507,6 @@ zig_test(
 | <a id="zig_test-deps"></a>deps |  modules required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-srcs"></a>srcs |  Other Zig source files required to build the target, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-data"></a>data |  Files required by the target during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_test-cdeps"></a>cdeps |  C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.<br><br>Note, if you need to include C or C++ standard library headers and encounter errors of the following form:<br><br><pre><code>note: libc headers not available; compilation does not link against libc&#10;error: 'math.h' file not found</code></pre><br><br>Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_test-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
