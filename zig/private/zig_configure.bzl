@@ -101,6 +101,8 @@ zig_configure_test(
 
 def _zig_transition_impl(settings, attr):
     result = dict(settings)
+    if attr.extra_toolchains:
+        result["//command_line_option:extra_toolchains"] = ",".join([str(toolchain) for toolchain in attr.extra_toolchains])
     if attr.target:
         result["//command_line_option:platforms"] = str(attr.target)
     if attr.zig_version:
@@ -114,12 +116,14 @@ def _zig_transition_impl(settings, attr):
 _zig_transition = transition(
     implementation = _zig_transition_impl,
     inputs = [
+        "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
     outputs = [
+        "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
         "//zig/settings:mode",
@@ -137,6 +141,10 @@ def _make_attrs(*, executable):
         ),
         "target": attr.label(
             doc = "The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.",
+            mandatory = False,
+        ),
+        "extra_toolchains": attr.label_list(
+            doc = "Additional toolchains to consider during toolchain resolution for the transitioned target.",
             mandatory = False,
         ),
         "zig_version": attr.string(
