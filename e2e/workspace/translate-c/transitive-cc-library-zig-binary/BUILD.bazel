@@ -1,0 +1,52 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_module", "zig_c_module", "zig_binary")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
+cc_library(
+    name = "local_c",
+    hdrs = ["local.h"],
+    srcs = ["local.c"],
+)
+
+zig_c_module(
+    name = "local_zig",
+    cdeps = [":local_c"],
+)
+
+zig_module(
+    name = "module",
+    main = "module.zig",
+    deps = [":local_zig"],
+)
+
+cc_library(
+    name = "private_h",
+    hdrs = ["private.h"],
+)
+
+cc_library(
+    name = "global_c",
+    hdrs = ["global.h"],
+    srcs = ["global.c"],
+    deps = [":private_h"],
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    deps = [":module", ":global_c"],
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :binary) > $(OUTS)",
+    tools = [":binary"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)

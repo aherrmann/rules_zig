@@ -1,3 +1,3 @@
-int corentin() {
+char local() {
     return 21;
 }
