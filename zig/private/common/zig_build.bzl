@@ -123,28 +123,7 @@ The default behavior is to include them in executables and shared libraries.
     ),
 } | BAZEL_BUILTIN_ATTRS
 
-COMMON_LIBRARY_ATTRS = {
-    "generate_header": attr.bool(
-        doc = """\
-Generate a C header file for functions exported under the C ABI.
-The generated header is exposed in the "header" output group
-as well as in the `CcInfo` provider.
-
-NOTE: The target may need to depend on `@rules_zig//zig/lib:libc`,
-otherwise the compiler may crash with a segmentation fault.
-See https://github.com/ziglang/zig/issues/18188.
-
-NOTE: Header generation has been disabled as of Zig 0.14.0.
-See https://github.com/ziglang/zig/issues/9698.
-        """,
-        mandatory = False,
-        default = False,
-    ),
-    "_zig_header": attr.label(
-        doc = "The Zig header file required by the generated header file.",
-        default = "@rules_zig//zig/lib:zig_header",
-    ),
-}
+COMMON_LIBRARY_ATTRS = {}
 
 BINARY_ATTRS = {
     "env": attr.string_dict(
@@ -288,18 +267,6 @@ def zig_build_impl(ctx, *, kind):
     if ctx.attr.strip_debug_symbols:
         args.add("-fstrip")
 
-    header = None
-    compilation_context = None
-    if getattr(ctx.attr, "generate_header", False):
-        header = ctx.actions.declare_file(ctx.label.name + ".h")
-        outputs.append(header)
-        args.add(header, format = "-femit-h=%s")
-        output_groups["header"] = depset(direct = [header])
-        compilation_context = cc_common.create_compilation_context(
-            headers = depset(direct = [header]),
-            includes = depset(direct = [header.dirname]),
-        )
-
     linking_context = None
     if library_to_link != None:
         linker_input = cc_common.create_linker_input(
@@ -311,9 +278,8 @@ def zig_build_impl(ctx, *, kind):
         )
 
     cc_info = None
-    if compilation_context != None or linking_context != None:
+    if linking_context != None:
         cc_info = CcInfo(
-            compilation_context = compilation_context,
             linking_context = linking_context,
         )
 
@@ -442,8 +408,6 @@ def zig_build_impl(ctx, *, kind):
     if cc_info != None:
         direct_cc_infos = [cc_info]
         cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps]
-        if getattr(ctx.attr, "generate_header", False):
-            cc_infos.append(ctx.attr._zig_header[CcInfo])
         cc_info = cc_common.merge_cc_infos(
             direct_cc_infos = direct_cc_infos,
             cc_infos = cc_infos,

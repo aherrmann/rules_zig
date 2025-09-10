@@ -5,11 +5,3 @@ zig_static_library(
     main = "main.zig",
     visibility = ["//zig/tests:__pkg__"],
 )
-
-zig_static_library(
-    name = "library-header",
-    generate_header = True,
-    main = "main.zig",
-    tags = ["manual"],
-    visibility = ["//zig/tests:__pkg__"],
-)
