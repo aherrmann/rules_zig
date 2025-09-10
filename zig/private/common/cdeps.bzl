@@ -19,18 +19,19 @@ def zig_cdeps(*, root_module, solib_parents, os, direct_inputs, transitive_input
       data: List of File; mutable, Append the needed runtime dependencies.
     """
 
-    # We want to allow @cImport for all transitive CcInfo that were not translate-c already.
-    transitive_inputs.append(root_module.untranslated_cc_info.compilation_context.headers)
-
     # We still want to link all libraries from all transitive CcInfo, including those who were translate-c.
     translated_cc_infos = [root_module.translated_cc_info] if root_module.translated_cc_info else []
-    all_cc_info = cc_common.merge_cc_infos(direct_cc_infos = [root_module.untranslated_cc_info] + translated_cc_infos)
+    untranslated_cc_infos = [root_module.untranslated_cc_info] if root_module.untranslated_cc_info else []
+    all_cc_info = cc_common.merge_cc_infos(direct_cc_infos = untranslated_cc_infos + translated_cc_infos)
 
-    # Add defines and include paths for all CcInfo that were not already translate-c.
-    _compilation_context(
-        compilation_context = root_module.untranslated_cc_info.compilation_context,
-        args = args,
-    )
+    # We want to allow @cImport for all transitive CcInfo that were not translate-c already.
+    if root_module.untranslated_cc_info:
+        transitive_inputs.append(root_module.untranslated_cc_info.compilation_context.headers)
+        # Add defines and include paths for all CcInfo that were not already translate-c.
+        _compilation_context(
+            compilation_context = root_module.untranslated_cc_info.compilation_context,
+            args = args,
+        )
 
     # Computer Zig linker inputs and arguments for all CcInfo, including those who were already translate-c.
     _linking_context(
