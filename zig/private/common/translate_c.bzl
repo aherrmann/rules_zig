@@ -177,5 +177,4 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
         canonical_name = "{}/{}".format(str(ctx.label), name),
         main = zig_out,
         translated_cdeps = cc_infos,
-        # copts = ["-lc"],
     )
