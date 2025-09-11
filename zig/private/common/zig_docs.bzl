@@ -114,17 +114,7 @@ def zig_docs_impl(ctx, *, kind):
         deps = zdeps + [bazel_builtin_module(ctx)],
     )
 
-    c_module = None
-
     if root_module.cc_info:
-        c_module = zig_translate_c(
-            ctx = ctx,
-            name = "c",
-            zigtoolchaininfo = zigtoolchaininfo,
-            global_args = global_args,
-            cc_infos = [root_module.cc_info],
-        )
-
         zig_cdeps(
             cc_info = root_module.cc_info,
             solib_parents = solib_parents,
@@ -138,7 +128,6 @@ def zig_docs_impl(ctx, *, kind):
     zig_module_specifications(
         root_module = root_module,
         args = args,
-        c_module = c_module,
     )
 
     zig_settings(
@@ -151,11 +140,9 @@ def zig_docs_impl(ctx, *, kind):
         args = args,
     )
 
-    c_module_inputs = [c_module.transitive_inputs] if c_module else []
-
     inputs = depset(
         direct = direct_inputs,
-        transitive = transitive_inputs + [root_module.transitive_inputs] + c_module_inputs,
+        transitive = transitive_inputs + [root_module.transitive_inputs],
         order = "preorder",
     )
 
