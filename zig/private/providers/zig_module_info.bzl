@@ -53,6 +53,8 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
     cc_infos = []
     cc_infos.extend(cdeps)
     cc_infos.extend([dep.cc_info for dep in deps if dep.cc_info])
+
+    # For C deps that passed through `translate-c`, we only forward the linking_context because we do not want them to be `@cImport`.
     if translated_cdeps:
         cc_infos.append(CcInfo(
             linking_context = cc_common.merge_linking_contexts(linking_contexts = [dep.linking_context for dep in translated_cdeps]),
