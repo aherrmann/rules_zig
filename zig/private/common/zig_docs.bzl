@@ -116,7 +116,6 @@ def zig_docs_impl(ctx, *, kind):
 
     c_module = None
 
-    #TODO(cerisier): if cc_toolchain ??
     if root_module.cc_info:
         c_module = zig_translate_c(
             ctx = ctx,

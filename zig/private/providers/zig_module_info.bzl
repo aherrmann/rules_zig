@@ -17,7 +17,7 @@ FIELDS = {
     "name": "string, The import name of the module.",
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
     "module_context": "struct, per module compilation context required when depending on the module.",
-    "cc_info": "CcInfo or None, TODO(cerisier).",
+    "cc_info": "CcInfo or None, Merged CcInfo from all transitive dependencies.",
     "transitive_module_contexts": "depset of struct, All compilation context required by direct and transitive dependencies.",
     "transitive_inputs": "depset of File, All dependencies required when depending on the module, including transitive dependencies.",
 }
