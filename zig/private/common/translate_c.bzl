@@ -1,3 +1,5 @@
+"""Handle translate-c pass."""
+
 load("@rules_cc//cc:action_names.bzl", "C_COMPILE_ACTION_NAME")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
@@ -68,6 +70,21 @@ def _filter_options(command_line, allow_list):
     return filtered_command_line
 
 def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
+    """Handle translate-c build action.
+
+    Sets the appropriate command-line flags for the Zig compiler to expose
+    provided headers and link against the provided libraries.
+
+    Args:
+      ctx: CcInfo, The CcInfo provider for the C dependencies.
+      name: List of String, parent RUNPATH components in `$ORIGIN/PARENT/_solib_k8`.
+      zigtoolchaininfo: String, The OS component of the target triple.
+      global_args: List of File; mutable, Append the needed inputs to this list.
+      cc_infos: List of depset of File; mutable, Append the needed inputs to this list.
+
+    Returns:
+        `ZigModuleInfo` surrounding the generated zig file.
+    """
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos)
     compilation_context = cc_info.compilation_context
 
