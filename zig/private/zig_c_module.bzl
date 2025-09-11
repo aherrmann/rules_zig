@@ -1,14 +1,13 @@
 """Implementation of the zig_module rule."""
 
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
-
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
-
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 

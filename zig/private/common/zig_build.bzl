@@ -6,7 +6,6 @@ load(
     "find_cpp_toolchain",
 )
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
-load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
@@ -14,6 +13,7 @@ load(
     "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
+load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load(
@@ -23,6 +23,7 @@ load(
 )
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
+load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
@@ -40,7 +41,6 @@ load(
     "//zig/private/providers:zig_target_info.bzl",
     "zig_target_platform",
 )
-load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 
 ATTRS = {
     "main": attr.label(

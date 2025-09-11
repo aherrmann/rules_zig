@@ -5,8 +5,8 @@ load(
     "BINARY_ATTRS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
+    COMMON_FRAGMENTS = "FRAGMENTS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
-    COMMON_FRAGMENTS = "FRAGMENTS"
 )
 load(
     "//zig/private/common:zig_docs.bzl",

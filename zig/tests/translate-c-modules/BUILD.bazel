@@ -1,4 +1,5 @@
-load("@rules_zig//zig:defs.bzl", "zig_module", "zig_c_module")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_c_module", "zig_module")
 
 exports_files(
     [
@@ -27,7 +28,7 @@ zig_module(
         "data/hello.zig",
         "data/world.zig",
     ],
-    deps = [":data_c_zig"],
     main = "data.zig",
     visibility = ["//zig/tests:__pkg__"],
+    deps = [":data_c_zig"],
 )

@@ -171,7 +171,6 @@ _write_nested_module_expected_specs_args = rule(
     },
 )
 
-
 def _write_simple_module_with_c_expected_specs_args_impl(ctx):
     mods = {
         mod.label.name: mod[ZigModuleInfo]
@@ -248,10 +247,10 @@ def module_info_test_suite(name):
         name = name + "_simple_with_c_expected",
         mods = [
             "//zig/tests/translate-c-modules:data_c_zig",
-            "//zig/tests/translate-c-modules:data"
+            "//zig/tests/translate-c-modules:data",
         ],
         mod_mains = [
-            "//zig/tests/translate-c-modules:data.zig"
+            "//zig/tests/translate-c-modules:data.zig",
         ],
         out = name + "_simple_with_c_expected.txt",
         tags = ["manual"],

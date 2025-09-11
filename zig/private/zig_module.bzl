@@ -1,5 +1,6 @@
 """Implementation of the zig_module rule."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",

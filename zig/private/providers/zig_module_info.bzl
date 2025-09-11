@@ -1,5 +1,8 @@
 """Defines providers for the zig_module rule."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 DOC = """\
 Information about a Zig module.
 

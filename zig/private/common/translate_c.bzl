@@ -1,5 +1,6 @@
 load("@rules_cc//cc:action_names.bzl", "C_COMPILE_ACTION_NAME")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
 
 # translate-c doesn't need crt_dir
@@ -85,10 +86,12 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     args.add_all(compilation_context.defines, format_each = "-D%s")
     args.add("-I.")
     args.add_all(compilation_context.includes, format_each = "-I%s")
+
     # Note, Zig does not support `-iquote` as of Zig 0.12.0
     # args.add_all(compilation_context.quote_includes, format_each = "-iquote%s")
     args.add_all(compilation_context.quote_includes, format_each = "-I%s")
     args.add_all(compilation_context.system_includes, before_each = "-isystem")
+
     # Added in Bazel 7, see https://github.com/bazelbuild/bazel/commit/a6ef0b341a8ffe8ab27e5ace79d8eaae158c422b
     args.add_all(getattr(compilation_context, "external_includes", []), before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")

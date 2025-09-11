@@ -1,11 +1,11 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_zig//zig:defs.bzl", "zig_module", "zig_c_module", "zig_binary")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_c_module", "zig_module")
 
 cc_library(
     name = "local_c",
-    hdrs = ["local.h"],
     srcs = ["local.c"],
+    hdrs = ["local.h"],
 )
 
 zig_c_module(
@@ -26,15 +26,18 @@ cc_library(
 
 cc_library(
     name = "global_c",
-    hdrs = ["global.h"],
     srcs = ["global.c"],
+    hdrs = ["global.h"],
     deps = [":private_h"],
 )
 
 zig_binary(
     name = "binary",
     main = "main.zig",
-    deps = [":module", ":global_c"],
+    deps = [
+        ":global_c",
+        ":module",
+    ],
 )
 
 genrule(
