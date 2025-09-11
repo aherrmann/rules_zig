@@ -18,9 +18,8 @@ zig_binary(
 )
 ```
 
-The Zig compiler includes a header file `zig.h` that is imported by header
-files generated with `-femit-h`. This toolchain header file is exposed by the
-`:zig_header` target in this package, which can be used as a regular `cc_*`
+The Zig compiler includes a header file `zig.h` that is exposed by the
+`:zig_header` target in this package and can be used as a regular `cc_*`
 target dependency.
 """
 
