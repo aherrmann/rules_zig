@@ -14,8 +14,7 @@ FIELDS = {
     "name": "string, The import name of the module.",
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
     "module_context": "struct, per module compilation context required when depending on the module.",
-    "untranslated_cc_info": "CcInfo or None, TODO(cerisier).",
-    "translated_cc_info": "CcInfo or None, TODO(cerisier).",
+    "cc_info": "CcInfo or None, TODO(cerisier).",
     "transitive_module_contexts": "depset of struct, All compilation context required by direct and transitive dependencies.",
     "transitive_inputs": "depset of File, All dependencies required when depending on the module, including transitive dependencies.",
 }
@@ -48,11 +47,15 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
     Returns:
       `ZigModuleInfo`
     """
-    untranslated_cc_infos = [dep for dep in cdeps] + [dep.untranslated_cc_info for dep in deps if dep.untranslated_cc_info != None]
-    untranslated_cc_info = cc_common.merge_cc_infos(direct_cc_infos = untranslated_cc_infos) if untranslated_cc_infos else None
+    cc_infos = []
+    cc_infos.extend(cdeps)
+    cc_infos.extend([dep.cc_info for dep in deps if dep.cc_info])
+    if translated_cdeps:
+        cc_infos.append(CcInfo(
+            linking_context = cc_common.merge_linking_contexts(linking_contexts = [dep.linking_context for dep in translated_cdeps]),
+        ))
 
-    translated_cc_infos = [dep for dep in translated_cdeps] + [dep.translated_cc_info for dep in deps if dep.translated_cc_info != None]
-    translated_cc_info = cc_common.merge_cc_infos(direct_cc_infos = translated_cc_infos) if translated_cc_infos else None
+    cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos) if cc_infos else None
 
     module_context = _zig_module_context(canonical_name, main, deps)
 
@@ -60,8 +63,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
         name = name,
         canonical_name = canonical_name,
         module_context = module_context,
-        untranslated_cc_info = untranslated_cc_info,
-        translated_cc_info = translated_cc_info,
+        cc_info = cc_info,
         transitive_module_contexts = depset(direct = [dep.module_context for dep in deps], transitive = [dep.transitive_module_contexts for dep in deps], order = "postorder"),
         transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps], order = "preorder"),
     )

@@ -366,16 +366,14 @@ def zig_build_impl(ctx, *, kind):
     c_module = None
 
     #TODO(cerisier): if cc_toolchain ??
-    if root_module.untranslated_cc_info or root_module.translated_cc_info:
-        # We only want to translate-c transitive CcInfo that were not already translate-c.
-        if root_module.untranslated_cc_info:
-            c_module = zig_translate_c(
-                ctx = ctx,
-                name = "c",
-                zigtoolchaininfo = zigtoolchaininfo,
-                global_args = global_args,
-                cc_infos = [root_module.untranslated_cc_info],
-            )
+    if root_module.cc_info:
+        c_module = zig_translate_c(
+            ctx = ctx,
+            name = "c",
+            zigtoolchaininfo = zigtoolchaininfo,
+            global_args = global_args,
+            cc_infos = [root_module.cc_info],
+        )
 
         zig_cdeps(
             root_module = root_module,
@@ -447,9 +445,7 @@ def zig_build_impl(ctx, *, kind):
 
     if cc_info != None:
         direct_cc_infos = [cc_info]
-        untranslated_cc_infos = [root_module.untranslated_cc_info] if root_module.untranslated_cc_info else []
-        translated_cc_infos = [root_module.translated_cc_info] if root_module.translated_cc_info else []
-        cc_infos = untranslated_cc_infos + translated_cc_infos
+        cc_infos = [root_module.cc_info] if root_module.cc_info else []
         if getattr(ctx.attr, "generate_header", False):
             cc_infos.append(ctx.attr._zig_header[CcInfo])
         cc_info = cc_common.merge_cc_infos(

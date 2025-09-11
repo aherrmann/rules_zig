@@ -1,7 +1,6 @@
 """Handle C library dependencies."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 
 def zig_cdeps(*, root_module, solib_parents, os, direct_inputs, transitive_inputs, args, data):
     """Handle C library dependencies.
@@ -19,29 +18,20 @@ def zig_cdeps(*, root_module, solib_parents, os, direct_inputs, transitive_input
       data: List of File; mutable, Append the needed runtime dependencies.
     """
 
-    # We still want to link all libraries from all transitive CcInfo, including those who were translate-c.
-    translated_cc_infos = [root_module.translated_cc_info] if root_module.translated_cc_info else []
-    untranslated_cc_infos = [root_module.untranslated_cc_info] if root_module.untranslated_cc_info else []
-    all_cc_info = cc_common.merge_cc_infos(direct_cc_infos = untranslated_cc_infos + translated_cc_infos)
-
-    # We want to allow @cImport for all transitive CcInfo that were not translate-c already.
-    if root_module.untranslated_cc_info:
-        transitive_inputs.append(root_module.untranslated_cc_info.compilation_context.headers)
-        # Add defines and include paths for all CcInfo that were not already translate-c.
+    if root_module.cc_info:
+        transitive_inputs.append(root_module.cc_info.compilation_context.headers)
         _compilation_context(
-            compilation_context = root_module.untranslated_cc_info.compilation_context,
+            compilation_context = root_module.cc_info.compilation_context,
             args = args,
         )
-
-    # Computer Zig linker inputs and arguments for all CcInfo, including those who were already translate-c.
-    _linking_context(
-        linking_context = all_cc_info.linking_context,
-        solib_parents = solib_parents,
-        os = os,
-        inputs = direct_inputs,
-        args = args,
-        data = data,
-    )
+        _linking_context(
+            linking_context = root_module.cc_info.linking_context,
+            solib_parents = solib_parents,
+            os = os,
+            inputs = direct_inputs,
+            args = args,
+            data = data,
+        )
 
 def _compilation_context(*, compilation_context, args):
     args.add_all(compilation_context.defines, format_each = "-D%s")
