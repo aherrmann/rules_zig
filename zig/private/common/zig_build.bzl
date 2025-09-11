@@ -376,7 +376,7 @@ def zig_build_impl(ctx, *, kind):
         )
 
         zig_cdeps(
-            root_module = root_module,
+            cc_info = root_module.cc_info,
             solib_parents = solib_parents,
             os = zigtargetinfo.triple.os,
             direct_inputs = direct_inputs,

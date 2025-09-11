@@ -2,14 +2,14 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-def zig_cdeps(*, root_module, solib_parents, os, direct_inputs, transitive_inputs, args, data):
+def zig_cdeps(*, cc_info, solib_parents, os, direct_inputs, transitive_inputs, args, data):
     """Handle C library dependencies.
 
     Sets the appropriate command-line flags for the Zig compiler to expose
     provided headers and link against the provided libraries.
 
     Args:
-      root_module: TODO(cerisier)
+      cc_info: CcInfo, The CcInfo provider for the C dependencies.
       solib_parents: List of String, parent RUNPATH components in `$ORIGIN/PARENT/_solib_k8`.
       os: String, The OS component of the target triple.
       direct_inputs: List of File; mutable, Append the needed inputs to this list.
@@ -18,20 +18,19 @@ def zig_cdeps(*, root_module, solib_parents, os, direct_inputs, transitive_input
       data: List of File; mutable, Append the needed runtime dependencies.
     """
 
-    if root_module.cc_info:
-        transitive_inputs.append(root_module.cc_info.compilation_context.headers)
-        _compilation_context(
-            compilation_context = root_module.cc_info.compilation_context,
-            args = args,
-        )
-        _linking_context(
-            linking_context = root_module.cc_info.linking_context,
-            solib_parents = solib_parents,
-            os = os,
-            inputs = direct_inputs,
-            args = args,
-            data = data,
-        )
+    transitive_inputs.append(cc_info.compilation_context.headers)
+    _compilation_context(
+        compilation_context = cc_info.compilation_context,
+        args = args,
+    )
+    _linking_context(
+        linking_context = cc_info.linking_context,
+        solib_parents = solib_parents,
+        os = os,
+        inputs = direct_inputs,
+        args = args,
+        data = data,
+    )
 
 def _compilation_context(*, compilation_context, args):
     args.add_all(compilation_context.defines, format_each = "-D%s")
