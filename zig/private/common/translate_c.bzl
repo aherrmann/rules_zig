@@ -50,7 +50,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
     # If there is a CC toolchain, add its path there
-    cc_toolchain = find_cc_toolchain(ctx)
+    cc_toolchain = find_cc_toolchain(ctx, mandatory = False)
     if cc_toolchain:
         args.add_all(cc_toolchain.built_in_include_directories, before_each = "-isystem")
         transitive_inputs.append(cc_toolchain.all_files)
