@@ -18,6 +18,7 @@ FIELDS = {
     "canonical_name": "string, The canonical name may differ from the import name via remapping.",
     "module_context": "struct, per module compilation context required when depending on the module.",
     "cc_info": "CcInfo or None, Merged CcInfo from all transitive dependencies.",
+    "has_transitive_cdeps": "bool, Whether the module has transitive C dependencies.",
     "transitive_module_contexts": "depset of struct, All compilation context required by direct and transitive dependencies.",
     "transitive_inputs": "depset of File, All dependencies required when depending on the module, including transitive dependencies.",
 }
@@ -27,11 +28,15 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
-def _zig_module_context(canonical_name, main, deps):
+def _zig_module_context(canonical_name, main, deps, cdeps):
+    mappings = [struct(name = dep.name, canonical_name = dep.canonical_name) for dep in deps]
+    if cdeps:
+        # Global C module has a predefined name and canonical name since it is not defined yet here.
+        mappings.append(struct(name = "c", canonical_name = "c"))
     return struct(
         canonical_name = canonical_name,
         main = main.path,
-        dependency_mappings = tuple([struct(name = dep.name, canonical_name = dep.canonical_name) for dep in deps]),
+        dependency_mappings = tuple(mappings),
     )
 
 def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], deps = [], cdeps = [], translated_cdeps = []):
@@ -62,35 +67,28 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
 
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos) if cc_infos else None
 
-    module_context = _zig_module_context(canonical_name, main, deps)
+    module_context = _zig_module_context(canonical_name, main, deps, cdeps)
 
     module = ZigModuleInfo(
         name = name,
         canonical_name = canonical_name,
         module_context = module_context,
         cc_info = cc_info,
+        has_transitive_cdeps = any([dep.has_transitive_cdeps for dep in deps] + [bool(dep.compilation_context) for dep in cdeps]),
         transitive_module_contexts = depset(direct = [dep.module_context for dep in deps], transitive = [dep.transitive_module_contexts for dep in deps], order = "postorder"),
         transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps], order = "preorder"),
     )
 
     return module
 
-def _render_per_module_args_impl(module, has_c_module):
+def _render_per_module_args(module):
     args = []
     for mapping in module.dependency_mappings:
         args.extend(["--dep", "{}={}".format(mapping.name, mapping.canonical_name)])
-    if has_c_module:
-        args.extend(["--dep", "c"])
 
     args.append("-M{name}={src}".format(name = module.canonical_name, src = module.main))
 
     return args
-
-def _render_per_module_args_with_c(module):
-    return _render_per_module_args_impl(module, has_c_module = True)
-
-def _render_per_module_args(module):
-    return _render_per_module_args_impl(module, has_c_module = False)
 
 def zig_module_specifications(*, root_module, args, c_module = None):
     """Collect inputs and flags to build Zig modules.
@@ -102,10 +100,9 @@ def zig_module_specifications(*, root_module, args, c_module = None):
     """
 
     # The first module is the main module.
-    if c_module:
-        args.add_all(_render_per_module_args_with_c(root_module.module_context))
-        args.add_all(root_module.transitive_module_contexts, map_each = _render_per_module_args_with_c)
+    args.add_all(_render_per_module_args(root_module.module_context))
+    args.add_all(root_module.transitive_module_contexts, map_each = _render_per_module_args)
+
+    if root_module.has_transitive_cdeps and c_module:
+        # Global C module has a predefined canonical name.
         args.add(c_module.module_context.main, format = "-Mc=%s")
-    else:
-        args.add_all(_render_per_module_args(root_module.module_context))
-        args.add_all(root_module.transitive_module_contexts, map_each = _render_per_module_args)
