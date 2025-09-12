@@ -21,30 +21,30 @@ cc_library(
 
 zig_binary(
     name = "binary",
-    cdeps = [
+    main = "main.zig",
+    deps = [
         ":add_shared",
         "@rules_zig//zig/lib:libc",
     ],
-    main = "main.zig",
 )
 
 zig_static_library(
     name = "library",
-    cdeps = [
+    main = "main.zig",
+    deps = [
         ":add_shared",
         "@rules_zig//zig/lib:libc",
     ],
-    main = "main.zig",
 )
 
 zig_test(
     name = "test",
     size = "small",
-    cdeps = [
+    main = "main.zig",
+    deps = [
         ":add_shared",
         "@rules_zig//zig/lib:libc",
     ],
-    main = "main.zig",
 )
 
 build_test(

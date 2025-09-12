@@ -4,10 +4,11 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "@bazel_tools//tools/cpp:toolchain_utils.bzl",
     "find_cpp_toolchain",
-    "use_cpp_toolchain",
 )
+load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//zig/private:cc_helper.bzl", "need_translate_c")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
@@ -23,6 +24,7 @@ load(
 )
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
+load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
@@ -74,23 +76,6 @@ ATTRS = {
     "deps": attr.label_list(
         doc = "modules required to build the target.",
         mandatory = False,
-        providers = [ZigModuleInfo],
-    ),
-    "cdeps": attr.label_list(
-        doc = """\
-C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.
-
-Note, if you need to include C or C++ standard library headers and encounter errors of the following form:
-
-```
-note: libc headers not available; compilation does not link against libc
-error: 'math.h' file not found
-```
-
-Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.
-""",
-        mandatory = False,
-        providers = [CcInfo],
     ),
     "compiler_runtime": attr.string(
         doc = """\
@@ -155,11 +140,9 @@ Environment variables to inherit from external environment when executed by `baz
 TOOLCHAINS = [
     "//zig:toolchain_type",
     "//zig/target:toolchain_type",
-]
+] + use_cc_toolchain(mandatory = False)
 
-SHARED_LIBRARY_TOOLCHAINS = use_cpp_toolchain(mandatory = False)
-
-SHARED_LIBRARY_FRAGMENTS = ["cpp"]
+FRAGMENTS = ["cpp"]
 
 def zig_build_impl(ctx, *, kind):
     """Common implementation for Zig build rules.
@@ -190,13 +173,16 @@ def zig_build_impl(ctx, *, kind):
 
     zig_collect_data(
         data = ctx.attr.data,
-        deps = ctx.attr.deps + ctx.attr.cdeps,
+        deps = ctx.attr.deps,
         transitive_data = transitive_data,
         transitive_runfiles = transitive_runfiles,
     )
 
     args = ctx.actions.args()
     args.use_param_file("@%s")
+
+    global_args = ctx.actions.args()
+    global_args.use_param_file("@%s")
 
     if kind == "zig_binary" or kind == "zig_test":
         extension = ".exe" if zigtargetinfo.triple.os == "windows" else ""
@@ -285,12 +271,12 @@ def zig_build_impl(ctx, *, kind):
 
     zig_lib_dir(
         zigtoolchaininfo = zigtoolchaininfo,
-        args = args,
+        args = global_args,
     )
 
     zig_cache_output(
         zigtoolchaininfo = zigtoolchaininfo,
-        args = args,
+        args = global_args,
     )
 
     location_targets = ctx.attr.data
@@ -310,16 +296,6 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    zig_cdeps(
-        cdeps = ctx.attr.cdeps,
-        solib_parents = solib_parents,
-        os = zigtargetinfo.triple.os,
-        direct_inputs = direct_inputs,
-        transitive_inputs = transitive_inputs,
-        args = args,
-        data = direct_data,
-    )
-
     zig_linker_script(
         linker_script = ctx.file.linker_script,
         inputs = direct_inputs,
@@ -327,9 +303,12 @@ def zig_build_impl(ctx, *, kind):
     )
 
     zdeps = []
+    cdeps = []
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])
+        elif CcInfo in dep:
+            cdeps.append(dep[CcInfo])
 
     root_module = zig_module_info(
         name = ctx.attr.name,
@@ -338,43 +317,68 @@ def zig_build_impl(ctx, *, kind):
         srcs = ctx.files.srcs,
         extra_srcs = ctx.files.extra_srcs,
         deps = zdeps + [bazel_builtin_module(ctx)],
+        cdeps = cdeps,
     )
 
     zig_settings(
         settings = ctx.attr._settings[ZigSettingsInfo],
-        args = args,
+        args = global_args,
     )
 
     zig_target_platform(
         target = zigtargetinfo,
-        args = args,
+        args = global_args,
     )
+
+    c_module = None
+    if need_translate_c(root_module.cc_info):
+        c_module = zig_translate_c(
+            ctx = ctx,
+            name = "c",
+            zigtoolchaininfo = zigtoolchaininfo,
+            global_args = global_args,
+            cc_infos = [root_module.cc_info],
+        )
+
+    if root_module.cc_info:
+        zig_cdeps(
+            cc_info = root_module.cc_info,
+            solib_parents = solib_parents,
+            os = zigtargetinfo.triple.os,
+            direct_inputs = direct_inputs,
+            transitive_inputs = transitive_inputs,
+            args = args,
+            data = direct_data,
+        )
 
     zig_module_specifications(
         root_module = root_module,
         args = args,
+        c_module = c_module,
     )
+
+    c_module_inputs = [c_module.transitive_inputs] if c_module else []
 
     inputs = depset(
         direct = direct_inputs,
-        transitive = transitive_inputs + [root_module.transitive_inputs],
+        transitive = transitive_inputs + [root_module.transitive_inputs] + c_module_inputs,
         order = "preorder",
     )
 
     if kind == "zig_binary":
-        arguments = ["build-exe", args]
+        arguments = ["build-exe", global_args, args]
         mnemonic = "ZigBuildExe"
         progress_message = "Building %{input} as Zig binary %{output}"
     elif kind == "zig_test":
-        arguments = ["test", "--test-no-exec", args]
+        arguments = ["test", "--test-no-exec", global_args, args]
         mnemonic = "ZigBuildTest"
         progress_message = "Building %{input} as Zig test %{output}"
     elif kind == "zig_static_library":
-        arguments = ["build-lib", args]
+        arguments = ["build-lib", global_args, args]
         mnemonic = "ZigBuildStaticLib"
         progress_message = "Building %{input} as Zig library %{output}"
     elif kind == "zig_shared_library":
-        arguments = ["build-lib", "-dynamic", args]
+        arguments = ["build-lib", "-dynamic", global_args, args]
         mnemonic = "ZigBuildSharedLib"
         progress_message = "Building %{input} as Zig shared library %{output}"
     else:
@@ -407,7 +411,7 @@ def zig_build_impl(ctx, *, kind):
 
     if cc_info != None:
         direct_cc_infos = [cc_info]
-        cc_infos = [cdep[CcInfo] for cdep in ctx.attr.cdeps]
+        cc_infos = [root_module.cc_info] if root_module.cc_info else []
         cc_info = cc_common.merge_cc_infos(
             direct_cc_infos = direct_cc_infos,
             cc_infos = cc_infos,

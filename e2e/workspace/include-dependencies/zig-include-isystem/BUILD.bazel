@@ -11,21 +11,21 @@ cc_library(
 
 zig_binary(
     name = "binary",
-    cdeps = [":header"],
     main = "main.zig",
+    deps = [":header"],
 )
 
 zig_static_library(
     name = "library",
-    cdeps = [":header"],
     main = "main.zig",
+    deps = [":header"],
 )
 
 zig_test(
     name = "test",
     size = "small",
-    cdeps = [":header"],
     main = "main.zig",
+    deps = [":header"],
 )
 
 build_test(

@@ -14,7 +14,7 @@ linking. E.g.
 zig_binary(
     name = "binary",
     main = "main.zig",
-    cdeps = ["@rules_zig//zig/lib:libc"],
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 ```
 

@@ -54,8 +54,13 @@ def zig_docs_impl(ctx, *, kind):
     direct_inputs = []
     transitive_inputs = []
 
+    solib_parents = []
+
     args = ctx.actions.args()
     args.use_param_file("@%s")
+
+    global_args = ctx.actions.args()
+    global_args.use_param_file("@%s")
 
     output = ctx.actions.declare_directory(ctx.label.name + ".docs")
     outputs.append(output)
@@ -67,12 +72,12 @@ def zig_docs_impl(ctx, *, kind):
 
     zig_lib_dir(
         zigtoolchaininfo = zigtoolchaininfo,
-        args = args,
+        args = global_args,
     )
 
     zig_cache_output(
         zigtoolchaininfo = zigtoolchaininfo,
-        args = args,
+        args = global_args,
     )
 
     location_targets = ctx.attr.data
@@ -92,16 +97,6 @@ def zig_docs_impl(ctx, *, kind):
         args = args,
     )
 
-    zig_cdeps(
-        cdeps = ctx.attr.cdeps,
-        solib_parents = [],
-        os = zigtargetinfo.triple.os,
-        direct_inputs = direct_inputs,
-        transitive_inputs = transitive_inputs,
-        args = args,
-        data = direct_data,
-    )
-
     direct_inputs.extend(ctx.files.extra_docs)
 
     zdeps = []
@@ -117,6 +112,17 @@ def zig_docs_impl(ctx, *, kind):
         extra_srcs = ctx.files.extra_srcs,
         deps = zdeps + [bazel_builtin_module(ctx)],
     )
+
+    if root_module.cc_info:
+        zig_cdeps(
+            cc_info = root_module.cc_info,
+            solib_parents = solib_parents,
+            os = zigtargetinfo.triple.os,
+            direct_inputs = direct_inputs,
+            transitive_inputs = transitive_inputs,
+            args = args,
+            data = direct_data,
+        )
 
     zig_module_specifications(
         root_module = root_module,
@@ -150,7 +156,7 @@ def zig_docs_impl(ctx, *, kind):
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
-    arguments = command + [args]
+    arguments = command + [global_args] + [args]
     mnemonic = "ZigBuildDocs"
     progress_message = "Generating Zig documentation for %{input} in %{output}"
 

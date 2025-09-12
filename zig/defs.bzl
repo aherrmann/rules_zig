@@ -6,6 +6,7 @@ the current target name or current repository name.
 """
 
 load("//zig/private:zig_binary.bzl", _zig_binary = "zig_binary")
+load("//zig/private:zig_c_module.bzl", _zig_c_module = "zig_c_module")
 load(
     "//zig/private:zig_configure.bzl",
     _zig_configure = "zig_configure",
@@ -21,6 +22,7 @@ zig_binary = _zig_binary
 zig_static_library = _zig_static_library
 zig_shared_library = _zig_shared_library
 zig_module = _zig_module
+zig_c_module = _zig_c_module
 zig_test = _zig_test
 zig_configure = _zig_configure
 zig_configure_binary = _zig_configure_binary

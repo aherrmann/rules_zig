@@ -11,21 +11,21 @@ cc_library(
 
 zig_binary(
     name = "binary",
-    cdeps = [":add"],
     main = "main.zig",
+    deps = [":add"],
 )
 
 zig_static_library(
     name = "library",
-    cdeps = [":add"],
     main = "main.zig",
+    deps = [":add"],
 )
 
 zig_test(
     name = "test",
     size = "small",
-    cdeps = [":add"],
     main = "main.zig",
+    deps = [":add"],
 )
 
 genrule(

@@ -22,6 +22,18 @@ bzl_library(
 )
 
 bzl_library(
+    name = "zig_c_module",
+    srcs = ["zig_c_module.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        "//zig/private/common:bazel_builtin",
+        "//zig/private/common:data",
+        "//zig/private/common:filetypes",
+        "//zig/private/providers:zig_module_info",
+    ],
+)
+
+bzl_library(
     name = "zig_test",
     # Gazelle removes the srcs attribute for some reason.
     srcs = ["zig_test.bzl"],  # keep
@@ -100,6 +112,15 @@ bzl_library(
 )
 
 bzl_library(
+    name = "cc_helper",
+    srcs = ["cc_helper.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        "@rules_cc//cc/common",
+    ],
+)
+
+bzl_library(
     name = "cc_linkopts",
     srcs = ["cc_linkopts.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -146,6 +167,7 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":cc_helper.bzl",
         ":cc_linkopts.bzl",
         ":platforms.bzl",
         ":resolved_target_toolchain.bzl",
@@ -155,6 +177,7 @@ filegroup(
         ":versions.bzl.tpl",
         ":versions.json",
         ":zig_binary.bzl",
+        ":zig_c_module.bzl",
         ":zig_configure.bzl",
         ":zig_module.bzl",
         ":zig_shared_library.bzl",

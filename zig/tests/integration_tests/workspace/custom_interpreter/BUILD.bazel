@@ -38,9 +38,9 @@ toolchain(
 
 zig_binary(
     name = "binary",
-    cdeps = ["@rules_zig//zig/lib:libc"],
     main = "main.zig",
     tags = ["manual"],
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 
 zig_configure_binary(

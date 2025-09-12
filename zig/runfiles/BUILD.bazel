@@ -25,9 +25,9 @@ zig_test(
     name = "test",
     size = "small",
     srcs = _SRCS,
-    cdeps = ["//zig/lib:libc"],
     data = ["test-data.txt"],
     main = "runfiles.zig",
+    deps = ["//zig/lib:libc"],
 )
 
 # Only used for documentation generation.
