@@ -5,6 +5,7 @@ bzl_library(
     srcs = ["zig_module_info.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        "//zig/private:cc_helper",
         "@rules_cc//cc/common",
     ],
 )

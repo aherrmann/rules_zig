@@ -2,7 +2,11 @@
 
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
+
+def need_translate_c(cc_info):
+    return cc_info.compilation_context and (cc_info.compilation_context.headers or cc_info.compilation_context.defines)
 
 def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     """Handle translate-c build action.
@@ -71,9 +75,15 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
         toolchain = "//zig:toolchain_type",
     )
 
+    # Only forward the linking context since compilation_context is now handled
+    # by Zig through the generated _c.zig.
+    cc_info = CcInfo(
+        linking_context = cc_common.merge_linking_contexts(linking_contexts = [cc_info.linking_context for cc_info in cc_infos]),
+    )
+
     return zig_module_info(
         name = name,
         canonical_name = "{}/{}".format(str(ctx.label), name),
         main = zig_out,
-        translated_cdeps = cc_infos,
+        cdeps = [cc_info],
     )

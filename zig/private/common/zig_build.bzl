@@ -8,6 +8,7 @@ load(
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//zig/private:cc_helper.bzl", "need_translate_c")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
@@ -330,8 +331,7 @@ def zig_build_impl(ctx, *, kind):
     )
 
     c_module = None
-
-    if root_module.cc_info:
+    if need_translate_c(root_module.cc_info):
         c_module = zig_translate_c(
             ctx = ctx,
             name = "c",
@@ -340,6 +340,7 @@ def zig_build_impl(ctx, *, kind):
             cc_infos = [root_module.cc_info],
         )
 
+    if root_module.cc_info:
         zig_cdeps(
             cc_info = root_module.cc_info,
             solib_parents = solib_parents,
