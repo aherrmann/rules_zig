@@ -3,6 +3,13 @@ exports_files(
     visibility = ["//util:__pkg__"],
 )
 
+exports_files(
+    [".bazelversion"],
+    # Note, do not depend on this outside of rules_zig.
+    # It is only exported for write_source_files in e2e/workspace/BUILD.
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "bazelrc",
     srcs = [
