@@ -30,6 +30,7 @@ filegroup(
 filegroup(
     name = "all_files",
     srcs = [
+        ":.bazelversion",
         ":BUILD.bazel",
         ":MODULE.bazel",
         ":WORKSPACE",
