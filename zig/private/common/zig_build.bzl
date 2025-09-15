@@ -76,6 +76,7 @@ ATTRS = {
     "deps": attr.label_list(
         doc = "modules required to build the target.",
         mandatory = False,
+        providers = [[ZigModuleInfo], [CcInfo]],
     ),
     "compiler_runtime": attr.string(
         doc = """\
