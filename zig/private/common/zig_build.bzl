@@ -74,9 +74,24 @@ ATTRS = {
         mandatory = False,
     ),
     "deps": attr.label_list(
-        doc = "modules required to build the target.",
+        doc = "The list of other modules or C/C++ libraries that the library target depends upon.",
         mandatory = False,
         providers = [[ZigModuleInfo], [CcInfo]],
+    ),
+    "cdeps": attr.label_list(
+        doc = """\
+C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.
+Note, if you need to include C or C++ standard library headers and encounter errors of the following form:
+```
+note: libc headers not available; compilation does not link against libc
+error: 'math.h' file not found
+```
+Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.
+
+This is deprecated, use deps instead and pass your C/C++ dependencies there.
+""",
+        mandatory = False,
+        providers = [CcInfo],
     ),
     "compiler_runtime": attr.string(
         doc = """\
@@ -303,8 +318,15 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
-    zdeps = []
     cdeps = []
+    if ctx.attr.cdeps:
+        # buildifier: disable=print
+        print("""\
+The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
+""")
+        cdeps = [dep[CcInfo] for dep in ctx.attr.cdeps]
+
+    zdeps = []
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])
