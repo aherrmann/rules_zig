@@ -61,9 +61,14 @@ _write_simple_module_expected_specs_args = rule(
 def _write_module_specs_args_impl(ctx):
     args = ctx.actions.args()
 
+    c_module = None
+    if ctx.attr.cmod:
+        c_module = ctx.attr.cmod[ZigModuleInfo]
+
     zig_module_specifications(
         root_module = ctx.attr.mod[ZigModuleInfo],
         args = args,
+        c_module = c_module,
     )
 
     ctx.actions.write(
@@ -75,6 +80,7 @@ _write_module_specs_args = rule(
     _write_module_specs_args_impl,
     attrs = {
         "mod": attr.label(providers = [ZigModuleInfo]),
+        "cmod": attr.label(providers = [ZigModuleInfo]),
         "out": attr.output(mandatory = True),
     },
 )
@@ -214,6 +220,51 @@ _write_simple_module_with_c_expected_specs_args = rule(
     },
 )
 
+def _write_simple_module_with_global_c_expected_specs_args_impl(ctx):
+    mods = {
+        mod.label.name: mod[ZigModuleInfo]
+        for mod in ctx.attr.mods
+    }
+
+    bazel_builtins = {
+        mod.label.name: struct(
+            mod_flags = _bazel_builtin_mod_flags(ctx, mod.label),
+            dep = _bazel_builtin_dep(mod.label),
+            file = [
+                file
+                for file in mods[mod.label.name].transitive_inputs.to_list()
+                if file.path == _bazel_builtin_file_name(ctx, mod.label)
+            ],
+        )
+        for mod in ctx.attr.mods
+    }
+
+    expected = []
+
+    # expected.extend(["--dep", "'data_c_zig={}'".format(mods["data_c_zig"].module_context.canonical_name)])
+    expected.extend(["--dep", bazel_builtins["data_global_c"].dep])
+    expected.extend(["--dep", "'c=c'"])
+    expected.extend(["'-M{name}={src}'".format(
+        name = mods["data_global_c"].name,
+        src = mods["data_global_c"].module_context.main,
+    )])
+    expected.extend(bazel_builtins["data_global_c"].mod_flags)
+    expected.extend(["'-Mc={}'".format(mods["data_c_zig"].module_context.main)])
+
+    ctx.actions.write(
+        output = ctx.outputs.out,
+        content = "\n".join(expected) + "\n",
+    )
+
+_write_simple_module_with_global_c_expected_specs_args = rule(
+    _write_simple_module_with_global_c_expected_specs_args_impl,
+    attrs = {
+        "mods": attr.label_list(providers = [ZigModuleInfo]),
+        "mod_mains": attr.label_list(allow_files = True),
+        "out": attr.output(mandatory = True),
+    },
+)
+
 def module_info_test_suite(name):
     """Generate module info test suite.
 
@@ -271,6 +322,35 @@ def module_info_test_suite(name):
         size = "small",
     )
 
+    _write_simple_module_with_global_c_expected_specs_args(
+        name = name + "_simple_with_global_c_expected",
+        mods = [
+            "//zig/tests/translate-c-modules:data_c_zig",
+            "//zig/tests/translate-c-modules:data_global_c",
+        ],
+        mod_mains = [
+            "//zig/tests/translate-c-modules:data_global_c.zig",
+        ],
+        out = name + "_simple_with_global_c_expected.txt",
+        tags = ["manual"],
+    )
+
+    _write_module_specs_args(
+        name = name + "_simple_with_global_c_actual",
+        mod = "//zig/tests/translate-c-modules:data_global_c",
+        cmod = "//zig/tests/translate-c-modules:data_c_zig",
+        out = name + "_simple_with_global_c_actual.txt",
+        tags = ["manual"],
+    )
+
+    diff_test(
+        name = name + "_simple_with_global_c_diff_test",
+        failure_message = "generated module specifications do not match",
+        file1 = name + "_simple_with_global_c_expected.txt",
+        file2 = name + "_simple_with_global_c_actual.txt",
+        size = "small",
+    )
+
     _write_nested_module_expected_specs_args(
         name = name + "_nested_expected",
         mods = [
@@ -314,5 +394,6 @@ def module_info_test_suite(name):
             name + "_simple_diff_test",
             name + "_nested_diff_test",
             name + "_simple_with_c_diff_test",
+            name + "_simple_with_global_c_diff_test",
         ],
     )

@@ -4,6 +4,7 @@ load("@rules_zig//zig:defs.bzl", "zig_c_module", "zig_module")
 exports_files(
     [
         "data.zig",
+        "data_global_c.zig",
         "data/hello.zig",
         "data/world.zig",
     ],
@@ -31,4 +32,15 @@ zig_module(
     main = "data.zig",
     visibility = ["//zig/tests:__pkg__"],
     deps = [":data_c_zig"],
+)
+
+zig_module(
+    name = "data_global_c",
+    srcs = [
+        "data/hello.zig",
+        "data/world.zig",
+    ],
+    main = "data_global_c.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    deps = [":data_c"],
 )
