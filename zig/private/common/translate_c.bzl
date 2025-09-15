@@ -5,9 +5,6 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
 
-def need_translate_c(cc_info):
-    return cc_info.compilation_context and (cc_info.compilation_context.headers or cc_info.compilation_context.defines)
-
 def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     """Handle translate-c build action.
 
