@@ -88,7 +88,6 @@ bzl_library(
         "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
         "@rules_cc//cc:action_names.bzl",
-        "@rules_cc//cc:find_cc_toolchain.bzl",
     ],
 )
 

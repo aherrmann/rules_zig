@@ -52,6 +52,12 @@ ATTRS = {
     ),
 } | BAZEL_BUILTIN_ATTRS
 
+TOOLCHAINS = [
+    "//zig:toolchain_type",
+] + use_cc_toolchain(mandatory = False)
+
+FRAGMENTS = ["cpp"]
+
 def _zig_c_module_impl(ctx):
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
 
@@ -102,6 +108,6 @@ zig_c_module = rule(
     _zig_c_module_impl,
     attrs = ATTRS,
     doc = DOC,
-    toolchains = ["//zig:toolchain_type"] + use_cc_toolchain(mandatory = True),
-    fragments = ["cpp"],
+    toolchains = TOOLCHAINS,
+    fragments = FRAGMENTS,
 )
