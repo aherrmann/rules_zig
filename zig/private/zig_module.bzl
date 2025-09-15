@@ -61,6 +61,7 @@ ATTRS = {
     "deps": attr.label_list(
         doc = "Other modules required when building the module.",
         mandatory = False,
+        providers = [[ZigModuleInfo], [CcInfo]],
     ),
     "data": attr.label_list(
         allow_files = True,
