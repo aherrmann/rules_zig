@@ -1,6 +1,9 @@
 """Target platforms used for testing purposes."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//zig:toolchain.bzl", "zig_target_toolchain")
+load(":defs.bzl", "empty_toolchain")
 
 platform(
     name = "x86_64-linux",
@@ -118,4 +121,19 @@ toolchain(
     ],
     toolchain = ":zig-only-x86_64-linux_target_toolchain",
     toolchain_type = "//zig/target:toolchain_type",
+)
+
+empty_toolchain(name = "empty_toolchain")
+
+toolchain(
+    name = "unconstrained_default_test_toolchain",
+    target_compatible_with = [] if bazel_features.toolchains.has_default_test_toolchain_type else ["@platforms//:incompatible"],
+    toolchain = ":empty_toolchain",
+    toolchain_type = "@bazel_tools//tools/test:default_test_toolchain_type",
+)
+
+bzl_library(
+    name = "defs",
+    srcs = ["defs.bzl"],
+    visibility = ["//visibility:public"],
 )

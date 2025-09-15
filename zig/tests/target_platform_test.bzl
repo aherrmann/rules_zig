@@ -1,5 +1,6 @@
 """Analysis tests for Zig target platform configuration."""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
@@ -15,6 +16,8 @@ load(
 _TARGET_PLATFORM = "//command_line_option:platforms"
 _EXTRA_TOOLCHAINS = "//command_line_option:extra_toolchains"
 
+_TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST = canonical_label("@//zig/tests/platforms:unconstrained_default_test_toolchain")
+
 _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX = canonical_label("@//zig/tests/platforms:zig-only-x86_64-linux_toolchain")
 _PLATFORM_ZIG_ONLY_X86_64_LINUX = canonical_label("@//zig/tests/platforms:zig-only-x86_64-linux")
 
@@ -24,6 +27,14 @@ _PLATFORM_AARCH64_LINUX = canonical_label("@//zig/tests/platforms:aarch64-linux"
 _PLATFORM_AARCH64_LINUX_NONE = canonical_label("@//zig/tests/platforms:aarch64-linux-none")
 _PLATFORM_X86_64_WINDOWS = canonical_label("@//zig/tests/platforms:x86_64-windows")
 _PLATFORM_X86_64_WINDOWS_NONE = canonical_label("@//zig/tests/platforms:x86_64-windows-none")
+
+def _with_test_toolchain(config_settings):
+    if bazel_features.toolchains.has_default_test_toolchain_type:
+        if _EXTRA_TOOLCHAINS in config_settings:
+            config_settings[_EXTRA_TOOLCHAINS] += "," + _TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST
+        else:
+            config_settings[_EXTRA_TOOLCHAINS] = _TOOLCHAIN_UNCONSTRAINED_DEFAULT_TEST
+    return config_settings
 
 def _define_target_platform_test(target, option):
     def _test_impl(ctx):
@@ -39,7 +50,9 @@ def _define_target_platform_test(target, option):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {_TARGET_PLATFORM: target},
+        config_settings = _with_test_toolchain({
+            _TARGET_PLATFORM: target,
+        }),
     )
 
 _target_platform_x86_64_linux_test = _define_target_platform_test(_PLATFORM_X86_64_LINUX, "x86_64-linux-gnu.2.17")
@@ -61,7 +74,9 @@ def _define_build_target_platform_test(mnemonic, target, option):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {_TARGET_PLATFORM: target},
+        config_settings = _with_test_toolchain({
+            _TARGET_PLATFORM: target,
+        }),
     )
 
 _build_exe_target_platform_x86_64_linux_test = _define_build_target_platform_test("ZigBuildExe", _PLATFORM_X86_64_LINUX, "x86_64-linux-gnu.2.17")
@@ -108,7 +123,9 @@ def _define_file_extension_test(target, extension, basename_pattern = "%s"):
 
     return analysistest.make(
         _test_impl,
-        config_settings = {_TARGET_PLATFORM: target},
+        config_settings = _with_test_toolchain({
+            _TARGET_PLATFORM: target,
+        }),
     )
 
 _exe_file_extension_x86_64_linux_test = _define_file_extension_test(_PLATFORM_X86_64_LINUX, "")
@@ -137,9 +154,12 @@ def _define_cc_info_test(target, cc_expected):
 
     return analysistest.make(
         _test_impl,
-        config_settings =
-            {_EXTRA_TOOLCHAINS: _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX} |
+        config_settings = _with_test_toolchain(
+            {_EXTRA_TOOLCHAINS: ",".join([
+                _TOOLCHAIN_ZIG_ONLY_X86_64_LINUX,
+            ])} |
             {_TARGET_PLATFORM: target} if target else {},
+        ),
     )
 
 _cc_info_host_test = _define_cc_info_test(None, True)

@@ -40,6 +40,7 @@ buildbuddy = use_extension(
 )
 use_repo(buildbuddy, "buildbuddy_toolchain")
 
+bazel_dep(name = "bazel_features", version = "1.35.0", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 bazel_dep(name = "gazelle", version = "0.45.0", dev_dependency = True, repo_name = "bazel_gazelle")
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.8.1", dev_dependency = True)
@@ -62,11 +63,13 @@ bazel_binaries = use_extension(
     dev_dependency = True,
 )
 bazel_binaries.download(version_file = "//:.bazelversion")
+bazel_binaries.download(version = "8.4.1")
 use_repo(
     bazel_binaries,
     "bazel_binaries",
     "bazel_binaries_bazelisk",
     "build_bazel_bazel_.bazelversion",
+    "build_bazel_bazel_8_4_1",
 )
 
 # TODO[AH] Should be an implicit transitive dependency through rules_bazel_integration_test.

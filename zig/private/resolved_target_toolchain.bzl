@@ -22,6 +22,5 @@ def _resolved_target_toolchain_impl(ctx):
 resolved_target_toolchain = rule(
     implementation = _resolved_target_toolchain_impl,
     toolchains = ["//zig/target:toolchain_type"],
-    incompatible_use_toolchain_transition = True,
     doc = DOC,
 )

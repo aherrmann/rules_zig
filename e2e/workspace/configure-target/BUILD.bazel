@@ -1,3 +1,4 @@
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load(
@@ -7,6 +8,7 @@ load(
     "zig_configure_test",
     "zig_test",
 )
+load(":defs.bzl", "empty_toolchain")
 
 platform(
     name = "aarch64-linux",
@@ -22,6 +24,15 @@ platform(
         "@platforms//os:windows",
         "@platforms//cpu:x86_64",
     ],
+)
+
+empty_toolchain(name = "empty_toolchain")
+
+toolchain(
+    name = "unconstrained_default_test_toolchain",
+    target_compatible_with = [] if bazel_features.toolchains.has_default_test_toolchain_type else ["@platforms//:incompatible"],
+    toolchain = ":empty_toolchain",
+    toolchain_type = "@bazel_tools//tools/test:default_test_toolchain_type",
 )
 
 zig_binary(
@@ -116,6 +127,7 @@ zig_test(
 zig_configure_test(
     name = "test_aarch64-linux",
     actual = ":test",
+    extra_toolchains = [":unconstrained_default_test_toolchain"] if bazel_features.toolchains.has_default_test_toolchain_type else [],
     tags = ["manual"],
     target = ":aarch64-linux",
 )
@@ -123,6 +135,7 @@ zig_configure_test(
 zig_configure_test(
     name = "test_x86_64-windows",
     actual = ":test",
+    extra_toolchains = [":unconstrained_default_test_toolchain"] if bazel_features.toolchains.has_default_test_toolchain_type else [],
     tags = ["manual"],
     target = ":x86_64-windows",
 )
