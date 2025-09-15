@@ -12,28 +12,26 @@ load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 
 DOC = """\
-Defines a Zig module.
+Defines a Zig C module.
 
-A Zig module is a collection of Zig sources with a main source file
-that defines the module's entry point.
+A Zig C module is a Zig module whose C headers dependencies have been translated
+to zig using `translate-c`, and which only output defines the module's entry
+point.
 
-This rule does not perform compilation by itself.
+This rule performs the `translate-c` step but does not perform compilation of
+Zig by itself.
 Instead, modules are compiled at the use-site.
 Zig performs whole program compilation.
 
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_c_module")
 
-zig_module(
+zig_c_module(
     name = "my-module",
-    main = "main.zig",
-    srcs = [
-        "utils.zig",  # to support `@import("utils.zig")`.
-    ],
-    deps = [
-        ":other-module",  # to support `@import("other-module")`.
+    cdeps = [
+        ":cc-library",  # to support `@import("cc-library")`.
     ],
 )
 ```
@@ -41,7 +39,7 @@ zig_module(
 
 ATTRS = {
     "cdeps": attr.label_list(
-        doc = "Other modules required when building the module.",
+        doc = "C dependencies to translate their headers from.",
         mandatory = True,
         providers = [CcInfo],
     ),
