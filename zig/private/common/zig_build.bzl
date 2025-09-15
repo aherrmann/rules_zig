@@ -339,6 +339,7 @@ def zig_build_impl(ctx, *, kind):
             global_args = global_args,
             cc_infos = [root_module.cc_info],
         )
+        transitive_inputs.append(c_module.transitive_inputs)
 
     if root_module.cc_info:
         zig_cdeps(
@@ -357,11 +358,11 @@ def zig_build_impl(ctx, *, kind):
         c_module = c_module,
     )
 
-    c_module_inputs = [c_module.transitive_inputs] if c_module else []
+    transitive_inputs.append(root_module.transitive_inputs)
 
     inputs = depset(
         direct = direct_inputs,
-        transitive = transitive_inputs + [root_module.transitive_inputs] + c_module_inputs,
+        transitive = transitive_inputs,
         order = "preorder",
     )
 
