@@ -12,11 +12,11 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     provided headers and link against the provided libraries.
 
     Args:
-      ctx: CcInfo, The CcInfo provider for the C dependencies.
-      name: List of String, parent RUNPATH components in `$ORIGIN/PARENT/_solib_k8`.
+      ctx: Context object.
+      name: String, the name of the resulting Zig module.
       zigtoolchaininfo: String, The OS component of the target triple.
-      global_args: List of File; mutable, Append the needed inputs to this list.
-      cc_infos: List of depset of File; mutable, Append the needed inputs to this list.
+      global_args: Args; mutable, Append the global Zig command-line flags to this object.
+      cc_infos: List of CcInfo, The CcInfo providers for the C dependencies.
 
     Returns:
         `ZigModuleInfo` surrounding the generated zig file.
