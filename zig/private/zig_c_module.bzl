@@ -31,7 +31,7 @@ load("@rules_zig//zig:defs.bzl", "zig_c_module")
 zig_c_module(
     name = "my-module",
     cdeps = [
-        ":cc-library",  # to support `@import("cc-library")`.
+        ":cc-library",
     ],
 )
 ```
