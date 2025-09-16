@@ -13,7 +13,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     Args:
       ctx: Context object.
       name: String, the name of the resulting Zig module.
-      zigtoolchaininfo: String, The OS component of the target triple.
+      zigtoolchaininfo: ZigToolchainInfo.
       global_args: Args; mutable, Append the global Zig command-line flags to this object.
       cc_infos: List of CcInfo, The CcInfo providers for the C dependencies.
 
