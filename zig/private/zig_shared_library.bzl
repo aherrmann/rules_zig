@@ -3,10 +3,9 @@
 load(
     "//zig/private/common:zig_build.bzl",
     "COMMON_LIBRARY_ATTRS",
-    "SHARED_LIBRARY_FRAGMENTS",
-    "SHARED_LIBRARY_TOOLCHAINS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
+    COMMON_FRAGMENTS = "FRAGMENTS",
     COMMON_TOOLCHAINS = "TOOLCHAINS",
 )
 load(
@@ -45,9 +44,9 @@ zig_shared_library(
 
 ATTRS = COMMON_ATTRS | COMMON_LIBRARY_ATTRS | DOCS_ATTRS
 
-TOOLCHAINS = COMMON_TOOLCHAINS + SHARED_LIBRARY_TOOLCHAINS
+TOOLCHAINS = COMMON_TOOLCHAINS
 
-FRAGMENTS = SHARED_LIBRARY_FRAGMENTS
+FRAGMENTS = COMMON_FRAGMENTS
 
 def _zig_shared_library_impl(ctx):
     build, build_groups = zig_build_impl(ctx, kind = "zig_shared_library")

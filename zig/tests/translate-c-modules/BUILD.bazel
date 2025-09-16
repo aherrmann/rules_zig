@@ -1,0 +1,46 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_c_module", "zig_module")
+
+exports_files(
+    [
+        "data.zig",
+        "data_global_c.zig",
+        "data/hello.zig",
+        "data/world.zig",
+    ],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+cc_library(
+    name = "data_c",
+    srcs = ["data.c"],
+    hdrs = ["data.h"],
+)
+
+zig_c_module(
+    name = "data_c_zig",
+    cdeps = ["data_c"],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_module(
+    name = "data",
+    srcs = [
+        "data/hello.zig",
+        "data/world.zig",
+    ],
+    main = "data.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    deps = [":data_c_zig"],
+)
+
+zig_module(
+    name = "data_global_c",
+    srcs = [
+        "data/hello.zig",
+        "data/world.zig",
+    ],
+    main = "data_global_c.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    deps = [":data_c"],
+)

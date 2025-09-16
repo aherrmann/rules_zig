@@ -4,21 +4,21 @@ load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_static_library", "zig_test")
 
 zig_binary(
     name = "binary",
-    cdeps = ["@rules_zig//zig/lib:libc"],
     main = "main.zig",
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 
 zig_static_library(
     name = "library",
-    cdeps = ["@rules_zig//zig/lib:libc"],
     main = "main.zig",
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 
 zig_test(
     name = "test",
     size = "small",
-    cdeps = ["@rules_zig//zig/lib:libc"],
     main = "main.zig",
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 
 build_test(

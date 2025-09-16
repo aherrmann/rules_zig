@@ -6,20 +6,6 @@ zig_static_library(
     main = "add.zig",
 )
 
-# Transition build mode to avoid Zig debug symbols in the static library.
-zig_configure(
-    name = "add-small",
-    actual = ":add",
-    mode = "release_small",
-)
-
-cc_test(
-    name = "add-test",
-    size = "small",
-    srcs = ["add-test.c"],
-    deps = [":add-small"],
-)
-
 # Pass through a cc_library to explicitly test transitive CcInfo handling.
 cc_library(
     name = "c-add",
@@ -28,8 +14,8 @@ cc_library(
 
 zig_static_library(
     name = "mul",
+    cdeps = [":c-add"],
     main = "mul.zig",
-    deps = [":c-add"],
 )
 
 # See add-small above for reasoning.

@@ -1,5 +1,6 @@
 """Implementation of the zig_module rule."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
@@ -60,7 +61,7 @@ ATTRS = {
     "deps": attr.label_list(
         doc = "Other modules required when building the module.",
         mandatory = False,
-        providers = [ZigModuleInfo],
+        providers = [[ZigModuleInfo], [CcInfo]],
     ),
     "data": attr.label_list(
         allow_files = True,
@@ -89,13 +90,13 @@ def _zig_module_impl(ctx):
         ),
     )
 
-    bazel_builtin = bazel_builtin_module(ctx)
-
-    modules = [
-        dep[ZigModuleInfo]
-        for dep in ctx.attr.deps
-        if ZigModuleInfo in dep
-    ] + [bazel_builtin]
+    zdeps = []
+    cdeps = []
+    for dep in ctx.attr.deps:
+        if ZigModuleInfo in dep:
+            zdeps.append(dep[ZigModuleInfo])
+        elif CcInfo in dep:
+            cdeps.append(dep[CcInfo])
 
     module = zig_module_info(
         name = ctx.label.name,
@@ -103,7 +104,8 @@ def _zig_module_impl(ctx):
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         extra_srcs = ctx.files.extra_srcs,
-        deps = modules,
+        deps = zdeps + [bazel_builtin_module(ctx)],
+        cdeps = cdeps,
     )
 
     return [default, module]
