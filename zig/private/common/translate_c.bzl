@@ -22,6 +22,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     """
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos)
     compilation_context = cc_info.compilation_context
+    linking_context = cc_info.linking_context
 
     inputs = []
     transitive_inputs = [compilation_context.headers]
@@ -68,7 +69,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos):
     # Only forward the linking context since compilation_context is now handled
     # by Zig through the generated _c.zig.
     cc_info = CcInfo(
-        linking_context = cc_common.merge_linking_contexts(linking_contexts = [cc_info.linking_context for cc_info in cc_infos]),
+        linking_context = linking_context,
     )
 
     return zig_module_info(
