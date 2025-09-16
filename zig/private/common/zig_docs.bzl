@@ -1,5 +1,7 @@
 """Zig documentation generation."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//zig/private:cc_helper.bzl", "need_translate_c")
 load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
@@ -7,6 +9,7 @@ load(
 load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
+load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
 load(
@@ -99,10 +102,20 @@ def zig_docs_impl(ctx, *, kind):
 
     direct_inputs.extend(ctx.files.extra_docs)
 
+    cdeps = []
+    if ctx.attr.cdeps:
+        # buildifier: disable=print
+        print("""\
+The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
+""")
+        cdeps = [dep[CcInfo] for dep in ctx.attr.cdeps]
+
     zdeps = []
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])
+        elif CcInfo in dep:
+            cdeps.append(dep[CcInfo])
 
     root_module = zig_module_info(
         name = ctx.attr.name,
@@ -111,7 +124,30 @@ def zig_docs_impl(ctx, *, kind):
         srcs = ctx.files.srcs,
         extra_srcs = ctx.files.extra_srcs,
         deps = zdeps + [bazel_builtin_module(ctx)],
+        cdeps = cdeps,
     )
+
+    zig_settings(
+        settings = ctx.attr._settings[ZigSettingsInfo],
+        args = args,
+    )
+
+    zig_target_platform(
+        target = zigtargetinfo,
+        args = args,
+    )
+
+    c_module = None
+    if need_translate_c(root_module.cc_info):
+        c_module = zig_translate_c(
+            ctx = ctx,
+            name = "c",
+            zigtoolchaininfo = zigtoolchaininfo,
+            global_args = global_args,
+            cc_infos = [root_module.cc_info],
+            output_prefix = "docs",
+        )
+        transitive_inputs.append(c_module.transitive_inputs)
 
     if root_module.cc_info:
         zig_cdeps(
@@ -127,21 +163,14 @@ def zig_docs_impl(ctx, *, kind):
     zig_module_specifications(
         root_module = root_module,
         args = args,
+        c_module = c_module,
     )
 
-    zig_settings(
-        settings = ctx.attr._settings[ZigSettingsInfo],
-        args = args,
-    )
-
-    zig_target_platform(
-        target = zigtargetinfo,
-        args = args,
-    )
+    transitive_inputs.append(root_module.transitive_inputs)
 
     inputs = depset(
         direct = direct_inputs,
-        transitive = transitive_inputs + [root_module.transitive_inputs],
+        transitive = transitive_inputs,
         order = "preorder",
     )
 
