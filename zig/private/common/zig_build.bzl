@@ -219,6 +219,13 @@ def zig_build_impl(ctx, *, kind):
     global_args = ctx.actions.args()
     global_args.use_param_file("@%s")
 
+    if use_cc_common_link:
+        global_args.add_all([
+            # For now, linking with cc_common.link implies linking with libc.
+            # But this should probably be made configurable.
+            "-lc",
+        ])
+
     if ctx.attr.compiler_runtime == "include":
         args.add("-fcompiler-rt")
     elif ctx.attr.compiler_runtime == "exclude":
