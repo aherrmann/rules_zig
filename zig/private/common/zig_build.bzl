@@ -224,6 +224,9 @@ def zig_build_impl(ctx, *, kind):
             # For now, linking with cc_common.link implies linking with libc.
             # But this should probably be made configurable.
             "-lc",
+            # This is implied too unless disabled further down.
+            # This is because zig compiler-rt ships with __zig_probe_stack which doesn't exist in regular compiler-rt.
+            "-fcompiler-rt",
         ])
 
     if ctx.attr.compiler_runtime == "include":
