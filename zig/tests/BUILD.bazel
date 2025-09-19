@@ -2,7 +2,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":bzlmod_zig_test.bzl", "bzlmod_zig_test_suite")
 load(":cache_test.bzl", "cache_test_suite")
 load(":config_test.bzl", "config_test_suite")
-load(":linkmode_test.bzl", "linkmode_test_suite")
 load(":mode_test.bzl", "mode_test_suite")
 load(":module_info_test.bzl", "module_info_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
@@ -11,6 +10,7 @@ load(":target_platform_test.bzl", "target_platform_test_suite")
 load(":target_triple_test.bzl", "target_triple_test_suite")
 load(":threaded_test.bzl", "threaded_test_suite")
 load(":toolchain_header_test.bzl", "toolchain_header_test_suite")
+load(":use_cc_common_link_test.bzl", "use_cc_common_link_test_suite")
 load(":versions_test.bzl", "versions_test_suite")
 
 bzlmod_zig_test_suite(name = "bzlmod_zig_test")
@@ -19,7 +19,7 @@ cache_test_suite(name = "cache_test")
 
 config_test_suite(name = "config_test")
 
-linkmode_test_suite(name = "linkmode_test")
+use_cc_common_link_test_suite(name = "use_cc_common_link_test")
 
 mode_test_suite(name = "mode_test")
 

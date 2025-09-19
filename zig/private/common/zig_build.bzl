@@ -193,7 +193,7 @@ def zig_build_impl(ctx, *, kind):
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
-    linkmode = ctx.attr._settings[ZigSettingsInfo].linkmode
+    use_cc_common_link = ctx.attr._settings[ZigSettingsInfo].use_cc_common_link
 
     providers = []
     exported_library_to_link = None
@@ -340,7 +340,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
         )
 
         cdeps_inputs = []
-        if linkmode == "zig":
+        if use_cc_common_link == False:
             # Add all cdeps linker inputs to the sandbox and zig args.
             zig_cdeps_linker_inputs(
                 linking_context = root_module.cc_info.linking_context,
@@ -374,7 +374,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
     )
 
     if kind == "zig_binary":
-        if linkmode == "cc":
+        if use_cc_common_link:
             static_lib = ctx.actions.declare_file(ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
             args.add(static_lib, format = "-femit-bin=%s")
             ctx.actions.run(
@@ -424,7 +424,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
                 **zig_build_kwargs
             )
     elif kind == "zig_test":
-        if linkmode == "cc":
+        if use_cc_common_link:
             bc = ctx.actions.declare_file(ctx.label.name + ".bc")
             test_args = ctx.actions.args()
             test_args.add("-fno-emit-bin")
@@ -515,7 +515,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
             )
 
     elif kind == "zig_shared_library":
-        if linkmode == "cc":
+        if use_cc_common_link:
             static_lib = ctx.actions.declare_file(ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
             args.add(static_lib, format = "-femit-bin=%s")
             ctx.actions.run(

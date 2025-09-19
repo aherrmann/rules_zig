@@ -19,8 +19,8 @@ ATTRS = {
         doc = "The build mode setting.",
         mandatory = True,
     ),
-    "linkmode": attr.label(
-        doc = "The link mode setting.",
+    "use_cc_common_link": attr.label(
+        doc = "Whether to use cc_common.link to link zig binaries and shared libraries.",
         mandatory = True,
     ),
     "threaded": attr.label(
@@ -28,8 +28,6 @@ ATTRS = {
         mandatory = True,
     ),
 }
-
-LINKMODE_VALUES = ["zig", "cc"]
 
 MODE_ARGS = {
     "debug": ["-O", "Debug"],
@@ -50,7 +48,7 @@ THREADED_VALUES = ["multi", "single"]
 def _settings_impl(ctx):
     args = []
 
-    linkmode = ctx.attr.linkmode[BuildSettingInfo].value
+    use_cc_common_link = ctx.attr.use_cc_common_link[BuildSettingInfo].value
 
     mode = ctx.attr.mode[BuildSettingInfo].value
     args.extend(MODE_ARGS[mode])
@@ -61,7 +59,7 @@ def _settings_impl(ctx):
     settings_info = ZigSettingsInfo(
         mode = mode,
         threaded = threaded,
-        linkmode = linkmode,
+        use_cc_common_link = use_cc_common_link,
         args = args,
     )
 
