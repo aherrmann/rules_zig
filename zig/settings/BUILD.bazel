@@ -1,6 +1,7 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load(
     "//zig/private:settings.bzl",
+    "LINKMODE_VALUES",
     "MODE_VALUES",
     "THREADED_VALUES",
     "settings",
@@ -8,9 +9,17 @@ load(
 
 settings(
     name = "settings",
+    linkmode = ":linkmode",
     mode = ":mode",
     threaded = ":threaded",
     visibility = ["//visibility:public"],
+)
+
+string_flag(
+    name = "linkmode",
+    build_setting_default = LINKMODE_VALUES[0],
+    values = LINKMODE_VALUES,
+    visibility = ["//zig/config/mode:__pkg__"],
 )
 
 string_flag(

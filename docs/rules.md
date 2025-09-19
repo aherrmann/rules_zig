@@ -114,7 +114,7 @@ zig_c_module(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_configure")
 
-zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-actual">actual</a>, <a href="#zig_configure-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure-mode">mode</a>, <a href="#zig_configure-target">target</a>, <a href="#zig_configure-threaded">threaded</a>, <a href="#zig_configure-zig_version">zig_version</a>)
+zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-actual">actual</a>, <a href="#zig_configure-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure-linkmode">linkmode</a>, <a href="#zig_configure-mode">mode</a>, <a href="#zig_configure-target">target</a>, <a href="#zig_configure-threaded">threaded</a>, <a href="#zig_configure-zig_version">zig_version</a>)
 </pre>
 
 Transitions a target and its dependencies to a different configuration.
@@ -165,6 +165,7 @@ zig_configure(
 | <a id="zig_configure-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_configure-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure-extra_toolchains"></a>extra_toolchains |  Additional toolchains to consider during toolchain resolution for the transitioned target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_configure-linkmode"></a>linkmode |  -   | String | optional |  `""`  |
 | <a id="zig_configure-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure-target"></a>target |  The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_configure-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
@@ -178,7 +179,7 @@ zig_configure(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_configure_binary")
 
-zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zig_configure_binary-actual">actual</a>, <a href="#zig_configure_binary-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure_binary-mode">mode</a>, <a href="#zig_configure_binary-target">target</a>, <a href="#zig_configure_binary-threaded">threaded</a>, <a href="#zig_configure_binary-zig_version">zig_version</a>)
+zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zig_configure_binary-actual">actual</a>, <a href="#zig_configure_binary-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure_binary-linkmode">linkmode</a>, <a href="#zig_configure_binary-mode">mode</a>, <a href="#zig_configure_binary-target">target</a>, <a href="#zig_configure_binary-threaded">threaded</a>, <a href="#zig_configure_binary-zig_version">zig_version</a>)
 </pre>
 
 Transitions a target and its dependencies to a different configuration.
@@ -229,6 +230,7 @@ zig_configure_binary(
 | <a id="zig_configure_binary-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_configure_binary-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure_binary-extra_toolchains"></a>extra_toolchains |  Additional toolchains to consider during toolchain resolution for the transitioned target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_configure_binary-linkmode"></a>linkmode |  -   | String | optional |  `""`  |
 | <a id="zig_configure_binary-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-target"></a>target |  The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_configure_binary-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
@@ -242,7 +244,7 @@ zig_configure_binary(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_configure_test")
 
-zig_configure_test(<a href="#zig_configure_test-name">name</a>, <a href="#zig_configure_test-actual">actual</a>, <a href="#zig_configure_test-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure_test-mode">mode</a>, <a href="#zig_configure_test-target">target</a>, <a href="#zig_configure_test-threaded">threaded</a>, <a href="#zig_configure_test-zig_version">zig_version</a>)
+zig_configure_test(<a href="#zig_configure_test-name">name</a>, <a href="#zig_configure_test-actual">actual</a>, <a href="#zig_configure_test-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure_test-linkmode">linkmode</a>, <a href="#zig_configure_test-mode">mode</a>, <a href="#zig_configure_test-target">target</a>, <a href="#zig_configure_test-threaded">threaded</a>, <a href="#zig_configure_test-zig_version">zig_version</a>)
 </pre>
 
 Transitions a target and its dependencies to a different configuration.
@@ -293,6 +295,7 @@ zig_configure_test(
 | <a id="zig_configure_test-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_configure_test-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure_test-extra_toolchains"></a>extra_toolchains |  Additional toolchains to consider during toolchain resolution for the transitioned target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_configure_test-linkmode"></a>linkmode |  -   | String | optional |  `""`  |
 | <a id="zig_configure_test-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_test-target"></a>target |  The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_configure_test-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
@@ -356,7 +359,7 @@ zig_module(
 load("@rules_zig//zig:defs.bzl", "zig_shared_library")
 
 zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-cdeps">cdeps</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>,
-                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>)
+                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-shared_lib_name">shared_lib_name</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>)
 </pre>
 
 Builds a Zig shared library, produces a shared or dynamic library.
@@ -402,6 +405,7 @@ zig_shared_library(
 | <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_shared_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_shared_library-shared_lib_name"></a>shared_lib_name |  -   | String | optional |  `""`  |
 | <a id="zig_shared_library-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 
 

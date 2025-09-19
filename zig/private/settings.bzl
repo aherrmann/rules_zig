@@ -19,11 +19,17 @@ ATTRS = {
         doc = "The build mode setting.",
         mandatory = True,
     ),
+    "linkmode": attr.label(
+        doc = "The link mode setting.",
+        mandatory = True,
+    ),
     "threaded": attr.label(
         doc = "The Zig multi- or single-threaded setting.",
         mandatory = True,
     ),
 }
+
+LINKMODE_VALUES = ["zig", "cc"]
 
 MODE_ARGS = {
     "debug": ["-O", "Debug"],
@@ -44,6 +50,8 @@ THREADED_VALUES = ["multi", "single"]
 def _settings_impl(ctx):
     args = []
 
+    linkmode = ctx.attr.linkmode[BuildSettingInfo].value
+
     mode = ctx.attr.mode[BuildSettingInfo].value
     args.extend(MODE_ARGS[mode])
 
@@ -53,6 +61,7 @@ def _settings_impl(ctx):
     settings_info = ZigSettingsInfo(
         mode = mode,
         threaded = threaded,
+        linkmode = linkmode,
         args = args,
     )
 

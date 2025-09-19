@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("//zig/private:settings.bzl", "MODE_VALUES", "THREADED_VALUES")
+load("//zig/private:settings.bzl", "LINKMODE_VALUES", "MODE_VALUES", "THREADED_VALUES")
 
 DOC = """\
 Transitions a target and its dependencies to a different configuration.
@@ -107,6 +107,8 @@ def _zig_transition_impl(settings, attr):
         result["//command_line_option:platforms"] = str(attr.target)
     if attr.zig_version:
         result["@zig_toolchains//:version"] = str(attr.zig_version)
+    if attr.linkmode:
+        result["//zig/settings:linkmode"] = attr.linkmode
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
     if attr.threaded:
@@ -119,6 +121,7 @@ _zig_transition = transition(
         "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
+        "//zig/settings:linkmode",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
@@ -126,6 +129,7 @@ _zig_transition = transition(
         "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
+        "//zig/settings:linkmode",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
@@ -150,6 +154,11 @@ def _make_attrs(*, executable):
         "zig_version": attr.string(
             doc = "The Zig SDK version, must be registered using the `zig` module extension.",
             mandatory = False,
+        ),
+        "linkmode": attr.string(
+            doc = "",
+            mandatory = False,
+            values = LINKMODE_VALUES,
         ),
         "mode": attr.string(
             doc = "The build mode setting, corresponds to the `-O` Zig compiler flag.",

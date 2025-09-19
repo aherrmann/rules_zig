@@ -2,37 +2,14 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-def zig_cdeps(*, cc_info, solib_parents, os, direct_inputs, transitive_inputs, args, data):
-    """Handle C library dependencies.
-
-    Sets the appropriate command-line flags for the Zig compiler to expose
-    provided headers and link against the provided libraries.
+def zig_cdeps_copts(*, compilation_context, args, transitive_inputs):
+    """Computes arguments and inputs from a CcInfo.compilation_context.
 
     Args:
-      cc_info: CcInfo, The CcInfo provider for the C dependencies.
-      solib_parents: List of String, parent RUNPATH components in `$ORIGIN/PARENT/_solib_k8`.
-      os: String, The OS component of the target triple.
-      direct_inputs: List of File; mutable, Append the needed inputs to this list.
-      transitive_inputs: List of depset of File; mutable, Append the needed inputs to this list.
-      args: Args; mutable, Append the Zig command-line flags to this object.
-      data: List of File; mutable, Append the needed runtime dependencies.
+        compilation_context: cc_common.CompilationContext instance.
+        args: Args; mutable, Append compiler options to this collection.
+        transitive_inputs: List; mutable, Append inputs to this collection.
     """
-
-    transitive_inputs.append(cc_info.compilation_context.headers)
-    _compilation_context(
-        compilation_context = cc_info.compilation_context,
-        args = args,
-    )
-    _linking_context(
-        linking_context = cc_info.linking_context,
-        solib_parents = solib_parents,
-        os = os,
-        inputs = direct_inputs,
-        args = args,
-        data = data,
-    )
-
-def _compilation_context(*, compilation_context, args):
     args.add_all(compilation_context.defines, format_each = "-D%s")
     args.add_all(compilation_context.includes, format_each = "-I%s")
 
@@ -45,7 +22,19 @@ def _compilation_context(*, compilation_context, args):
         args.add_all(compilation_context.external_includes, before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
-def _linking_context(*, linking_context, solib_parents, os, inputs, args, data):
+    transitive_inputs.append(compilation_context.headers)
+
+def zig_cdeps_linker_inputs(*, linking_context, solib_parents, os, inputs, args, data):
+    """Computers arguments and inputs from a CcInfo.linking_context.
+
+    Args:
+        linking_context: cc_common.LinkingContext instance.
+        solib_parents: A list of strings representing the solib parent directories.
+        os: String; The target operating system.
+        inputs: List; mutable, Append linker inputs to this collection.
+        args: Args; mutable, Append the C linker flags to this object.
+        data: List; mutable, Append data files to this collection.
+    """
     all_libraries = []
     dynamic_libraries = []
     for link in linking_context.linker_inputs.to_list():
