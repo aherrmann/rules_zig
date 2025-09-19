@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load(
     "//zig/private:settings.bzl",
     "MODE_VALUES",
@@ -10,7 +10,14 @@ settings(
     name = "settings",
     mode = ":mode",
     threaded = ":threaded",
+    use_cc_common_link = ":use_cc_common_link",
     visibility = ["//visibility:public"],
+)
+
+bool_flag(
+    name = "use_cc_common_link",
+    build_setting_default = False,
+    visibility = ["//zig/config/mode:__pkg__"],
 )
 
 string_flag(

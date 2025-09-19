@@ -66,6 +66,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//zig/private:platforms",
+        "//zig/private/bzlmod:cc_common_link",
         "//zig/private/bzlmod:zig",
         "//zig/private/common:semver",
         "//zig/private/repo:toolchains_repo",

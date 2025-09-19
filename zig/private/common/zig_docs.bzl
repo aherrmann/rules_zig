@@ -6,7 +6,8 @@ load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
 )
-load("//zig/private/common:cdeps.bzl", "zig_cdeps")
+
+# load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
@@ -50,14 +51,11 @@ def zig_docs_impl(ctx, *, kind):
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
     files = None
-    direct_data = []
 
     outputs = []
 
     direct_inputs = []
     transitive_inputs = []
-
-    solib_parents = []
 
     args = ctx.actions.args()
     args.use_param_file("@%s")
@@ -149,16 +147,16 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
         )
         transitive_inputs.append(c_module.transitive_inputs)
 
-    if root_module.cc_info:
-        zig_cdeps(
-            cc_info = root_module.cc_info,
-            solib_parents = solib_parents,
-            os = zigtargetinfo.triple.os,
-            direct_inputs = direct_inputs,
-            transitive_inputs = transitive_inputs,
-            args = args,
-            data = direct_data,
-        )
+    # if root_module.cc_info:
+    # zig_cdeps(
+    #     cc_info = root_module.cc_info,
+    #     solib_parents = solib_parents,
+    #     os = zigtargetinfo.triple.os,
+    #     direct_inputs = direct_inputs,
+    #     transitive_inputs = transitive_inputs,
+    #     args = args,
+    #     data = direct_data,
+    # )
 
     zig_module_specifications(
         root_module = root_module,

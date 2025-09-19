@@ -116,6 +116,45 @@ def assert_find_action(env, mnemonic):
 
     return None
 
+def assert_find_actions_in_exact_order(env, expected_mnemonics):
+    """Assert that the given action mnemonics appear in the actual actions in order.
+
+    Args:
+      env: The Skylib unittest environment object.
+      expected_mnemonics: List of strings, the mnemonics to look for in order.
+
+    Returns:
+      List of action objects corresponding to the matched mnemonics.
+    """
+    actions = analysistest.target_actions(env)
+    actual_mnemonics = [a.mnemonic for a in actions]
+
+    matched_actions = []
+    start = 0
+
+    for exp in expected_mnemonics:
+        found_at = -1
+        for i in range(start, len(actual_mnemonics)):
+            if actual_mnemonics[i] == exp:
+                found_at = i
+                break
+
+        if found_at == -1:
+            asserts.true(
+                env,
+                False,
+                "Expected mnemonic '{}' in order {} but actual sequence was {}.".format(
+                    exp,
+                    expected_mnemonics,
+                    actual_mnemonics,
+                ),
+            )
+
+        matched_actions.append(actions[found_at])
+        start = found_at + 1
+
+    return matched_actions
+
 def canonical_label(label_str):
     """Canonicalize a given label.
 

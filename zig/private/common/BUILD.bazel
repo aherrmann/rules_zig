@@ -36,6 +36,7 @@ bzl_library(
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
+        "@build_bazel_rules_android//:cc_common_link.bzl",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
     ],
