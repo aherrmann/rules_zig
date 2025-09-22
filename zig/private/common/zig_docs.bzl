@@ -6,8 +6,6 @@ load(
     "//zig/private/common:bazel_builtin.bzl",
     "bazel_builtin_module",
 )
-
-# load("//zig/private/common:cdeps.bzl", "zig_cdeps")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
