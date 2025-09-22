@@ -1,0 +1,24 @@
+load("@rules_zig//zig:defs.bzl", "zig_module")
+
+exports_files(
+    [
+        "a.zig",
+        "b.zig",
+    ],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_module(
+    name = "a",
+    main = "a.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    zigopts = ["-DFOR_MODULE_A"],
+)
+
+zig_module(
+    name = "b",
+    main = "b.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    zigopts = ["-DFOR_MODULE_B"],
+    deps = [":a"],
+)

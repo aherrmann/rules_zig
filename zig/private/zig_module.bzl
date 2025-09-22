@@ -72,6 +72,14 @@ ATTRS = {
         doc = "Files required by the module during runtime.",
         mandatory = False,
     ),
+    "zigopts": attr.string_list(
+        doc = """Additional list of flags passed to the zig compiler for this module.
+
+This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself.
+Use this at your own risk of hitting undefined behaviors.
+""",
+        mandatory = False,
+    ),
 } | BAZEL_BUILTIN_ATTRS
 
 def _zig_module_impl(ctx):
@@ -110,6 +118,7 @@ def _zig_module_impl(ctx):
         extra_srcs = ctx.files.extra_srcs,
         deps = zdeps + [bazel_builtin_module(ctx)],
         cdeps = cdeps,
+        zigopts = ctx.attr.zigopts,
     )
 
     return [default, module]

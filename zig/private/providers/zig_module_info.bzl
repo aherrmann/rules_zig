@@ -27,7 +27,7 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
-def _zig_module_context(canonical_name, main, deps, cdeps):
+def _zig_module_context(canonical_name, main, deps, cdeps, zigopts):
     mappings = [struct(name = dep.name, canonical_name = dep.canonical_name) for dep in deps]
     if any([need_translate_c(dep) for dep in cdeps]):
         # Global C module has a predefined name and canonical name since it is not defined yet here.
@@ -35,10 +35,11 @@ def _zig_module_context(canonical_name, main, deps, cdeps):
     return struct(
         canonical_name = canonical_name,
         main = main.path,
+        zigopts = zigopts,
         dependency_mappings = tuple(mappings),
     )
 
-def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], deps = [], cdeps = []):
+def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], deps = [], cdeps = [], zigopts = []):
     """Create `ZigModuleInfo` for a new Zig module.
 
     Args:
@@ -49,6 +50,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
       extra_srcs: list of File, Other files that belong to the module.
       deps: list of ZigModuleInfo, Import dependencies of this module.
       cdeps: list of CcInfo, C dependencies of this module.
+      zigopts: list of string, Additional list of flags passed to the zig compiler.
 
     Returns:
       `ZigModuleInfo`
@@ -56,7 +58,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
     cc_infos = cdeps + [dep.cc_info for dep in deps if dep.cc_info]
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos)
 
-    module_context = _zig_module_context(canonical_name, main, deps, cdeps)
+    module_context = _zig_module_context(canonical_name, main, deps, cdeps, zigopts)
 
     module = ZigModuleInfo(
         name = name,
@@ -73,6 +75,8 @@ def _render_per_module_args(module):
     args = []
     for mapping in module.dependency_mappings:
         args.extend(["--dep", "{}={}".format(mapping.name, mapping.canonical_name)])
+
+    args.extend(module.zigopts)
 
     args.append("-M{name}={src}".format(name = module.canonical_name, src = module.main))
 

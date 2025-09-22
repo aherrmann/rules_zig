@@ -58,6 +58,63 @@ _write_simple_module_expected_specs_args = rule(
     },
 )
 
+def _write_transitive_modules_with_zigopts_expected_args_impl(ctx):
+    mods = {
+        mod.label.name: mod[ZigModuleInfo]
+        for mod in ctx.attr.mods
+    }
+
+    mod_mains = {
+        mod.label.name: main
+        for (mod, main) in zip(ctx.attr.mods, ctx.files.mod_mains)
+    }
+
+    bazel_builtins = {
+        mod.label.name: struct(
+            mod_flags = _bazel_builtin_mod_flags(ctx, mod.label),
+            dep = _bazel_builtin_dep(mod.label),
+            file = [
+                file
+                for file in mods[mod.label.name].transitive_inputs.to_list()
+                if file.path == _bazel_builtin_file_name(ctx, mod.label)
+            ],
+        )
+        for mod in ctx.attr.mods
+    }
+
+    expected = []
+    expected.extend([
+        "--dep",
+        "'a=a'",
+        "--dep",
+        bazel_builtins["b"].dep,
+        "-DFOR_MODULE_B",
+        "'-Mb={}'".format(mod_mains["b"].path),
+    ])
+
+    expected.extend(bazel_builtins["a"].mod_flags)
+    expected.extend([
+        "--dep",
+        bazel_builtins["a"].dep,
+        "-DFOR_MODULE_A",
+        "'-Ma={}'".format(mod_mains["a"].path),
+    ])
+    expected.extend(bazel_builtins["b"].mod_flags)
+
+    ctx.actions.write(
+        output = ctx.outputs.out,
+        content = "\n".join(expected) + "\n",
+    )
+
+_write_transitive_modules_with_zigopts_expected_args = rule(
+    _write_transitive_modules_with_zigopts_expected_args_impl,
+    attrs = {
+        "mods": attr.label_list(providers = [ZigModuleInfo]),
+        "mod_mains": attr.label_list(allow_files = True),
+        "out": attr.output(mandatory = True),
+    },
+)
+
 def _write_module_specs_args_impl(ctx):
     args = ctx.actions.args()
 
@@ -348,6 +405,35 @@ def module_info_test_suite(name):
         size = "small",
     )
 
+    _write_transitive_modules_with_zigopts_expected_args(
+        name = name + "_transitive_with_zigopts_expected",
+        mods = [
+            "//zig/tests/transitive-modules-zigopts:a",
+            "//zig/tests/transitive-modules-zigopts:b",
+        ],
+        mod_mains = [
+            "//zig/tests/transitive-modules-zigopts:a.zig",
+            "//zig/tests/transitive-modules-zigopts:b.zig",
+        ],
+        out = name + "_transitive_with_zigopts_expected.txt",
+        tags = ["manual"],
+    )
+
+    _write_module_specs_args(
+        name = name + "_transitive_with_zigopts_actual",
+        mod = "//zig/tests/transitive-modules-zigopts:b",
+        out = name + "_transitive_with_zigopts_actual.txt",
+        tags = ["manual"],
+    )
+
+    diff_test(
+        name = name + "_transitive_with_zigopts_diff_test",
+        failure_message = "generated module specifications do not match",
+        file1 = name + "_transitive_with_zigopts_expected.txt",
+        file2 = name + "_transitive_with_zigopts_actual.txt",
+        size = "small",
+    )
+
     _write_simple_module_with_c_expected_specs_args(
         name = name + "_simple_with_c_expected",
         mods = [
@@ -479,5 +565,6 @@ def module_info_test_suite(name):
             name + "_simple_with_c_diff_test",
             name + "_simple_with_global_c_diff_test",
             name + "_import_name_module_diff_test",
+            name + "_transitive_with_zigopts_diff_test",
         ],
     )
