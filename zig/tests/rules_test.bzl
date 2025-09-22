@@ -10,7 +10,10 @@ load(
     "assert_find_unique_surrounded_arguments",
     "assert_flag_set",
     "assert_flag_unset",
+    "canonical_label",
 )
+
+_SETTINGS_USE_CC_COMMON_LINK = canonical_label("@//zig/settings:use_cc_common_link")
 
 def _simple_binary_test_impl(ctx):
     env = analysistest.begin(ctx)
@@ -485,6 +488,49 @@ def _test_strip_debug_symbols(name):
         name + "-test-strip",
     ]
 
+def _use_cc_common_link_simple_binary_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    default = target[DefaultInfo]
+
+    executable = default.files_to_run.executable
+    asserts.true(executable != None, "zig_binary should produce an executable.")
+    asserts.true(sets.contains(sets.make(default.files.to_list()), executable), "zig_binary should return the executable as an output.")
+    asserts.true(sets.contains(sets.make(default.default_runfiles.files.to_list()), executable), "zig_binary should return the executable in the runfiles.")
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "ZigBuildLib"
+    ]
+    asserts.equals(env, 1, len(build), "zig_binary should generate one ZigBuildLib action.")
+
+    build = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "CppLink"
+    ]
+    asserts.equals(env, 1, len(build), "zig_binary should generate one CppLink action.")
+    build = build[0]
+    asserts.true(sets.contains(sets.make(build.outputs.to_list()), executable), "zig_binary linked with cc_common.link should generate a CppLink action that generates the binary.")
+
+    return analysistest.end(env)
+
+_use_cc_common_link_simple_binary_test = analysistest.make(
+    _use_cc_common_link_simple_binary_test_impl,
+    config_settings = {
+        _SETTINGS_USE_CC_COMMON_LINK: True,
+    },
+)
+
+def _test_use_cc_common_link_simple_binary(name):
+    _use_cc_common_link_simple_binary_test(
+        name = name,
+        target_under_test = "//zig/tests/simple-binary:binary",
+        size = "small",
+    )
+    return [":" + name]
+
 def rules_test_suite(name):
     """Generate test suite and test targets for common rule analysis tests.
 
@@ -502,6 +548,7 @@ def rules_test_suite(name):
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
     tests += _test_compiler_runtime(name = "compiler_runtime_test")
     tests += _test_strip_debug_symbols(name = "strip_debug_symbols_test")
+    tests += _test_use_cc_common_link_simple_binary(name = "use_cc_common_link_simple_binary_test")
     native.test_suite(
         name = name,
         tests = tests,

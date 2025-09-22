@@ -1,0 +1,111 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_configure", "zig_configure_binary", "zig_configure_test", "zig_shared_library", "zig_static_library", "zig_test")
+
+cc_binary(
+    name = "add",
+    srcs = ["add.c"],
+    linkopts = select({
+        "@platforms//os:linux": ["-Wl,-soname,libadd.so"],
+        "@platforms//os:macos": ["-Wl,-install_name,@rpath/libadd.dylib"],
+        "//conditions:default": [],
+    }),
+    linkshared = True,
+)
+
+cc_library(
+    name = "add_shared",
+    srcs = [":add"],
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    tags = ["manual"],
+    deps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+)
+
+zig_configure_binary(
+    name = "binary_linked_with_cc_common_link",
+    actual = ":binary",
+    use_cc_common_link = True,
+)
+
+zig_static_library(
+    name = "static-library",
+    main = "main.zig",
+    tags = ["manual"],
+    deps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+)
+
+zig_configure(
+    name = "static_library_linked_with_cc_common_link",
+    actual = ":static-library",
+    use_cc_common_link = True,
+)
+
+zig_shared_library(
+    name = "shared-library",
+    main = "main.zig",
+    tags = ["manual"],
+    deps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+)
+
+zig_configure(
+    name = "shared_library_linked_with_cc_common_link",
+    actual = ":static-library",
+    use_cc_common_link = True,
+)
+
+zig_test(
+    name = "test",
+    size = "small",
+    main = "main.zig",
+    tags = ["manual"],
+    deps = [
+        ":add_shared",
+        "@rules_zig//zig/lib:libc",
+    ],
+)
+
+zig_configure_test(
+    name = "test_linked_with_cc_common_link",
+    size = "small",
+    actual = ":test",
+    use_cc_common_link = True,
+)
+
+build_test(
+    name = "build",
+    size = "small",
+    targets = [
+        ":binary_linked_with_cc_common_link",
+        ":shared_library_linked_with_cc_common_link",
+        ":static_library_linked_with_cc_common_link",
+        ":test_linked_with_cc_common_link",
+    ],
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :binary_linked_with_cc_common_link) > $(OUTS)",
+    tools = [":binary_linked_with_cc_common_link"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)

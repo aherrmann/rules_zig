@@ -107,6 +107,8 @@ def _zig_transition_impl(settings, attr):
         result["//command_line_option:platforms"] = str(attr.target)
     if attr.zig_version:
         result["@zig_toolchains//:version"] = str(attr.zig_version)
+    if attr.use_cc_common_link:
+        result["//zig/settings:use_cc_common_link"] = attr.use_cc_common_link
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
     if attr.threaded:
@@ -119,6 +121,7 @@ _zig_transition = transition(
         "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
+        "//zig/settings:use_cc_common_link",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
@@ -126,6 +129,7 @@ _zig_transition = transition(
         "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
+        "//zig/settings:use_cc_common_link",
         "//zig/settings:mode",
         "//zig/settings:threaded",
     ],
@@ -149,6 +153,10 @@ def _make_attrs(*, executable):
         ),
         "zig_version": attr.string(
             doc = "The Zig SDK version, must be registered using the `zig` module extension.",
+            mandatory = False,
+        ),
+        "use_cc_common_link": attr.bool(
+            doc = "Whether to use cc_common.link to link zig binaries, tests and shared libraries.",
             mandatory = False,
         ),
         "mode": attr.string(
