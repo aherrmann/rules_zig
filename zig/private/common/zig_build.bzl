@@ -156,7 +156,7 @@ Environment variables to inherit from external environment when executed by `baz
         mandatory = False,
     ),
     "test_runner": attr.label(
-        allow_single_file = True,
+        allow_single_file = ZIG_SOURCE_EXTENSIONS,
         doc = "Optional Zig file to specify a custom test runner",
         mandatory = False,
     ),
