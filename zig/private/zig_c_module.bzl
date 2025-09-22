@@ -38,6 +38,10 @@ zig_c_module(
 """
 
 ATTRS = {
+    "import_name": attr.string(
+        doc = "The import name of the module.",
+        mandatory = False,
+    ),
     "cdeps": attr.label_list(
         doc = "C dependencies to translate their headers from.",
         mandatory = True,
@@ -94,7 +98,7 @@ def _zig_c_module_impl(ctx):
     cc_infos = [dep[CcInfo] for dep in ctx.attr.cdeps]
     module = zig_translate_c(
         ctx = ctx,
-        name = ctx.label.name,
+        name = ctx.attr.import_name or ctx.label.name,
         zigtoolchaininfo = zigtoolchaininfo,
         global_args = global_args,
         cc_infos = cc_infos,

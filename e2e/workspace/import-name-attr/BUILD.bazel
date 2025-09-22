@@ -1,0 +1,20 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_module")
+
+zig_module(
+    name = "data",
+    import_name = "import-name-attr/data",
+    main = "data.zig",
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    deps = [":data"],
+)
+
+build_test(
+    name = "output_test",
+    size = "small",
+    targets = [":binary"],
+)

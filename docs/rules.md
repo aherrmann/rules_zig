@@ -70,7 +70,7 @@ zig_binary(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_c_module")
 
-zig_c_module(<a href="#zig_c_module-name">name</a>, <a href="#zig_c_module-data">data</a>, <a href="#zig_c_module-cdeps">cdeps</a>)
+zig_c_module(<a href="#zig_c_module-name">name</a>, <a href="#zig_c_module-data">data</a>, <a href="#zig_c_module-cdeps">cdeps</a>, <a href="#zig_c_module-import_name">import_name</a>)
 </pre>
 
 Defines a Zig C module.
@@ -105,6 +105,7 @@ zig_c_module(
 | <a id="zig_c_module-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
 | <a id="zig_c_module-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_c_module-cdeps"></a>cdeps |  C dependencies to translate their headers from.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
+| <a id="zig_c_module-import_name"></a>import_name |  The import name of the module.   | String | optional |  `""`  |
 
 
 <a id="zig_configure"></a>
@@ -312,7 +313,7 @@ zig_configure_test(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_module")
 
-zig_module(<a href="#zig_module-name">name</a>, <a href="#zig_module-deps">deps</a>, <a href="#zig_module-srcs">srcs</a>, <a href="#zig_module-data">data</a>, <a href="#zig_module-extra_srcs">extra_srcs</a>, <a href="#zig_module-main">main</a>)
+zig_module(<a href="#zig_module-name">name</a>, <a href="#zig_module-deps">deps</a>, <a href="#zig_module-srcs">srcs</a>, <a href="#zig_module-data">data</a>, <a href="#zig_module-extra_srcs">extra_srcs</a>, <a href="#zig_module-import_name">import_name</a>, <a href="#zig_module-main">main</a>)
 </pre>
 
 Defines a Zig module.
@@ -351,6 +352,7 @@ zig_module(
 | <a id="zig_module-srcs"></a>srcs |  Other Zig source files required when building the module, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_module-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_module-extra_srcs"></a>extra_srcs |  Other files required when building the module, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_module-import_name"></a>import_name |  The import name of the module.   | String | optional |  `""`  |
 | <a id="zig_module-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 
 
