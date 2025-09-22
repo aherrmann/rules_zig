@@ -2,24 +2,6 @@
 
 Extensions for bzlmod.
 
-<a id="cc_common_link"></a>
-
-## cc_common_link
-
-<pre>
-load("@rules_zig//zig:extensions.bzl", "cc_common_link")
-
-cc_common_link(<a href="#cc_common_link-name">name</a>)
-</pre>
-
-**ATTRIBUTES**
-
-
-| Name  | Description | Type | Mandatory | Default |
-| :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="cc_common_link-name"></a>name |  A unique name for this repository.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-
-
 <a id="zig"></a>
 
 ## zig

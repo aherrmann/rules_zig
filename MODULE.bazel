@@ -81,6 +81,6 @@ bazel_dep(name = "cgrindel_bazel_starlib", version = "0.27.0", dev_dependency = 
 
 # Hack to get around a cc_common.link(main_output) private API limitation.
 # See https://github.com/bazelbuild/bazel/pull/23838
-cc_common_link = use_repo_rule("//zig:extensions.bzl", "cc_common_link")
+cc_common_link = use_repo_rule("//zig/private/bzlmod:cc_common_link.bzl", "cc_common_link")
 
 cc_common_link(name = "build_bazel_rules_android")
