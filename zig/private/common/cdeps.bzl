@@ -25,7 +25,7 @@ def zig_cdeps_copts(*, compilation_context, args, transitive_inputs):
     transitive_inputs.append(compilation_context.headers)
 
 def zig_cdeps_linker_inputs(*, linking_context, solib_parents, os, inputs, args, data):
-    """Computers arguments and inputs from a CcInfo.linking_context.
+    """Compiler arguments and inputs from a CcInfo.linking_context.
 
     Args:
         linking_context: cc_common.LinkingContext instance.
