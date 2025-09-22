@@ -6,7 +6,7 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 def need_translate_c(cc_info):
     return cc_info.compilation_context and (cc_info.compilation_context.headers or cc_info.compilation_context.defines)
 
-def find_cc_toolchain(ctx, mandatory = True):
+def find_cc_toolchain(ctx, *, mandatory):
     """Extracts a CcToolchain from the current target's context
 
     Args:
