@@ -155,6 +155,11 @@ Environment variables to inherit from external environment when executed by `baz
         """,
         mandatory = False,
     ),
+    "test_runner": attr.label(
+        allow_single_file = True,
+        doc = "Optional Zig file to specify a custom test runner",
+        mandatory = False,
+    ),
 }
 
 TOOLCHAINS = [
@@ -271,6 +276,10 @@ def zig_build_impl(ctx, *, kind):
         else:
             default_output = ctx.actions.declare_file(_lib_prefix(zigtargetinfo.triple.os) + ctx.label.name + _shared_lib_extension(zigtargetinfo.triple.os))
         solib_parents = [""]
+
+    if kind == "zig_test" and ctx.attr.test_runner:
+        args.add("--test-runner", ctx.file.test_runner)
+        direct_inputs.append(ctx.file.test_runner)
 
     outputs.append(default_output)
 

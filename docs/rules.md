@@ -479,7 +479,7 @@ zig_static_library(
 load("@rules_zig//zig:defs.bzl", "zig_test")
 
 zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-cdeps">cdeps</a>, <a href="#zig_test-compiler_runtime">compiler_runtime</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>,
-         <a href="#zig_test-extra_docs">extra_docs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>)
+         <a href="#zig_test-extra_docs">extra_docs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_test-test_runner">test_runner</a>)
 </pre>
 
 Builds a Zig test.
@@ -526,6 +526,7 @@ zig_test(
 | <a id="zig_test-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_test-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
+| <a id="zig_test-test_runner"></a>test_runner |  Optional Zig file to specify a custom test runner   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 
 
 <a id="zig_library"></a>
