@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_configure", "zig_configure_binary", "zig_configure_test", "zig_static_library", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_configure", "zig_configure_binary", "zig_configure_test", "zig_shared_library", "zig_static_library", "zig_test")
 
 cc_library(
     name = "add",
@@ -23,15 +23,28 @@ zig_configure_binary(
 )
 
 zig_static_library(
-    name = "library",
+    name = "static-library",
     main = "main.zig",
     tags = ["manual"],
     deps = [":add"],
 )
 
 zig_configure(
-    name = "library_linked_with_cc_common_link",
-    actual = ":library",
+    name = "static_library_linked_with_cc_common_link",
+    actual = ":static-library",
+    use_cc_common_link = True,
+)
+
+zig_shared_library(
+    name = "shared-library",
+    main = "main.zig",
+    tags = ["manual"],
+    deps = [":add"],
+)
+
+zig_configure(
+    name = "shared_library_linked_with_cc_common_link",
+    actual = ":shared-library",
     use_cc_common_link = True,
 )
 
@@ -65,8 +78,8 @@ diff_test(
 )
 
 genrule(
-    name = "library-symbol",
-    srcs = [":library_linked_with_cc_common_link"],
+    name = "static-library-symbol",
+    srcs = [":static_library_linked_with_cc_common_link"],
     outs = ["library-symbol.txt"],
     # Test that `add` is not inlined into the Zig library, but remains an
     # undefined symbol to be resolved later.
@@ -79,8 +92,9 @@ build_test(
     size = "small",
     targets = [
         ":binary_linked_with_cc_common_link",
-        ":library_linked_with_cc_common_link",
-        ":library-symbol",
+        ":shared_library_linked_with_cc_common_link",
+        ":static_library_linked_with_cc_common_link",
+        ":static-library-symbol",
         ":test_linked_with_cc_common_link",
     ],
 )
