@@ -534,28 +534,3 @@ zig_test(
 | <a id="zig_test-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
 
-<a id="zig_library"></a>
-
-## zig_library
-
-<pre>
-load("@rules_zig//zig:defs.bzl", "zig_library")
-
-zig_library(*, <a href="#zig_library-name">name</a>, <a href="#zig_library-kwargs">**kwargs</a>)
-</pre>
-
-Alias for `zig_static_library`.
-
-**PARAMETERS**
-
-
-| Name  | Description | Default Value |
-| :------------- | :------------- | :------------- |
-| <a id="zig_library-name"></a>name |  string, a unique name for the rule.   |  none |
-| <a id="zig_library-kwargs"></a>kwargs |  keyword arguments to forward to `zig_static_library`.   |  none |
-
-**DEPRECATED**
-
-The `zig_library` rule is deprecated, use `zig_static_library` instead.
-
-
