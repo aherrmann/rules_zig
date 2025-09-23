@@ -114,6 +114,14 @@ The default behavior is to include them in executables and shared libraries.
         doc = "Files required by the target during runtime.",
         mandatory = False,
     ),
+    "zigopts": attr.string_list(
+        doc = """Additional list of flags passed to the zig compiler. Subject to location expansion.
+
+This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself.
+Use this at your own risk of hitting undefined behaviors.
+""",
+        mandatory = False,
+    ),
     "_settings": attr.label(
         default = "//zig/settings",
         doc = "Zig build settings.",
@@ -304,6 +312,14 @@ def zig_build_impl(ctx, *, kind):
         args = args,
     )
 
+    zigopts = location_expansion(
+        ctx = ctx,
+        targets = location_targets,
+        outputs = outputs,
+        attribute_name = "zigopts",
+        strings = ctx.attr.zigopts,
+    )
+
     cdeps = []
     if ctx.attr.cdeps:
         # buildifier: disable=print
@@ -327,6 +343,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
         extra_srcs = ctx.files.extra_srcs,
         deps = zdeps + [bazel_builtin_module(ctx)],
         cdeps = cdeps,
+        zigopts = zigopts,
     )
 
     zig_settings(
