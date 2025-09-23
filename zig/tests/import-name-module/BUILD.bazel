@@ -1,0 +1,23 @@
+load("@rules_zig//zig:defs.bzl", "zig_module")
+
+exports_files(
+    [
+        "main.zig",
+        "data.zig",
+    ],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_module(
+    name = "data",
+    import_name = "import-name-module/data",
+    main = "data.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_module(
+    name = "main",
+    main = "main.zig",
+    visibility = ["//zig/tests:__pkg__"],
+    deps = [":data"],
+)

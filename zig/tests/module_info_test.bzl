@@ -265,6 +265,60 @@ _write_simple_module_with_global_c_expected_specs_args = rule(
     },
 )
 
+def _write_simple_module_with_import_name_specs_args_impl(ctx):
+    mods = {
+        mod.label.name: mod[ZigModuleInfo]
+        for mod in ctx.attr.mods
+    }
+
+    mod_mains = {
+        mod.label.name: main
+        for (mod, main) in zip(ctx.attr.mods, ctx.files.mod_mains)
+    }
+
+    bazel_builtins = {
+        mod.label.name: struct(
+            mod_flags = _bazel_builtin_mod_flags(ctx, mod.label),
+            dep = _bazel_builtin_dep(mod.label),
+            file = [
+                file
+                for file in mods[mod.label.name].transitive_inputs.to_list()
+                if file.path == _bazel_builtin_file_name(ctx, mod.label)
+            ],
+        )
+        for mod in ctx.attr.mods
+    }
+
+    expected = []
+
+    expected.extend(["--dep", "'import-name-module/data=data'"])
+    expected.extend(["--dep", bazel_builtins["main"].dep])
+    expected.extend(["'-M{name}={src}'".format(
+        name = mods["main"].name,
+        src = mod_mains["main"].path,
+    )])
+
+    expected.extend(bazel_builtins["data"].mod_flags)
+
+    expected.extend(["--dep", bazel_builtins["data"].dep])
+    expected.extend(["'-Mdata={}'".format(mod_mains["data"].path)])
+
+    expected.extend(bazel_builtins["main"].mod_flags)
+
+    ctx.actions.write(
+        output = ctx.outputs.out,
+        content = "\n".join(expected) + "\n",
+    )
+
+_write_simple_module_with_import_name_specs_args = rule(
+    _write_simple_module_with_import_name_specs_args_impl,
+    attrs = {
+        "mods": attr.label_list(providers = [ZigModuleInfo]),
+        "mod_mains": attr.label_list(allow_files = True),
+        "out": attr.output(mandatory = True),
+    },
+)
+
 def module_info_test_suite(name):
     """Generate module info test suite.
 
@@ -388,6 +442,35 @@ def module_info_test_suite(name):
         size = "small",
     )
 
+    _write_simple_module_with_import_name_specs_args(
+        name = name + "_import_name_module_expected",
+        mods = [
+            "//zig/tests/import-name-module:main",
+            "//zig/tests/import-name-module:data",
+        ],
+        mod_mains = [
+            "//zig/tests/import-name-module:main.zig",
+            "//zig/tests/import-name-module:data.zig",
+        ],
+        out = name + "_import_name_module_expected.txt",
+        tags = ["manual"],
+    )
+
+    _write_module_specs_args(
+        name = name + "_import_name_module_actual",
+        mod = "//zig/tests/import-name-module:main",
+        out = name + "_import_name_module_actual.txt",
+        tags = ["manual"],
+    )
+
+    diff_test(
+        name = name + "_import_name_module_diff_test",
+        failure_message = "generated module specifications do not match",
+        file1 = name + "_import_name_module_expected.txt",
+        file2 = name + "_import_name_module_actual.txt",
+        size = "small",
+    )
+
     native.test_suite(
         name = name,
         tests = [
@@ -395,5 +478,6 @@ def module_info_test_suite(name):
             name + "_nested_diff_test",
             name + "_simple_with_c_diff_test",
             name + "_simple_with_global_c_diff_test",
+            name + "_import_name_module_diff_test",
         ],
     )
