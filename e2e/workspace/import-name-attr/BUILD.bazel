@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library")
 
-zig_module(
+zig_library(
     name = "data",
     import_name = "import-name-attr/data",
     main = "data.zig",

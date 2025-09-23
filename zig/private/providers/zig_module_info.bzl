@@ -1,4 +1,4 @@
-"""Defines providers for the zig_module rule."""
+"""Defines providers for the zig_library rule."""
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("//zig/private:cc_helper.bzl", "need_translate_c")

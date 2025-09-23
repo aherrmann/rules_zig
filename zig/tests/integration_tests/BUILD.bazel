@@ -8,7 +8,7 @@ load(
     "bazel_integration_tests",
     "integration_test_utils",
 )
-load("//zig:defs.bzl", "zig_module", "zig_test")
+load("//zig:defs.bzl", "zig_library", "zig_test")
 load("//zig/private:versions.bzl", "TOOL_VERSIONS")
 
 # gazelle:exclude workspace
@@ -31,7 +31,7 @@ workspace_files = integration_test_utils.glob_workspace_files("workspace") + [
     ".bazelrc.meta",
 ]
 
-zig_module(
+zig_library(
     name = "integration_testing",
     main = "integration_testing.zig",
 )

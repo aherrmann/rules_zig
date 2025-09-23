@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_c_module", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_c_library", "zig_library")
 
 cc_library(
     name = "local_c",
@@ -8,12 +8,12 @@ cc_library(
     hdrs = ["local.h"],
 )
 
-zig_c_module(
+zig_c_library(
     name = "local_zig",
     cdeps = [":local_c"],
 )
 
-zig_module(
+zig_library(
     name = "module",
     main = "module.zig",
     deps = [":local_zig"],

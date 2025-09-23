@@ -1,11 +1,11 @@
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library")
 
 exports_files(
     ["main.zig"],
     visibility = ["//zig/tests:__pkg__"],
 )
 
-zig_module(
+zig_library(
     name = "data",
     main = "data.zig",
     visibility = ["//zig/tests:__pkg__"],

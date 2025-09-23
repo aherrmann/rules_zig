@@ -1,4 +1,4 @@
-load("@rules_zig//zig:defs.bzl", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_library")
 
 exports_files(
     [
@@ -8,14 +8,14 @@ exports_files(
     visibility = ["//zig/tests:__pkg__"],
 )
 
-zig_module(
+zig_library(
     name = "a",
     main = "a.zig",
     visibility = ["//zig/tests:__pkg__"],
     zigopts = ["-DFOR_MODULE_A"],
 )
 
-zig_module(
+zig_library(
     name = "b",
     main = "b.zig",
     visibility = ["//zig/tests:__pkg__"],

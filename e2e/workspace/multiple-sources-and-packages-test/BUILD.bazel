@@ -1,4 +1,4 @@
-load("@rules_zig//zig:defs.bzl", "zig_module", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_library", "zig_test")
 
 zig_test(
     name = "test",
@@ -13,7 +13,7 @@ zig_test(
     ],
 )
 
-zig_module(
+zig_library(
     name = "pkg",
     main = "pkg/main.zig",
 )
