@@ -32,6 +32,8 @@ zig_binary(
 zig_configure_binary(
     name = "binary_linked_with_cc_common_link",
     actual = ":binary",
+    # Exclude from RE because of https://github.com/bazelbuild/bazel/issues/26551
+    tags = ["local"],
     use_cc_common_link = True,
 )
 
@@ -48,6 +50,8 @@ zig_static_library(
 zig_configure(
     name = "static_library_linked_with_cc_common_link",
     actual = ":static-library",
+    # Exclude from RE because of https://github.com/bazelbuild/bazel/issues/26551
+    tags = ["local"],
     use_cc_common_link = True,
 )
 
@@ -64,6 +68,8 @@ zig_shared_library(
 zig_configure(
     name = "shared_library_linked_with_cc_common_link",
     actual = ":static-library",
+    # Exclude from RE because of https://github.com/bazelbuild/bazel/issues/26551
+    tags = ["local"],
     use_cc_common_link = True,
 )
 
@@ -82,6 +88,8 @@ zig_configure_test(
     name = "test_linked_with_cc_common_link",
     size = "small",
     actual = ":test",
+    # Exclude from RE because of https://github.com/bazelbuild/bazel/issues/26551
+    tags = ["local"],
     use_cc_common_link = True,
 )
 
