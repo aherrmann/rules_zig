@@ -60,7 +60,7 @@ zig_binary(
 | <a id="zig_binary-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_binary-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
-| <a id="zig_binary-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_binary-main"></a>main |  The main source file.<br><br>If not set, deps must contain exactly one Zig module dependency which will be used as the root module. Note that in that case, 'srcs', 'extra_srcs' and 'csrcs' must also be empty as they are taken from the root module instead.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_binary-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_binary-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
@@ -414,7 +414,7 @@ zig_shared_library(
 | <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_shared_library-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
-| <a id="zig_shared_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_shared_library-main"></a>main |  The main source file.<br><br>If not set, deps must contain exactly one Zig module dependency which will be used as the root module. Note that in that case, 'srcs', 'extra_srcs' and 'csrcs' must also be empty as they are taken from the root module instead.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_shared_library-shared_lib_name"></a>shared_lib_name |  -   | String | optional |  `""`  |
 | <a id="zig_shared_library-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_shared_library-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
@@ -474,7 +474,7 @@ zig_static_library(
 | <a id="zig_static_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_static_library-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
-| <a id="zig_static_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_static_library-main"></a>main |  The main source file.<br><br>If not set, deps must contain exactly one Zig module dependency which will be used as the root module. Note that in that case, 'srcs', 'extra_srcs' and 'csrcs' must also be empty as they are taken from the root module instead.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_static_library-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_static_library-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
@@ -534,7 +534,7 @@ zig_test(
 | <a id="zig_test-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
-| <a id="zig_test-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_test-main"></a>main |  The main source file.<br><br>If not set, deps must contain exactly one Zig module dependency which will be used as the root module. Note that in that case, 'srcs', 'extra_srcs' and 'csrcs' must also be empty as they are taken from the root module instead.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_test-test_runner"></a>test_runner |  Optional Zig file to specify a custom test runner   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
