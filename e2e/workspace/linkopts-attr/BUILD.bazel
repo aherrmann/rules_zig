@@ -1,0 +1,55 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_configure", "zig_configure_binary", "zig_configure_test", "zig_shared_library", "zig_test")
+
+zig_binary(
+    name = "binary",
+    linkopts = ["-lc"],
+    main = "main.zig",
+    tags = ["manual"],
+)
+
+zig_shared_library(
+    name = "shared-library",
+    linkopts = ["-lc"],
+    main = "main.zig",
+    tags = ["manual"],
+)
+
+zig_test(
+    name = "test",
+    size = "small",
+    linkopts = ["-lc"],
+    main = "main.zig",
+)
+
+zig_configure_binary(
+    name = "binary-use_cc_common_link",
+    actual = ":binary",
+    tags = ["manual"],
+    use_cc_common_link = True,
+)
+
+zig_configure(
+    name = "shared-library-use_cc_common_link",
+    actual = ":shared-library",
+    tags = ["manual"],
+    use_cc_common_link = True,
+)
+
+zig_configure_test(
+    name = "test-use_cc_common_link",
+    size = "small",
+    actual = ":test",
+    use_cc_common_link = True,
+)
+
+build_test(
+    name = "build_test",
+    size = "small",
+    targets = [
+        ":binary",
+        ":shared-library",
+        ":binary-use_cc_common_link",
+        ":shared-library-use_cc_common_link",
+    ],
+)

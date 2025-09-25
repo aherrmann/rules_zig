@@ -122,6 +122,10 @@ Use this at your own risk of hitting undefined behaviors.
 """,
         mandatory = False,
     ),
+    "linkopts": attr.string_list(
+        doc = "Additional list of flags passed to the linker. Subject to location expansion.",
+        mandatory = False,
+    ),
     "_settings": attr.label(
         default = "//zig/settings",
         doc = "Zig build settings.",
@@ -409,6 +413,17 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
         toolchain = "//zig:toolchain_type",
     )
 
+    linkopts = location_expansion(
+        ctx = ctx,
+        targets = location_targets,
+        outputs = outputs,
+        attribute_name = "linkopts",
+        strings = ctx.attr.linkopts,
+    )
+
+    if not use_cc_common_link and kind != "zig_static_library":
+        args.add_all(linkopts)
+
     if kind == "zig_binary":
         if use_cc_common_link:
             static_lib = ctx.actions.declare_file(ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
@@ -446,6 +461,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
                 output_type = "executable",
                 main_output = default_output,
                 linking_contexts = [linking_context, root_module.cc_info.linking_context],
+                user_link_flags = linkopts,
             )
         else:
             args.add(default_output, format = "-femit-bin=%s")
@@ -516,6 +532,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
                 output_type = "executable",
                 main_output = default_output,
                 linking_contexts = [linking_context, root_module.cc_info.linking_context],
+                user_link_flags = linkopts,
             )
         else:
             args.add(default_output, format = "-femit-bin=%s")
@@ -587,6 +604,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
                 output_type = "dynamic_library",
                 main_output = default_output,
                 linking_contexts = [linking_context, root_module.cc_info.linking_context],
+                user_link_flags = linkopts,
             )
 
             exported_library_to_link = link_outputs.library_to_link

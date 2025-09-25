@@ -14,7 +14,7 @@ the current target name or current repository name.
 load("@rules_zig//zig:defs.bzl", "zig_binary")
 
 zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-cdeps">cdeps</a>, <a href="#zig_binary-compiler_runtime">compiler_runtime</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-env">env</a>, <a href="#zig_binary-extra_docs">extra_docs</a>,
-           <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-main">main</a>, <a href="#zig_binary-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_binary-zigopts">zigopts</a>)
+           <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-linkopts">linkopts</a>, <a href="#zig_binary-main">main</a>, <a href="#zig_binary-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_binary-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig binary.
@@ -59,6 +59,7 @@ zig_binary(
 | <a id="zig_binary-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="zig_binary-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_binary-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_binary-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_binary-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
@@ -366,7 +367,8 @@ zig_module(
 load("@rules_zig//zig:defs.bzl", "zig_shared_library")
 
 zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-cdeps">cdeps</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>,
-                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-shared_lib_name">shared_lib_name</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_shared_library-zigopts">zigopts</a>)
+                   <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-linkopts">linkopts</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-shared_lib_name">shared_lib_name</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>,
+                   <a href="#zig_shared_library-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig shared library, produces a shared or dynamic library.
@@ -411,6 +413,7 @@ zig_shared_library(
 | <a id="zig_shared_library-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="zig_shared_library-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_shared_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_shared_library-shared_lib_name"></a>shared_lib_name |  -   | String | optional |  `""`  |
 | <a id="zig_shared_library-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
@@ -425,7 +428,7 @@ zig_shared_library(
 load("@rules_zig//zig:defs.bzl", "zig_static_library")
 
 zig_static_library(<a href="#zig_static_library-name">name</a>, <a href="#zig_static_library-deps">deps</a>, <a href="#zig_static_library-srcs">srcs</a>, <a href="#zig_static_library-data">data</a>, <a href="#zig_static_library-cdeps">cdeps</a>, <a href="#zig_static_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_static_library-copts">copts</a>, <a href="#zig_static_library-csrcs">csrcs</a>, <a href="#zig_static_library-extra_docs">extra_docs</a>,
-                   <a href="#zig_static_library-extra_srcs">extra_srcs</a>, <a href="#zig_static_library-linker_script">linker_script</a>, <a href="#zig_static_library-main">main</a>, <a href="#zig_static_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_static_library-zigopts">zigopts</a>)
+                   <a href="#zig_static_library-extra_srcs">extra_srcs</a>, <a href="#zig_static_library-linker_script">linker_script</a>, <a href="#zig_static_library-linkopts">linkopts</a>, <a href="#zig_static_library-main">main</a>, <a href="#zig_static_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_static_library-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig library, produces a static archive.
@@ -470,6 +473,7 @@ zig_static_library(
 | <a id="zig_static_library-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="zig_static_library-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_static_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_static_library-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_static_library-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
@@ -483,7 +487,8 @@ zig_static_library(
 load("@rules_zig//zig:defs.bzl", "zig_test")
 
 zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-cdeps">cdeps</a>, <a href="#zig_test-compiler_runtime">compiler_runtime</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>,
-         <a href="#zig_test-extra_docs">extra_docs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_test-test_runner">test_runner</a>, <a href="#zig_test-zigopts">zigopts</a>)
+         <a href="#zig_test-extra_docs">extra_docs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-linkopts">linkopts</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_test-test_runner">test_runner</a>,
+         <a href="#zig_test-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig test.
@@ -528,6 +533,7 @@ zig_test(
 | <a id="zig_test-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_test-linker_script"></a>linker_script |  Custom linker script for the target.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
+| <a id="zig_test-linkopts"></a>linkopts |  Additional list of flags passed to the linker. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_test-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_test-test_runner"></a>test_runner |  Optional Zig file to specify a custom test runner   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
