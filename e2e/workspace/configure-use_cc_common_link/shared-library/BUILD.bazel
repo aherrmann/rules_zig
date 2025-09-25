@@ -100,6 +100,8 @@ genrule(
     name = "output",
     outs = ["output.actual"],
     cmd = "$(execpath :binary_linked_with_cc_common_link) > $(OUTS)",
+    # Exclude from RE because of https://github.com/bazelbuild/bazel/issues/26551
+    tags = ["no-remote-exec"],
     tools = [":binary_linked_with_cc_common_link"],
 )
 
