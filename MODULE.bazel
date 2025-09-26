@@ -43,7 +43,7 @@ use_repo(buildbuddy, "buildbuddy_toolchain")
 bazel_dep(name = "bazel_features", version = "1.36.0", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 bazel_dep(name = "gazelle", version = "0.45.0", dev_dependency = True, repo_name = "bazel_gazelle")
-bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.8.1", dev_dependency = True)
+bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.8.2", dev_dependency = True)
 bazel_dep(
     name = "buildifier_prebuilt",
     version = "8.2.0.2",
