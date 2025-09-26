@@ -343,7 +343,9 @@ def zig_build_impl(ctx, *, kind):
         # buildifier: disable=print
         print("""\
 The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
-""")
+You can use the following buildozer command to fix it.
+buildozer 'move cdeps deps *' {target}
+""".format(target = str(ctx.label)))
         cdeps = [dep[CcInfo] for dep in ctx.attr.cdeps]
 
     zdeps = []
