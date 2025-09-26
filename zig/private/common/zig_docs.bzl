@@ -45,6 +45,15 @@ def zig_docs_impl(ctx, *, kind):
     Returns:
       List of providers.
     """
+    root_module_is_only_dep = len(ctx.attr.deps) == 1 and ZigModuleInfo in ctx.attr.deps[0] and ctx.attr.main == None
+    if root_module_is_only_dep:
+        if len(ctx.attr.srcs) > 0:
+            fail("'srcs' cannot be set without a 'main'. They are taken from the root module defined by the single zig dependency.")
+        if len(ctx.attr.extra_srcs) > 0:
+            fail("'extra_srcs' cannot be set without a 'main'. They are taken from the root module defined by the single zig dependency.")
+        if len(ctx.attr.csrcs) > 0:
+            fail("'csrcs' cannot be set without a 'main'. They are taken from the root module defined by the single zig dependency.")
+
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
@@ -113,15 +122,18 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
         elif CcInfo in dep:
             cdeps.append(dep[CcInfo])
 
-    root_module = zig_module_info(
-        name = ctx.attr.name,
-        canonical_name = ctx.label.name,
-        main = ctx.file.main,
-        srcs = ctx.files.srcs,
-        extra_srcs = ctx.files.extra_srcs,
-        deps = zdeps + [bazel_builtin_module(ctx)],
-        cdeps = cdeps,
-    )
+    if root_module_is_only_dep:
+        root_module = ctx.attr.deps[0][ZigModuleInfo]
+    else:
+        root_module = zig_module_info(
+            name = ctx.attr.name,
+            canonical_name = ctx.label.name,
+            main = ctx.file.main,
+            srcs = ctx.files.srcs,
+            extra_srcs = ctx.files.extra_srcs,
+            deps = zdeps + [bazel_builtin_module(ctx)],
+            cdeps = cdeps,
+        )
 
     zig_settings(
         settings = ctx.attr._settings[ZigSettingsInfo],
