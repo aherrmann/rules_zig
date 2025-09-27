@@ -19,6 +19,12 @@ zig_binary(
 zig_configure_binary(
     name = "binary_linked_with_cc_common_link",
     actual = ":binary",
+    target_compatible_with = select({
+        # Zig 0.15.1 sometimes creates malformed archives
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     use_cc_common_link = True,
 )
 
@@ -32,6 +38,12 @@ zig_static_library(
 zig_configure(
     name = "static_library_linked_with_cc_common_link",
     actual = ":static-library",
+    target_compatible_with = select({
+        # Zig 0.15.1 sometimes creates malformed archives
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     use_cc_common_link = True,
 )
 
@@ -45,6 +57,12 @@ zig_shared_library(
 zig_configure(
     name = "shared_library_linked_with_cc_common_link",
     actual = ":shared-library",
+    target_compatible_with = select({
+        # Zig 0.15.1 sometimes creates malformed archives
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     use_cc_common_link = True,
 )
 
@@ -60,6 +78,12 @@ zig_configure_test(
     name = "test_linked_with_cc_common_link",
     size = "small",
     actual = ":test",
+    target_compatible_with = select({
+        # Zig 0.15.1 sometimes creates malformed archives
+        # https://github.com/ziglang/zig/issues/25069
+        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
     use_cc_common_link = True,
 )
 
