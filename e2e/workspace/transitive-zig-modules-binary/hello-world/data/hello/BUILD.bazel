@@ -1,6 +1,6 @@
-load("@rules_zig//zig:defs.bzl", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_library")
 
-zig_module(
+zig_library(
     name = "hello",
     main = "hello.zig",
     visibility = ["//transitive-zig-modules-binary/hello-world/data:__pkg__"],

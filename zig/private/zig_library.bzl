@@ -1,4 +1,4 @@
-"""Implementation of the zig_module rule."""
+"""Implementation of the zig_library rule."""
 
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
@@ -15,9 +15,9 @@ load(
 )
 
 DOC = """\
-Defines a Zig module.
+Defines a Zig library.
 
-A Zig module is a collection of Zig sources with a main source file
+A Zig library is a collection of Zig sources with a main source file
 that defines the module's entry point.
 
 This rule does not perform compilation by itself.
@@ -27,9 +27,9 @@ Zig performs whole program compilation.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_library")
 
-zig_module(
+zig_library(
     name = "my-module",
     main = "main.zig",
     srcs = [
@@ -82,7 +82,7 @@ Use this at your own risk of hitting undefined behaviors.
     ),
 } | BAZEL_BUILTIN_ATTRS
 
-def _zig_module_impl(ctx):
+def _zig_library_impl(ctx):
     transitive_data = []
     transitive_runfiles = []
 
@@ -123,8 +123,8 @@ def _zig_module_impl(ctx):
 
     return [default, module]
 
-zig_module = rule(
-    _zig_module_impl,
+zig_library = rule(
+    _zig_library_impl,
     attrs = ATTRS,
     doc = DOC,
     toolchains = ["//zig:toolchain_type"],

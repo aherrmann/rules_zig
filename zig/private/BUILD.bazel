@@ -10,8 +10,8 @@ exports_files(
 )
 
 bzl_library(
-    name = "zig_module",
-    srcs = ["zig_module.bzl"],
+    name = "zig_library",
+    srcs = ["zig_library.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:bazel_builtin",
@@ -22,8 +22,8 @@ bzl_library(
 )
 
 bzl_library(
-    name = "zig_c_module",
-    srcs = ["zig_c_module.bzl"],
+    name = "zig_c_library",
+    srcs = ["zig_c_library.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:bazel_builtin",
@@ -177,9 +177,9 @@ filegroup(
         ":versions.bzl.tpl",
         ":versions.json",
         ":zig_binary.bzl",
-        ":zig_c_module.bzl",
+        ":zig_c_library.bzl",
         ":zig_configure.bzl",
-        ":zig_module.bzl",
+        ":zig_library.bzl",
         ":zig_shared_library.bzl",
         ":zig_static_library.bzl",
         ":zig_target_toolchain.bzl",

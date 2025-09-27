@@ -1,5 +1,5 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_zig//zig:defs.bzl", "zig_c_module", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_c_library", "zig_library")
 
 exports_files(
     [
@@ -17,13 +17,13 @@ cc_library(
     hdrs = ["data.h"],
 )
 
-zig_c_module(
+zig_c_library(
     name = "data_c_zig",
     cdeps = ["data_c"],
     visibility = ["//zig/tests:__pkg__"],
 )
 
-zig_module(
+zig_library(
     name = "data",
     srcs = [
         "data/hello.zig",
@@ -34,7 +34,7 @@ zig_module(
     deps = [":data_c_zig"],
 )
 
-zig_module(
+zig_library(
     name = "data_global_c",
     srcs = [
         "data/hello.zig",

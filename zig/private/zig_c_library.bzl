@@ -1,4 +1,4 @@
-"""Implementation of the zig_module rule."""
+"""Implementation of the zig_library rule."""
 
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -26,9 +26,9 @@ Zig performs whole program compilation.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_c_module")
+load("@rules_zig//zig:defs.bzl", "zig_c_library")
 
-zig_c_module(
+zig_c_library(
     name = "my-module",
     cdeps = [
         ":cc-library",
@@ -60,7 +60,7 @@ TOOLCHAINS = [
 
 FRAGMENTS = ["cpp"]
 
-def _zig_c_module_impl(ctx):
+def _zig_c_library_impl(ctx):
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
 
     transitive_data = []
@@ -106,8 +106,8 @@ def _zig_c_module_impl(ctx):
 
     return [default, module]
 
-zig_c_module = rule(
-    _zig_c_module_impl,
+zig_c_library = rule(
+    _zig_c_library_impl,
     attrs = ATTRS,
     doc = DOC,
     toolchains = TOOLCHAINS,

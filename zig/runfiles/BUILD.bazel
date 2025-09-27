@@ -1,6 +1,6 @@
 load(
     "@rules_zig//zig:defs.bzl",
-    "zig_module",
+    "zig_library",
     "zig_static_library",
     "zig_test",
 )
@@ -14,7 +14,7 @@ _SRCS = [
     "src/Runfiles.zig",
 ]
 
-zig_module(
+zig_library(
     name = "runfiles",
     srcs = _SRCS,
     main = "runfiles.zig",

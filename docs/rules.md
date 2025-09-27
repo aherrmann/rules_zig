@@ -65,14 +65,14 @@ zig_binary(
 | <a id="zig_binary-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
 
-<a id="zig_c_module"></a>
+<a id="zig_c_library"></a>
 
-## zig_c_module
+## zig_c_library
 
 <pre>
-load("@rules_zig//zig:defs.bzl", "zig_c_module")
+load("@rules_zig//zig:defs.bzl", "zig_c_library")
 
-zig_c_module(<a href="#zig_c_module-name">name</a>, <a href="#zig_c_module-data">data</a>, <a href="#zig_c_module-cdeps">cdeps</a>, <a href="#zig_c_module-import_name">import_name</a>)
+zig_c_library(<a href="#zig_c_library-name">name</a>, <a href="#zig_c_library-data">data</a>, <a href="#zig_c_library-cdeps">cdeps</a>, <a href="#zig_c_library-import_name">import_name</a>)
 </pre>
 
 Defines a Zig C module.
@@ -89,9 +89,9 @@ Zig performs whole program compilation.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_c_module")
+load("@rules_zig//zig:defs.bzl", "zig_c_library")
 
-zig_c_module(
+zig_c_library(
     name = "my-module",
     cdeps = [
         ":cc-library",
@@ -104,10 +104,10 @@ zig_c_module(
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig_c_module-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_c_module-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_c_module-cdeps"></a>cdeps |  C dependencies to translate their headers from.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
-| <a id="zig_c_module-import_name"></a>import_name |  The import name of the module.   | String | optional |  `""`  |
+| <a id="zig_c_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_c_library-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_c_library-cdeps"></a>cdeps |  C dependencies to translate their headers from.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | required |  |
+| <a id="zig_c_library-import_name"></a>import_name |  The import name of the module.   | String | optional |  `""`  |
 
 
 <a id="zig_configure"></a>
@@ -308,19 +308,19 @@ zig_configure_test(
 | <a id="zig_configure_test-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
 
 
-<a id="zig_module"></a>
+<a id="zig_library"></a>
 
-## zig_module
+## zig_library
 
 <pre>
-load("@rules_zig//zig:defs.bzl", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_library")
 
-zig_module(<a href="#zig_module-name">name</a>, <a href="#zig_module-deps">deps</a>, <a href="#zig_module-srcs">srcs</a>, <a href="#zig_module-data">data</a>, <a href="#zig_module-extra_srcs">extra_srcs</a>, <a href="#zig_module-import_name">import_name</a>, <a href="#zig_module-main">main</a>, <a href="#zig_module-zigopts">zigopts</a>)
+zig_library(<a href="#zig_library-name">name</a>, <a href="#zig_library-deps">deps</a>, <a href="#zig_library-srcs">srcs</a>, <a href="#zig_library-data">data</a>, <a href="#zig_library-extra_srcs">extra_srcs</a>, <a href="#zig_library-import_name">import_name</a>, <a href="#zig_library-main">main</a>, <a href="#zig_library-zigopts">zigopts</a>)
 </pre>
 
-Defines a Zig module.
+Defines a Zig library.
 
-A Zig module is a collection of Zig sources with a main source file
+A Zig library is a collection of Zig sources with a main source file
 that defines the module's entry point.
 
 This rule does not perform compilation by itself.
@@ -330,9 +330,9 @@ Zig performs whole program compilation.
 **EXAMPLE**
 
 ```bzl
-load("@rules_zig//zig:defs.bzl", "zig_module")
+load("@rules_zig//zig:defs.bzl", "zig_library")
 
-zig_module(
+zig_library(
     name = "my-module",
     main = "main.zig",
     srcs = [
@@ -349,14 +349,14 @@ zig_module(
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig_module-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
-| <a id="zig_module-deps"></a>deps |  Other modules required when building the module.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-srcs"></a>srcs |  Other Zig source files required when building the module, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-extra_srcs"></a>extra_srcs |  Other files required when building the module, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_module-import_name"></a>import_name |  The import name of the module.   | String | optional |  `""`  |
-| <a id="zig_module-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
-| <a id="zig_module-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler for this module.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
+| <a id="zig_library-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_library-deps"></a>deps |  Other modules required when building the module.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-srcs"></a>srcs |  Other Zig source files required when building the module, e.g. files imported using `@import`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-data"></a>data |  Files required by the module during runtime.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-extra_srcs"></a>extra_srcs |  Other files required when building the module, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_library-import_name"></a>import_name |  The import name of the module.   | String | optional |  `""`  |
+| <a id="zig_library-main"></a>main |  The main source file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+| <a id="zig_library-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler for this module.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_shared_library"></a>
@@ -538,5 +538,55 @@ zig_test(
 | <a id="zig_test-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_test-test_runner"></a>test_runner |  Optional Zig file to specify a custom test runner   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
+
+
+<a id="zig_c_module"></a>
+
+## zig_c_module
+
+<pre>
+load("@rules_zig//zig:defs.bzl", "zig_c_module")
+
+zig_c_module(*, <a href="#zig_c_module-name">name</a>, <a href="#zig_c_module-kwargs">**kwargs</a>)
+</pre>
+
+Alias for `zig_c_library`.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="zig_c_module-name"></a>name |  string, a unique name for the rule.   |  none |
+| <a id="zig_c_module-kwargs"></a>kwargs |  keyword arguments to forward to `zig_c_library`.   |  none |
+
+**DEPRECATED**
+
+The `zig_c_module` rule is deprecated, use `zig_c_library` instead.
+
+
+<a id="zig_module"></a>
+
+## zig_module
+
+<pre>
+load("@rules_zig//zig:defs.bzl", "zig_module")
+
+zig_module(*, <a href="#zig_module-name">name</a>, <a href="#zig_module-kwargs">**kwargs</a>)
+</pre>
+
+Alias for `zig_library`.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="zig_module-name"></a>name |  string, a unique name for the rule.   |  none |
+| <a id="zig_module-kwargs"></a>kwargs |  keyword arguments to forward to `zig_library`.   |  none |
+
+**DEPRECATED**
+
+The `zig_module` rule is deprecated, use `zig_library` instead.
 
 

@@ -1,4 +1,4 @@
-load("@rules_zig//zig:defs.bzl", "zig_module", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_library", "zig_test")
 
 exports_files(["data.txt"])
 
@@ -11,7 +11,7 @@ zig_test(
     deps = ["@rules_zig//zig/runfiles"],
 )
 
-zig_module(
+zig_library(
     name = "module_with_data",
     data = ["@runfiles_library_transitive_dependency//:data.txt"],
     main = "main.zig",
