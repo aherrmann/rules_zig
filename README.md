@@ -131,6 +131,12 @@ Examples can be found among the end-to-end tests under
 Generated API documentation for the provided rules is available in
 [`./docs/rules.md`](./docs/rules.md).
 
+Generated API documentation for the module extensions is available in
+[`./docs/extensions.md`](./docs/extensions.md).
+
+Generated API documentation for the toolchain rules is available in
+[`./docs/toolchains.md`](./docs/toolchains.md).
+
 ## Runfiles Library Documentation
 
 Documentation for the Zig runfiles library can be found in
