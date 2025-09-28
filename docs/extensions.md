@@ -64,6 +64,6 @@ The provided index must use a schema that is compatible with the [upstream index
 
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
-| <a id="zig.mirrors-urls"></a>urls |  The mirrors base URLs.   | List of strings | optional |  `[]`  |
+| <a id="zig.mirrors-urls"></a>urls |  The mirrors base URLs.   | List of strings | required |  |
 
 

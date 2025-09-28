@@ -50,7 +50,7 @@ The provided index must use a schema that is compatible with the [upstream index
 
 zig_mirrors = tag_class(
     attrs = {
-        "urls": attr.string_list(doc = "The mirrors base URLs."),
+        "urls": attr.string_list(doc = "The mirrors base URLs.", mandatory = True),
     },
 )
 
