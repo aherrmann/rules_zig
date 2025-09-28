@@ -14,6 +14,7 @@ DOC = "Fetch and install a Zig toolchain."
 
 ATTRS = {
     "url": attr.string(mandatory = True, doc = "The URL to the Zig SDK release archive."),
+    "mirrors": attr.string_list(mandatory = True, doc = "List of URLs to Zig releases mirrors."),
     "sha256": attr.string(mandatory = False, doc = "The expected SHA-256 of the downloaded artifact. Provide only one of `sha256` or `integrity`."),
     "integrity": attr.string(mandatory = False, doc = "The expected checksum of the downloaded artifact in Subresource Integrity format. Provide only one of `sha256` or `integrity`."),
     "zig_version": attr.string(mandatory = True, doc = "The Zig SDK version number."),
@@ -63,6 +64,13 @@ def _get_integrity_args(*, sha256, integrity):
 
     return result
 
+def _mirrors_urls(url, mirrors):
+    filename = _basename(url)
+    return [
+        mirror + "/" + filename
+        for mirror in mirrors
+    ] + [url]
+
 def _zig_repository_impl(repository_ctx):
     cache_prefix = env_zig_cache_prefix(
         repository_ctx.os.environ,
@@ -95,7 +103,10 @@ zig_toolchain(
     repository_ctx.file("BUILD.bazel", build_content)
 
     download_args = {
-        "url": repository_ctx.attr.url,
+        "url": _mirrors_urls(
+            url = repository_ctx.attr.url,
+            mirrors = repository_ctx.attr.mirrors,
+        ),
         "stripPrefix": _get_strip_prefix(url = repository_ctx.attr.url),
     }
     integrity = _get_integrity_args(

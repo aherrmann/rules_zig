@@ -48,9 +48,16 @@ The provided index must use a schema that is compatible with the [upstream index
 """,
 )
 
+zig_mirrors = tag_class(
+    attrs = {
+        "urls": attr.string_list(doc = "The mirrors base URLs.", mandatory = True),
+    },
+)
+
 TAG_CLASSES = {
     "toolchain": zig_toolchain,
     "index": zig_index,
+    "mirrors": zig_mirrors,
 }
 
 def handle_toolchain_tags(modules, *, known_versions):
@@ -158,8 +165,11 @@ def merge_version_specs(version_specs):
     return result
 
 def _toolchain_extension(module_ctx):
+    mirrors = []
     version_specs = []
     for mod in module_ctx.modules:
+        for mirrors_tag in mod.tags.mirrors:
+            mirrors.extend(mirrors_tag.urls)
         for index in mod.tags.index:
             file_path = module_ctx.path(index.file)
             file_content = module_ctx.read(file_path)
@@ -194,6 +204,7 @@ def _toolchain_extension(module_ctx):
             zig_repository(
                 name = repo_name,
                 url = known_versions[zig_version][platform].url,
+                mirrors = mirrors,
                 sha256 = known_versions[zig_version][platform].sha256,
                 zig_version = zig_version,
                 platform = platform,

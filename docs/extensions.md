@@ -10,6 +10,7 @@ Extensions for bzlmod.
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
 zig.toolchain(<a href="#zig.toolchain-default">default</a>, <a href="#zig.toolchain-zig_version">zig_version</a>)
 zig.index(<a href="#zig.index-file">file</a>)
+zig.mirrors(<a href="#zig.mirrors-urls">urls</a>)
 </pre>
 
 Installs a Zig toolchain.
@@ -54,5 +55,15 @@ The provided index must use a schema that is compatible with the [upstream index
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig.index-file"></a>file |  The Zig version index JSON file.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
+
+<a id="zig.mirrors"></a>
+
+### mirrors
+
+**Attributes**
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig.mirrors-urls"></a>urls |  The mirrors base URLs.   | List of strings | required |  |
 
 
