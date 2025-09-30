@@ -59,7 +59,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
             transitive = transitive_inputs,
         ),
         outputs = [zig_out],
-        arguments = [zigtoolchaininfo.zig_exe_path, "translate-c", global_args, args],
+        arguments = [zigtoolchaininfo.zig_exe.path, "translate-c", global_args, args],
         mnemonic = "ZigTranslateC",
         progress_message = "zig translate-c %{label}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
