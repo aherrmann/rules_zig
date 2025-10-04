@@ -30,7 +30,7 @@ See https://bazel.build/extending/toolchains#defining-toolchains.
 ATTRS = {
     "zig_exe": attr.label(
         doc = "A hermetically downloaded Zig executable for the target platform.",
-        mandatory = True,
+        mandatory = False,
         executable = True,
         cfg = "exec",
         allow_single_file = True,
