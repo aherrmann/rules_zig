@@ -10,4 +10,4 @@ def zig_lib_dir(*, zigtoolchaininfo, args):
       zigtoolchaininfo: ZigToolchainInfo.
       args: Args; mutable, Append the Zig cache flags to this object.
     """
-    args.add_all(["--zig-lib-dir", zigtoolchaininfo.zig_lib_path])
+    args.add_all(["--zig-lib-dir", zigtoolchaininfo.zig_lib.path])
