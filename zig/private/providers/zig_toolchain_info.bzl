@@ -12,7 +12,7 @@ FIELDS = {
     "zig_files": """\
 Files required in runfiles to make the Zig executable available.
 
-May be empty if zig_exe is a locally installed Zig executable.
+May be empty if the zig_exe_path points to a locally installed Zig executable.
 """,
     "zig_c_header": "The Zig C header file for the target platform.",
     "zig_version": "String, The Zig toolchain's version.",
