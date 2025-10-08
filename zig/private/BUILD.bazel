@@ -97,6 +97,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/providers:zig_toolchain_info",
+        "@aspect_bazel_lib//lib:paths",
         "@bazel_skylib//lib:paths",
     ],
 )

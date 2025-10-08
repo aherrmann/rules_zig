@@ -6,7 +6,17 @@ Information about how to invoke the Zig executable.
 
 FIELDS = {
     "zig_exe_path": "Path to the Zig executable for the target platform.",
+    "zig_exe_rpath": """\
+Rlocation path to the Zig executable for the target platform.
+
+May be absolute if the zig_exe_path points to a locally installed Zig executable.
+""",
     "zig_lib_path": "Path to the Zig library directory for the target platform.",
+    "zig_lib_rpath": """\
+Rlocation path to the Zig library directory for the target platform.
+
+May be absolute if the zig_exe_path points to a locally installed Zig executable.
+""",
     "zig_files": """\
 Files required in runfiles to make the Zig executable available.
 
