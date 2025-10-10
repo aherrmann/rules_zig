@@ -369,6 +369,8 @@ buildozer 'move cdeps deps *' {target}
             zigopts = zigopts,
         )
 
+    providers.append(root_module)
+
     zig_settings(
         settings = ctx.attr._settings[ZigSettingsInfo],
         args = global_args,
