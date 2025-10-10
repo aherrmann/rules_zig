@@ -27,12 +27,13 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
-def _zig_module_context(canonical_name, main, deps, cdeps, zigopts):
+def _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts):
     mappings = [struct(name = dep.name, canonical_name = dep.canonical_name) for dep in deps]
     if any([need_translate_c(dep) for dep in cdeps]):
         # Global C module has a predefined name and canonical name since it is not defined yet here.
         mappings.append(struct(name = "c", canonical_name = "c"))
     return struct(
+        name = name,
         canonical_name = canonical_name,
         main = main.path,
         zigopts = zigopts,
@@ -58,7 +59,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
     cc_infos = cdeps + [dep.cc_info for dep in deps if dep.cc_info]
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos)
 
-    module_context = _zig_module_context(canonical_name, main, deps, cdeps, zigopts)
+    module_context = _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts)
 
     module = ZigModuleInfo(
         name = name,
