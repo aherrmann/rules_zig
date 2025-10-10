@@ -1,5 +1,6 @@
 """Implementation of the zig_toolchain rule."""
 
+load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("//zig/private/providers:zig_toolchain_info.bzl", "ZigToolchainInfo")
 
@@ -103,14 +104,18 @@ def _zig_toolchain_impl(ctx):
 
     zig_files = []
     zig_exe_path = ctx.attr.zig_exe_path
+    zig_exe_rpath = zig_exe_path
     zig_lib_path = ctx.attr.zig_lib_path
+    zig_lib_rpath = zig_lib_path
     zig_version = ctx.attr.zig_version
     zig_cache = ctx.attr.zig_cache
 
     if ctx.attr.zig_exe:
         zig_files = ctx.attr.zig_exe.files.to_list() + ctx.files.zig_lib
         zig_exe_path = _to_manifest_path(ctx, zig_files[0])
+        zig_exe_rpath = to_rlocation_path(ctx, zig_files[0])
         zig_lib_path = paths.join(paths.dirname(zig_exe_path), ctx.attr.zig_lib_path)
+        zig_lib_rpath = paths.join(paths.dirname(zig_exe_rpath), ctx.attr.zig_lib_path)
 
     validation = _validate_zig_version(
         ctx,
@@ -137,7 +142,9 @@ def _zig_toolchain_impl(ctx):
 
     zigtoolchaininfo = ZigToolchainInfo(
         zig_exe_path = zig_exe_path,
+        zig_exe_rpath = zig_exe_rpath,
         zig_lib_path = zig_lib_path,
+        zig_lib_rpath = zig_lib_rpath,
         zig_files = zig_files,
         zig_version = zig_version,
         zig_cache = zig_cache,
