@@ -27,9 +27,9 @@ zig_configure_binary(
     actual = ":binary",
     tags = ["manual"],
     target_compatible_with = select({
-        # Zig 0.15.1 sometimes creates malformed archives
+        # Zig 0.15.2 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
@@ -40,9 +40,9 @@ zig_configure(
     actual = ":shared-library",
     tags = ["manual"],
     target_compatible_with = select({
-        # Zig 0.15.1 sometimes creates malformed archives
+        # Zig 0.15.2 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
@@ -53,9 +53,9 @@ zig_configure_test(
     size = "small",
     actual = ":test",
     target_compatible_with = select({
-        # Zig 0.15.1 sometimes creates malformed archives
+        # Zig 0.15.2 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
