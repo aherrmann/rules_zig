@@ -52,9 +52,9 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
     args.add_all(getattr(compilation_context, "external_includes", []), before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
 
-    # If there is a CC toolchain, add builtin directories
+    # If there is a CC toolchain, add builtin directories.
     # This allows including to extra headers provided directly by the toolchain.
-    # .ie <os/log.h> on macOS.
+    # E.g. <os/log.h> on macOS.
     cc_toolchain = find_cc_toolchain(ctx, mandatory = False)
     if cc_toolchain:
         transitive_inputs.append(cc_toolchain.all_files)
