@@ -1,5 +1,6 @@
 """Handle translate-c pass."""
 
+load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
@@ -50,6 +51,14 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
     # Added in Bazel 7, see https://github.com/bazelbuild/bazel/commit/a6ef0b341a8ffe8ab27e5ace79d8eaae158c422b
     args.add_all(getattr(compilation_context, "external_includes", []), before_each = "-isystem")
     args.add_all(compilation_context.framework_includes, format_each = "-F%s")
+
+    # If there is a CC toolchain, add builtin directories.
+    # This allows including to extra headers provided directly by the toolchain.
+    # E.g. <os/log.h> on macOS.
+    cc_toolchain = find_cc_toolchain(ctx, mandatory = False)
+    if cc_toolchain:
+        transitive_inputs.append(cc_toolchain.all_files)
+        args.add_all(cc_toolchain.built_in_include_directories, before_each = "-isystem")
 
     zig_out = ctx.actions.declare_file("{}{}_c.zig".format(output_prefix, ctx.label.name))
     ctx.actions.run_shell(
