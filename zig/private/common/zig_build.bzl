@@ -606,6 +606,7 @@ buildozer 'move cdeps deps *' {target}
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain,
                 static_library = static_lib,
+                alwayslink = True,
             )
             linking_context = cc_common.create_linking_context(
                 linker_inputs = depset([
