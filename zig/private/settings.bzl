@@ -27,6 +27,10 @@ ATTRS = {
         doc = "The Zig multi- or single-threaded setting.",
         mandatory = True,
     ),
+    "zigopt": attr.label(
+        doc = "Custom Zig compile options to add to all Zig compile action.",
+        mandatory = True,
+    ),
 }
 
 MODE_ARGS = {
@@ -55,6 +59,9 @@ def _settings_impl(ctx):
 
     threaded = ctx.attr.threaded[BuildSettingInfo].value
     args.extend(THREADED_ARGS[threaded])
+
+    zigopts = ctx.attr.zigopt[BuildSettingInfo].value
+    args.extend(zigopts)
 
     settings_info = ZigSettingsInfo(
         mode = mode,

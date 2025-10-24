@@ -12,6 +12,7 @@ load(":threaded_test.bzl", "threaded_test_suite")
 load(":toolchain_header_test.bzl", "toolchain_header_test_suite")
 load(":use_cc_common_link_test.bzl", "use_cc_common_link_test_suite")
 load(":versions_test.bzl", "versions_test_suite")
+load(":zigopt_test.bzl", "zigopt_test_suite")
 
 bzlmod_zig_test_suite(name = "bzlmod_zig_test")
 
@@ -38,6 +39,8 @@ threaded_test_suite(name = "threaded_test")
 toolchain_header_test_suite(name = "toolchain_header_test")
 
 versions_test_suite(name = "versions_test")
+
+zigopt_test_suite(name = "zigopt_test")
 
 bzl_library(
     name = "util",
