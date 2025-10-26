@@ -118,7 +118,7 @@ zig_c_library(
 load("@rules_zig//zig:defs.bzl", "zig_configure")
 
 zig_configure(<a href="#zig_configure-name">name</a>, <a href="#zig_configure-actual">actual</a>, <a href="#zig_configure-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure-mode">mode</a>, <a href="#zig_configure-target">target</a>, <a href="#zig_configure-threaded">threaded</a>, <a href="#zig_configure-use_cc_common_link">use_cc_common_link</a>,
-              <a href="#zig_configure-zig_version">zig_version</a>)
+              <a href="#zig_configure-zig_version">zig_version</a>, <a href="#zig_configure-zigopt">zigopt</a>)
 </pre>
 
 Transitions a target and its dependencies to a different configuration.
@@ -174,6 +174,7 @@ zig_configure(
 | <a id="zig_configure-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries.   | Boolean | optional |  `False`  |
 | <a id="zig_configure-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
+| <a id="zig_configure-zigopt"></a>zigopt |  Custom Zig compile options to add to all Zig compile actions.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_configure_binary"></a>
@@ -184,7 +185,7 @@ zig_configure(
 load("@rules_zig//zig:defs.bzl", "zig_configure_binary")
 
 zig_configure_binary(<a href="#zig_configure_binary-name">name</a>, <a href="#zig_configure_binary-actual">actual</a>, <a href="#zig_configure_binary-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure_binary-mode">mode</a>, <a href="#zig_configure_binary-target">target</a>, <a href="#zig_configure_binary-threaded">threaded</a>, <a href="#zig_configure_binary-use_cc_common_link">use_cc_common_link</a>,
-                     <a href="#zig_configure_binary-zig_version">zig_version</a>)
+                     <a href="#zig_configure_binary-zig_version">zig_version</a>, <a href="#zig_configure_binary-zigopt">zigopt</a>)
 </pre>
 
 Transitions a target and its dependencies to a different configuration.
@@ -240,6 +241,7 @@ zig_configure_binary(
 | <a id="zig_configure_binary-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries.   | Boolean | optional |  `False`  |
 | <a id="zig_configure_binary-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
+| <a id="zig_configure_binary-zigopt"></a>zigopt |  Custom Zig compile options to add to all Zig compile actions.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_configure_test"></a>
@@ -250,7 +252,7 @@ zig_configure_binary(
 load("@rules_zig//zig:defs.bzl", "zig_configure_test")
 
 zig_configure_test(<a href="#zig_configure_test-name">name</a>, <a href="#zig_configure_test-actual">actual</a>, <a href="#zig_configure_test-extra_toolchains">extra_toolchains</a>, <a href="#zig_configure_test-mode">mode</a>, <a href="#zig_configure_test-target">target</a>, <a href="#zig_configure_test-threaded">threaded</a>, <a href="#zig_configure_test-use_cc_common_link">use_cc_common_link</a>,
-                   <a href="#zig_configure_test-zig_version">zig_version</a>)
+                   <a href="#zig_configure_test-zig_version">zig_version</a>, <a href="#zig_configure_test-zigopt">zigopt</a>)
 </pre>
 
 Transitions a target and its dependencies to a different configuration.
@@ -306,6 +308,7 @@ zig_configure_test(
 | <a id="zig_configure_test-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_test-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries.   | Boolean | optional |  `False`  |
 | <a id="zig_configure_test-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
+| <a id="zig_configure_test-zigopt"></a>zigopt |  Custom Zig compile options to add to all Zig compile actions.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_library"></a>
