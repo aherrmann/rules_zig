@@ -174,7 +174,15 @@ def _make_attrs(*, executable):
             values = THREADED_VALUES,
         ),
         "zigopt": attr.string_list(
-            doc = "Custom Zig compile options to add to all Zig compile actions.",
+            doc = """
+Additional list of flags passed to the zig compiler for all Zig compile actions.
+
+The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules.
+Instead, they are prepended to the command line before module specific flags.
+
+This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself.
+Use this at your own risk of hitting undefined behaviors.
+""",
             mandatory = False,
         ),
         "_allowlist_function_transition": attr.label(

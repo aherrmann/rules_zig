@@ -174,7 +174,7 @@ zig_configure(
 | <a id="zig_configure-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries.   | Boolean | optional |  `False`  |
 | <a id="zig_configure-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
-| <a id="zig_configure-zigopt"></a>zigopt |  Custom Zig compile options to add to all Zig compile actions.   | List of strings | optional |  `[]`  |
+| <a id="zig_configure-zigopt"></a>zigopt |  Additional list of flags passed to the zig compiler for all Zig compile actions.<br><br>The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules. Instead, they are prepended to the command line before module specific flags.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_configure_binary"></a>
@@ -241,7 +241,7 @@ zig_configure_binary(
 | <a id="zig_configure_binary-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries.   | Boolean | optional |  `False`  |
 | <a id="zig_configure_binary-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
-| <a id="zig_configure_binary-zigopt"></a>zigopt |  Custom Zig compile options to add to all Zig compile actions.   | List of strings | optional |  `[]`  |
+| <a id="zig_configure_binary-zigopt"></a>zigopt |  Additional list of flags passed to the zig compiler for all Zig compile actions.<br><br>The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules. Instead, they are prepended to the command line before module specific flags.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_configure_test"></a>
@@ -308,7 +308,7 @@ zig_configure_test(
 | <a id="zig_configure_test-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_test-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries.   | Boolean | optional |  `False`  |
 | <a id="zig_configure_test-zig_version"></a>zig_version |  The Zig SDK version, must be registered using the `zig` module extension.   | String | optional |  `""`  |
-| <a id="zig_configure_test-zigopt"></a>zigopt |  Custom Zig compile options to add to all Zig compile actions.   | List of strings | optional |  `[]`  |
+| <a id="zig_configure_test-zigopt"></a>zigopt |  Additional list of flags passed to the zig compiler for all Zig compile actions.<br><br>The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules. Instead, they are prepended to the command line before module specific flags.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
 
 
 <a id="zig_library"></a>
