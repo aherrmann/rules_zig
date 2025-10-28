@@ -27,6 +27,18 @@ ATTRS = {
         doc = "The Zig multi- or single-threaded setting.",
         mandatory = True,
     ),
+    "zigopt": attr.label(
+        doc = """
+Additional list of flags passed to the zig compiler for all Zig compile actions.
+
+The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules.
+Instead, they are prepended to the command line before module specific flags.
+
+This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself.
+Use this at your own risk of hitting undefined behaviors.
+""",
+        mandatory = True,
+    ),
 }
 
 MODE_ARGS = {
@@ -55,6 +67,9 @@ def _settings_impl(ctx):
 
     threaded = ctx.attr.threaded[BuildSettingInfo].value
     args.extend(THREADED_ARGS[threaded])
+
+    zigopts = ctx.attr.zigopt[BuildSettingInfo].value
+    args.extend(zigopts)
 
     settings_info = ZigSettingsInfo(
         mode = mode,

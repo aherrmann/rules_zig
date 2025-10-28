@@ -113,6 +113,8 @@ def _zig_transition_impl(settings, attr):
         result["//zig/settings:mode"] = attr.mode
     if attr.threaded:
         result["//zig/settings:threaded"] = attr.threaded
+    if attr.zigopt:
+        result["//zig/settings:zigopt"] = attr.zigopt
     return result
 
 _zig_transition = transition(
@@ -124,6 +126,7 @@ _zig_transition = transition(
         "//zig/settings:use_cc_common_link",
         "//zig/settings:mode",
         "//zig/settings:threaded",
+        "//zig/settings:zigopt",
     ],
     outputs = [
         "//command_line_option:extra_toolchains",
@@ -132,6 +135,7 @@ _zig_transition = transition(
         "//zig/settings:use_cc_common_link",
         "//zig/settings:mode",
         "//zig/settings:threaded",
+        "//zig/settings:zigopt",
     ],
 )
 
@@ -168,6 +172,18 @@ def _make_attrs(*, executable):
             doc = "The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.",
             mandatory = False,
             values = THREADED_VALUES,
+        ),
+        "zigopt": attr.string_list(
+            doc = """
+Additional list of flags passed to the zig compiler for all Zig compile actions.
+
+The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules.
+Instead, they are prepended to the command line before module specific flags.
+
+This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself.
+Use this at your own risk of hitting undefined behaviors.
+""",
+            mandatory = False,
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
