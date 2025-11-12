@@ -127,7 +127,7 @@ The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
     else:
         root_module = zig_module_info(
             name = ctx.attr.name,
-            canonical_name = ctx.label.name,
+            canonical_name = str(ctx.label),
             main = ctx.file.main,
             srcs = ctx.files.srcs,
             extra_srcs = ctx.files.extra_srcs,

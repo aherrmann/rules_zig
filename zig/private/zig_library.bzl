@@ -112,7 +112,7 @@ def _zig_library_impl(ctx):
 
     module = zig_module_info(
         name = ctx.attr.import_name or ctx.label.name,
-        canonical_name = ctx.label.name,
+        canonical_name = str(ctx.label),
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         extra_srcs = ctx.files.extra_srcs,
