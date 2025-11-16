@@ -107,15 +107,8 @@ def zig_docs_impl(ctx, *, kind):
 
     direct_inputs.extend(ctx.files.extra_docs)
 
-    cdeps = []
-    if ctx.attr.cdeps:
-        # buildifier: disable=print
-        print("""\
-The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
-""")
-        cdeps = [dep[CcInfo] for dep in ctx.attr.cdeps]
-
     zdeps = []
+    cdeps = []
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])
