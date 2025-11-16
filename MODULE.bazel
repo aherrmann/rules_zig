@@ -46,7 +46,7 @@ bazel_dep(name = "gazelle", version = "0.45.0", dev_dependency = True, repo_name
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.8.2", dev_dependency = True)
 bazel_dep(
     name = "buildifier_prebuilt",
-    version = "8.2.0.2",
+    version = "8.2.1",
     dev_dependency = True,
 )
 bazel_dep(name = "rules_multirun", version = "0.13.0", dev_dependency = True)
