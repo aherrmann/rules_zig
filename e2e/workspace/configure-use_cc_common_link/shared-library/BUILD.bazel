@@ -35,7 +35,6 @@ zig_configure_binary(
     target_compatible_with = select({
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
@@ -58,7 +57,6 @@ zig_configure(
     target_compatible_with = select({
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
@@ -81,7 +79,6 @@ zig_configure(
     target_compatible_with = select({
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
@@ -106,7 +103,6 @@ zig_configure_test(
     target_compatible_with = select({
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
@@ -128,7 +124,7 @@ zig_configure(
     target_compatible_with = select({
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
-        "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
