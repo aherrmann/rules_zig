@@ -1,8 +1,8 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_module", "zig_shared_library", "zig_static_library", "zig_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library", "zig_shared_library", "zig_static_library", "zig_test")
 
-zig_module(
+zig_library(
     name = "root_module",
     main = "main.zig",
 )
