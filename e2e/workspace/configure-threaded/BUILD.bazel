@@ -38,6 +38,7 @@ genrule(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],
@@ -52,6 +53,7 @@ genrule(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     toolchains = ["@bazel_tools//tools/cpp:current_cc_toolchain"],

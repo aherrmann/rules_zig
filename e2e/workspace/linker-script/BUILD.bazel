@@ -10,6 +10,7 @@ zig_binary(
         # apparent linker-script support regression in 0.15.1, see
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": ["@platforms//os:linux"],
     }),
 )
@@ -22,6 +23,7 @@ genrule(
         # apparent linker-script support regression in 0.15.1, see
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": ["@platforms//os:linux"],
     }),
     tools = [":binary"],
@@ -36,6 +38,7 @@ diff_test(
         # apparent linker-script support regression in 0.15.1, see
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": ["@platforms//os:linux"],
     }),
 )
@@ -48,6 +51,7 @@ zig_static_library(
         # apparent linker-script support regression in 0.15.1, see
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": ["@platforms//os:linux"],
     }),
 )
@@ -58,6 +62,7 @@ build_test(
         # apparent linker-script support regression in 0.15.1, see
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": ["@platforms//os:linux"],
     }),
     targets = [
@@ -74,6 +79,7 @@ zig_test(
         # apparent linker-script support regression in 0.15.1, see
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": ["@platforms//os:linux"],
     }),
 )

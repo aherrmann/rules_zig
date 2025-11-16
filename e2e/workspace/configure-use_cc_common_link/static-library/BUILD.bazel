@@ -23,6 +23,7 @@ zig_configure_binary(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
@@ -42,6 +43,7 @@ zig_configure(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
@@ -61,6 +63,7 @@ zig_configure(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
@@ -82,6 +85,7 @@ zig_configure_test(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.1": ["@platforms//:incompatible"],
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = True,
