@@ -33,6 +33,6 @@ jobs:
             git commit -m 'update Zig versions'
             git push -u origin "$BRANCH"
             gh pr create \
-              --title "chore: update Zig versions up to $NEW_VERSION" \
+              --title "feat: update Zig versions up to $NEW_VERSION" \
               --body "- [ ] Check that the automatic version replacements make sense."
           }
