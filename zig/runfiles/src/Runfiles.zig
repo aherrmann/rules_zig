@@ -383,6 +383,117 @@ test "Runfiles from manifest" {
     }
 }
 
+test "Runfiles from manifest with compact repo mapping" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const repo_mapping_contents =
+        \\,config.json,config.json+1.2.3
+        \\,my_module,_main
+        \\,my_protobuf,protobuf+3.19.2
+        \\,my_workspace,_main
+        \\my_module++ext+*,my_module,my_module+
+        \\my_module++ext+*,repo1,my_module++ext+repo1
+    ;
+
+    try tmp.dir.makePath("my_module+");
+    try tmp.dir.makePath("my_module++ext+repo1");
+    try tmp.dir.makePath("repo2+");
+
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("foo.repo_mapping", repo_mapping_contents);
+        try tmp.dir.writeFile("config.json", "config");
+        try tmp.dir.writeFile("my_module+/foo", "my_module+");
+        try tmp.dir.writeFile("my_module++ext+repo1/foo", "ext_repo1");
+        try tmp.dir.writeFile("repo2+/foo", "repo2+");
+    } else {
+        try tmp.dir.writeFile(.{ .sub_path = "foo.repo_mapping", .data = repo_mapping_contents });
+        try tmp.dir.writeFile(.{ .sub_path = "config.json", .data = "config" });
+        try tmp.dir.writeFile(.{ .sub_path = "my_module+/foo", .data = "my_module+" });
+        try tmp.dir.writeFile(.{ .sub_path = "my_module++ext+repo1/foo", .data = "ext_repo1" });
+        try tmp.dir.writeFile(.{ .sub_path = "repo2+/foo", .data = "repo2+" });
+    }
+
+    {
+        var manifest_file = try tmp.dir.createFile("foo.runfiles_manifest", .{});
+        defer manifest_file.close();
+        var buf: [max_path_bytes]u8 = undefined;
+
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+            var buffer: [1024]u8 = undefined;
+            var writer = manifest_file.writer(&buffer);
+            const file_writer = &writer.interface;
+
+            try file_writer.print("_repo_mapping {s}\n", .{try tmp.dir.realpath("foo.repo_mapping", &buf)});
+            try file_writer.print("config.json {s}\n", .{try tmp.dir.realpath("config.json", &buf)});
+            try file_writer.print("my_module+/foo {s}\n", .{try tmp.dir.realpath("my_module+/foo", &buf)});
+            try file_writer.print("my_module++ext+repo1/foo {s}\n", .{try tmp.dir.realpath("my_module++ext+repo1/foo", &buf)});
+            try file_writer.print("repo2+/foo {s}\n", .{try tmp.dir.realpath("repo2+/foo", &buf)});
+            try file_writer.flush();
+        } else {
+            try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("foo.repo_mapping", &buf)});
+            try manifest_file.writer().print("config.json {s}\n", .{try tmp.dir.realpath("config.json", &buf)});
+            try manifest_file.writer().print("my_module+/foo {s}\n", .{try tmp.dir.realpath("my_module+/foo", &buf)});
+            try manifest_file.writer().print("my_module++ext+repo1/foo {s}\n", .{try tmp.dir.realpath("my_module++ext+repo1/foo", &buf)});
+            try manifest_file.writer().print("repo2+/foo {s}\n", .{try tmp.dir.realpath("repo2+/foo", &buf)});
+        }
+    }
+
+    const manifest_path = try tmp.dir.realpathAlloc(
+        std.testing.allocator,
+        "foo.runfiles_manifest",
+    );
+    defer std.testing.allocator.free(manifest_path);
+
+    var runfiles = try Runfiles.create(.{
+        .allocator = std.testing.allocator,
+        .manifest = manifest_path,
+    }) orelse return error.RunfilesNotFound;
+    defer runfiles.deinit(std.testing.allocator);
+
+    {
+        const file_path = try runfiles
+            .withSourceRepo("my_module++ext+repo1")
+            .rlocationAlloc(
+            std.testing.allocator,
+            "my_module/foo",
+        ) orelse return error.TestRLocationNotFound;
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("my_module+", content);
+    }
+
+    {
+        const file_path = try runfiles
+            .withSourceRepo("my_module++ext+repo1")
+            .rlocationAlloc(
+            std.testing.allocator,
+            "repo1/foo",
+        ) orelse return error.TestRLocationNotFound;
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("ext_repo1", content);
+    }
+
+    {
+        const file_path = try runfiles
+            .withSourceRepo("my_module++ext+repo1")
+            .rlocationAlloc(
+            std.testing.allocator,
+            "repo2+/foo",
+        ) orelse return error.TestRLocationNotFound;
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("repo2+", content);
+    }
+}
+
 test "Runfiles from directory" {
     if (builtin.os.tag == .windows)
         // Windows does not support symlinks out of the box.
@@ -497,6 +608,122 @@ test "Runfiles from directory" {
         try runfiles.environment(&env);
         try std.testing.expectEqual(@as(usize, 1), env.count());
         try std.testing.expectEqualStrings(directory_path, env.get(discovery.runfiles_directory_var_name).?);
+    }
+}
+
+test "Runfiles from directory with compact repo mapping" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const repo_mapping_contents =
+        \\,config.json,config.json+1.2.3
+        \\,my_module,_main
+        \\,my_protobuf,protobuf+3.19.2
+        \\,my_workspace,_main
+        \\my_module++ext+*,my_module,my_module+
+        \\my_module++ext+*,repo1,my_module++ext+repo1
+    ;
+
+    try tmp.dir.makePath("my_module+");
+    try tmp.dir.makePath("my_module++ext+repo1");
+    try tmp.dir.makePath("repo2+");
+
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
+        try tmp.dir.writeFile("foo.repo_mapping", repo_mapping_contents);
+        try tmp.dir.writeFile("config.json", "config");
+        try tmp.dir.writeFile("my_module+/foo", "my_module+");
+        try tmp.dir.writeFile("my_module++ext+repo1/foo", "ext_repo1");
+        try tmp.dir.writeFile("repo2+/foo", "repo2+");
+    } else {
+        try tmp.dir.writeFile(.{ .sub_path = "foo.repo_mapping", .data = repo_mapping_contents });
+        try tmp.dir.writeFile(.{ .sub_path = "config.json", .data = "config" });
+        try tmp.dir.writeFile(.{ .sub_path = "my_module+/foo", .data = "my_module+" });
+        try tmp.dir.writeFile(.{ .sub_path = "my_module++ext+repo1/foo", .data = "ext_repo1" });
+        try tmp.dir.writeFile(.{ .sub_path = "repo2+/foo", .data = "repo2+" });
+    }
+
+    {
+        var buf: [max_path_bytes]u8 = undefined;
+        try tmp.dir.makeDir("foo.runfiles");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("foo.repo_mapping", &buf),
+            "foo.runfiles/_repo_mapping",
+            .{},
+        );
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("config.json", &buf),
+            "foo.runfiles/config.json",
+            .{},
+        );
+        try tmp.dir.makePath("foo.runfiles/my_module+");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("my_module+/foo", &buf),
+            "foo.runfiles/my_module+/foo",
+            .{},
+        );
+        try tmp.dir.makePath("foo.runfiles/my_module++ext+repo1");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("my_module++ext+repo1/foo", &buf),
+            "foo.runfiles/my_module++ext+repo1/foo",
+            .{},
+        );
+        try tmp.dir.makePath("foo.runfiles/repo2+");
+        try tmp.dir.symLink(
+            try tmp.dir.realpath("repo2+/foo", &buf),
+            "foo.runfiles/repo2+/foo",
+            .{},
+        );
+    }
+    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "foo.runfiles");
+    defer std.testing.allocator.free(directory_path);
+
+    var runfiles = try Runfiles.create(.{
+        .allocator = std.testing.allocator,
+        .directory = directory_path,
+    }) orelse
+        return error.RunfilesNotFound;
+    defer runfiles.deinit(std.testing.allocator);
+
+    {
+        const file_path = try runfiles
+            .withSourceRepo("my_module++ext+repo1")
+            .rlocationAlloc(
+            std.testing.allocator,
+            "my_module/foo",
+        ) orelse return error.TestRLocationNotFound;
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("my_module+", content);
+    }
+
+    {
+        const file_path = try runfiles
+            .withSourceRepo("my_module++ext+repo1")
+            .rlocationAlloc(
+            std.testing.allocator,
+            "repo1/foo",
+        ) orelse return error.TestRLocationNotFound;
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("ext_repo1", content);
+    }
+
+    {
+        const file_path = try runfiles
+            .withSourceRepo("my_module++ext+repo1")
+            .rlocationAlloc(
+            std.testing.allocator,
+            "repo2+/foo",
+        ) orelse return error.TestRLocationNotFound;
+        defer std.testing.allocator.free(file_path);
+        try std.testing.expect(std.fs.path.isAbsolute(file_path));
+        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        defer std.testing.allocator.free(content);
+        try std.testing.expectEqualStrings("repo2+", content);
     }
 }
 
