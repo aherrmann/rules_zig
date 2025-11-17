@@ -74,25 +74,15 @@ pub fn lookup(self: *const RepoMapping, key: Key) ?[]const u8 {
         return exact;
     }
 
-    // We need to find the longest matching prefix in the wildcard mappings.
-    var longest_match: ?[]const u8 = null;
-    var longest_prefix_len: usize = 0;
-
     var it = self.wildcard_mapping.iterator();
     while (it.next()) |entry| {
         const prefix = entry.key_ptr.*;
         const target_map = entry.value_ptr;
-
-        if (key.source.len >= prefix.len and prefix.len > longest_prefix_len and std.mem.startsWith(u8, key.source, prefix)) {
+        if (key.source.len >= prefix.len and std.mem.startsWith(u8, key.source, prefix)) {
             if (target_map.get(key.target)) |mapping| {
-                longest_match = mapping;
-                longest_prefix_len = prefix.len;
+                return mapping;
             }
         }
-    }
-
-    if (longest_match) |m| {
-        return m;
     }
 
     const is_canonical = std.mem.indexOfScalar(u8, key.target, '~') != null;
