@@ -16,6 +16,7 @@ bzl_library(
     deps = [
         "//zig/private/common:bazel_builtin",
         "//zig/private/common:data",
+        "//zig/private/common:escape_label",
         "//zig/private/common:filetypes",
         "//zig/private/providers:zig_module_info",
     ],

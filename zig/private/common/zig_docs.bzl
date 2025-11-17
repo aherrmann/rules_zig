@@ -7,6 +7,7 @@ load(
     "bazel_builtin_module",
 )
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
+load("//zig/private/common:escape_label.bzl", "escape_label")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
@@ -120,7 +121,7 @@ def zig_docs_impl(ctx, *, kind):
     else:
         root_module = zig_module_info(
             name = ctx.attr.name,
-            canonical_name = str(ctx.label),
+            canonical_name = escape_label(label = ctx.label),
             main = ctx.file.main,
             srcs = ctx.files.srcs,
             extra_srcs = ctx.files.extra_srcs,

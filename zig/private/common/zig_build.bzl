@@ -14,6 +14,7 @@ load(
 load("//zig/private/common:cdeps.bzl", "zig_cdeps_copts", "zig_cdeps_linker_inputs")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
+load("//zig/private/common:escape_label.bzl", "escape_label")
 load(
     "//zig/private/common:filetypes.bzl",
     "ZIG_C_SOURCE_EXTENSIONS",
@@ -336,7 +337,7 @@ def zig_build_impl(ctx, *, kind):
     else:
         root_module = zig_module_info(
             name = ctx.attr.name,
-            canonical_name = str(ctx.label),
+            canonical_name = escape_label(label = ctx.label),
             main = ctx.file.main,
             srcs = ctx.files.srcs,
             extra_srcs = ctx.files.extra_srcs,
