@@ -83,12 +83,10 @@ pub fn lookup(self: *const RepoMapping, key: Key) ?[]const u8 {
         const prefix = entry.key_ptr.*;
         const target_map = entry.value_ptr;
 
-        if (key.source.len >= prefix.len and std.mem.startsWith(u8, key.source, prefix)) {
-            if (prefix.len > longest_prefix_len) {
-                if (target_map.get(key.target)) |mapping| {
-                    longest_match = mapping;
-                    longest_prefix_len = prefix.len;
-                }
+        if (key.source.len >= prefix.len and prefix.len > longest_prefix_len and std.mem.startsWith(u8, key.source, prefix)) {
+            if (target_map.get(key.target)) |mapping| {
+                longest_match = mapping;
+                longest_prefix_len = prefix.len;
             }
         }
     }
