@@ -22,9 +22,14 @@ const log = if (builtin.is_test)
 else
     std.log.scoped(.runfiles);
 
+const ExactMap = ExactHashMapUnmanaged;
+const TargetMap = std.StringHashMapUnmanaged([]const u8);
+const WildcardMap = std.StringArrayHashMapUnmanaged(TargetMap);
+
 const RepoMapping = @This();
 
-mapping: HashMapUnmanaged,
+exact_mapping: ExactMap,
+wildcard_mapping: WildcardMap,
 content: []const u8,
 
 pub const InitError = ParseError || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
@@ -42,15 +47,22 @@ pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoM
         return e;
     };
     errdefer allocator.free(content);
-    const mapping = try parse(allocator, content, file_path);
+    const exact_map, const wildcard_map = try parse(allocator, content, file_path);
     return .{
-        .mapping = mapping,
+        .exact_mapping = exact_map,
+        .wildcard_mapping = wildcard_map,
         .content = content,
     };
 }
 
 pub fn deinit(self: *RepoMapping, allocator: std.mem.Allocator) void {
-    self.mapping.deinit(allocator);
+    // Free inner maps of wildcard_mapping
+    var it = self.wildcard_mapping.iterator();
+    while (it.next()) |entry| {
+        entry.value_ptr.deinit(allocator);
+    }
+    self.wildcard_mapping.deinit(allocator);
+    self.exact_mapping.deinit(allocator);
     allocator.free(self.content);
 }
 
@@ -58,13 +70,26 @@ pub fn deinit(self: *RepoMapping, allocator: std.mem.Allocator) void {
 /// repository if no entry is found in the mapping but the target is a
 /// canonical repository name.
 pub fn lookup(self: *const RepoMapping, key: Key) ?[]const u8 {
-    return self.mapping.get(key) orelse {
-        const is_canonical = std.mem.indexOfScalar(u8, key.target, '~') != null;
-        if (is_canonical)
-            return key.target
-        else
-            return null;
-    };
+    if (self.exact_mapping.get(key)) |exact| {
+        return exact;
+    }
+
+    var it = self.wildcard_mapping.iterator();
+    while (it.next()) |entry| {
+        const prefix = entry.key_ptr.*;
+        const target_map = entry.value_ptr;
+        if (key.source.len >= prefix.len and std.mem.startsWith(u8, key.source, prefix)) {
+            if (target_map.get(key.target)) |mapping| {
+                return mapping;
+            }
+        }
+    }
+
+    const is_canonical = std.mem.indexOfScalar(u8, key.target, '+') != null;
+    if (is_canonical)
+        return key.target
+    else
+        return null;
 }
 
 const ParseError = error{
@@ -72,9 +97,19 @@ const ParseError = error{
     OutOfMemory,
 };
 
-fn parse(allocator: std.mem.Allocator, content: []const u8, file_path: []const u8) ParseError!HashMapUnmanaged {
-    var result: HashMapUnmanaged = .{};
-    errdefer result.deinit(allocator);
+fn parse(allocator: std.mem.Allocator, content: []const u8, file_path: []const u8) ParseError!struct { ExactMap, WildcardMap } {
+    var exact_mapping: ExactMap = .{};
+    errdefer exact_mapping.deinit(allocator);
+
+    var wildcard_mapping: WildcardMap = .{};
+    errdefer {
+        var it = wildcard_mapping.iterator();
+        while (it.next()) |entry| {
+            entry.value_ptr.deinit(allocator);
+        }
+        wildcard_mapping.deinit(allocator);
+    }
+
     var line_count: usize = 1;
     var lines = std.mem.tokenizeAny(u8, content, "\r\n");
     while (lines.next()) |line| : (line_count += 1) {
@@ -89,16 +124,35 @@ fn parse(allocator: std.mem.Allocator, content: []const u8, file_path: []const u
             log.err(err_fmt, .{ "repository mapping", file_path, line_count });
             return error.MalformedRepoMapping;
         };
-        try result.put(allocator, .{ .source = source, .target = target }, mapping);
+
+        if (source.len == 0 or source[source.len - 1] != '*') {
+            try exact_mapping.put(allocator, .{ .source = source, .target = target }, mapping);
+        } else {
+            // "prefix*"
+            const prefix = source[0 .. source.len - 1];
+
+            var gop = try wildcard_mapping.getOrPut(allocator, prefix);
+            if (!gop.found_existing) {
+                gop.value_ptr.* = TargetMap{};
+            }
+
+            try gop.value_ptr.put(allocator, target, mapping);
+        }
     }
-    return result;
+
+    return .{
+        exact_mapping,
+        wildcard_mapping,
+    };
 }
 
 test "parse empty" {
     const content = "";
-    var mapping = try parse(std.testing.allocator, content, "_repo_mapping");
-    defer mapping.deinit(std.testing.allocator);
-    try std.testing.expectEqual(@as(usize, 0), mapping.size);
+    var exact_mapping, var wildcard_mapping = try parse(std.testing.allocator, content, "_repo_mapping");
+    defer exact_mapping.deinit(std.testing.allocator);
+    defer wildcard_mapping.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 0), exact_mapping.size);
+    try std.testing.expectEqual(@as(usize, 0), wildcard_mapping.entries.len);
 }
 
 test "parse mappings" {
@@ -107,40 +161,68 @@ test "parse mappings" {
         \\source_2,target_2,mapping_2
         \\source_3,target_3,mapping_3
     ;
-    var mapping = try parse(std.testing.allocator, content, "_repo_mapping");
-    defer mapping.deinit(std.testing.allocator);
-    try std.testing.expectEqual(@as(usize, 3), mapping.size);
-    try std.testing.expectEqualStrings("mapping_1", mapping.get(.{ .source = "source_1", .target = "target_1" }).?);
-    try std.testing.expectEqualStrings("mapping_2", mapping.get(.{ .source = "source_2", .target = "target_2" }).?);
-    try std.testing.expectEqualStrings("mapping_3", mapping.get(.{ .source = "source_3", .target = "target_3" }).?);
-    try std.testing.expectEqual(@as(?[]const u8, null), mapping.get(.{ .source = "source_missing", .target = "target_missing" }));
+    var exact_mapping, var wildcard_mapping = try parse(std.testing.allocator, content, "_repo_mapping");
+    defer exact_mapping.deinit(std.testing.allocator);
+    defer wildcard_mapping.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 3), exact_mapping.size);
+    try std.testing.expectEqual(@as(usize, 0), wildcard_mapping.entries.len);
+
+    try std.testing.expectEqualStrings("mapping_1", exact_mapping.get(.{ .source = "source_1", .target = "target_1" }).?);
+    try std.testing.expectEqualStrings("mapping_2", exact_mapping.get(.{ .source = "source_2", .target = "target_2" }).?);
+    try std.testing.expectEqualStrings("mapping_3", exact_mapping.get(.{ .source = "source_3", .target = "target_3" }).?);
+    try std.testing.expectEqual(@as(?[]const u8, null), exact_mapping.get(.{ .source = "source_missing", .target = "target_missing" }));
+}
+
+test "parse compact mappings" {
+    const content =
+        \\,my_module,_main
+        \\my_module++ext+*,my_module,my_module+
+        \\my_module++ext+*,repo1,my_module++ext+repo1
+    ;
+    var exact_mapping, var wildcard_mapping = try parse(std.testing.allocator, content, "_repo_mapping");
+    defer {
+        exact_mapping.deinit(std.testing.allocator);
+        var it = wildcard_mapping.iterator();
+        while (it.next()) |entry| {
+            entry.value_ptr.*.deinit(std.testing.allocator);
+        }
+        wildcard_mapping.deinit(std.testing.allocator);
+    }
+
+    try std.testing.expectEqual(@as(usize, 1), exact_mapping.size);
+    try std.testing.expectEqualStrings("_main", exact_mapping.get(.{ .source = "", .target = "my_module" }).?);
+
+    const prefix_mapping = wildcard_mapping.get("my_module++ext+").?;
+    try std.testing.expectEqual(@as(usize, 2), prefix_mapping.size);
+    try std.testing.expectEqualStrings("my_module+", prefix_mapping.get("my_module").?);
+    try std.testing.expectEqualStrings("my_module++ext+repo1", prefix_mapping.get("repo1").?);
 }
 
 test "parse empty source" {
     const content = ",target,mapping";
-    var mapping = try parse(std.testing.allocator, content, "_repo_mapping");
-    defer mapping.deinit(std.testing.allocator);
-    try std.testing.expectEqual(@as(usize, 1), mapping.size);
-    try std.testing.expectEqualStrings("mapping", mapping.get(.{ .source = "", .target = "target" }).?);
+    var exact_mapping, _ = try parse(std.testing.allocator, content, "_repo_mapping");
+    defer exact_mapping.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 1), exact_mapping.size);
+    try std.testing.expectEqualStrings("mapping", exact_mapping.get(.{ .source = "", .target = "target" }).?);
 }
 
 test "parse empty target" {
     const content = "source,,mapping";
-    var mapping = try parse(std.testing.allocator, content, "_repo_mapping");
-    defer mapping.deinit(std.testing.allocator);
-    try std.testing.expectEqual(@as(usize, 1), mapping.size);
-    try std.testing.expectEqualStrings("mapping", mapping.get(.{ .source = "source", .target = "" }).?);
+    var exact_mapping, _ = try parse(std.testing.allocator, content, "_repo_mapping");
+    defer exact_mapping.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 1), exact_mapping.size);
+    try std.testing.expectEqualStrings("mapping", exact_mapping.get(.{ .source = "source", .target = "" }).?);
 }
 
 test "parse different line endings" {
     const content = "s1,t1,m1\n\ns2,t2,m2\rs3,t3,m3\r\ns4,t4,m4";
-    var mapping = try parse(std.testing.allocator, content, "_repo_mapping");
-    defer mapping.deinit(std.testing.allocator);
-    try std.testing.expectEqual(@as(usize, 4), mapping.size);
-    try std.testing.expectEqualStrings("m1", mapping.get(.{ .source = "s1", .target = "t1" }).?);
-    try std.testing.expectEqualStrings("m2", mapping.get(.{ .source = "s2", .target = "t2" }).?);
-    try std.testing.expectEqualStrings("m3", mapping.get(.{ .source = "s3", .target = "t3" }).?);
-    try std.testing.expectEqualStrings("m4", mapping.get(.{ .source = "s4", .target = "t4" }).?);
+    var exact_mapping, _ = try parse(std.testing.allocator, content, "_repo_mapping");
+    defer exact_mapping.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 4), exact_mapping.size);
+    try std.testing.expectEqualStrings("m1", exact_mapping.get(.{ .source = "s1", .target = "t1" }).?);
+    try std.testing.expectEqualStrings("m2", exact_mapping.get(.{ .source = "s2", .target = "t2" }).?);
+    try std.testing.expectEqualStrings("m3", exact_mapping.get(.{ .source = "s3", .target = "t3" }).?);
+    try std.testing.expectEqualStrings("m4", exact_mapping.get(.{ .source = "s4", .target = "t4" }).?);
 }
 
 test "parse missing mapping" {
@@ -173,7 +255,7 @@ pub const Key = struct {
     }
 };
 
-const HashMapUnmanaged = std.HashMapUnmanaged(
+const ExactHashMapUnmanaged = std.HashMapUnmanaged(
     Key,
     []const u8,
     Ctx,
@@ -208,23 +290,21 @@ test "RepoMapping init from file" {
             \\protobuf~3.19.2,protobuf,protobuf~3.19.2
         );
     } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "_repo_mapping",
-            .data =
-                \\,my_module,my_workspace
-                \\,my_protobuf,protobuf~3.19.2
-                \\,my_workspace,my_workspace
-                \\protobuf~3.19.2,protobuf,protobuf~3.19.2
+        try tmp.dir.writeFile(.{ .sub_path = "_repo_mapping", .data = 
+            \\,my_module,my_workspace
+            \\,my_protobuf,protobuf~3.19.2
+            \\,my_workspace,my_workspace
+            \\protobuf~3.19.2,protobuf,protobuf~3.19.2
         });
     }
     const mapping_path = try tmp.dir.realpathAlloc(std.testing.allocator, "_repo_mapping");
     defer std.testing.allocator.free(mapping_path);
     var repo_mapping = try RepoMapping.init(std.testing.allocator, mapping_path);
     defer repo_mapping.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("my_workspace", repo_mapping.mapping.get(.{ .source = "", .target = "my_module" }).?);
-    try std.testing.expectEqualStrings("protobuf~3.19.2", repo_mapping.mapping.get(.{ .source = "", .target = "my_protobuf" }).?);
-    try std.testing.expectEqualStrings("my_workspace", repo_mapping.mapping.get(.{ .source = "", .target = "my_workspace" }).?);
-    try std.testing.expectEqualStrings("protobuf~3.19.2", repo_mapping.mapping.get(.{ .source = "protobuf~3.19.2", .target = "protobuf" }).?);
+    try std.testing.expectEqualStrings("my_workspace", repo_mapping.exact_mapping.get(.{ .source = "", .target = "my_module" }).?);
+    try std.testing.expectEqualStrings("protobuf~3.19.2", repo_mapping.exact_mapping.get(.{ .source = "", .target = "my_protobuf" }).?);
+    try std.testing.expectEqualStrings("my_workspace", repo_mapping.exact_mapping.get(.{ .source = "", .target = "my_workspace" }).?);
+    try std.testing.expectEqualStrings("protobuf~3.19.2", repo_mapping.exact_mapping.get(.{ .source = "protobuf~3.19.2", .target = "protobuf" }).?);
 }
 
 test "RepoMapping init missing file" {
