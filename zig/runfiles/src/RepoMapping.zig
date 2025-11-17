@@ -85,7 +85,7 @@ pub fn lookup(self: *const RepoMapping, key: Key) ?[]const u8 {
         }
     }
 
-    const is_canonical = std.mem.indexOfScalar(u8, key.target, '~') != null;
+    const is_canonical = std.mem.indexOfAny(u8, key.target, "~+") != null;
     if (is_canonical)
         return key.target
     else
