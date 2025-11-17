@@ -24,7 +24,7 @@ else
 
 const ExactMap = ExactHashMapUnmanaged;
 const TargetMap = std.StringHashMapUnmanaged([]const u8);
-const WildcardMap = std.StringHashMapUnmanaged(TargetMap);
+const WildcardMap = std.StringArrayHashMapUnmanaged(TargetMap);
 
 const RepoMapping = @This();
 
@@ -57,9 +57,9 @@ pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoM
 
 pub fn deinit(self: *RepoMapping, allocator: std.mem.Allocator) void {
     // Free inner maps of wildcard_mapping
-    var it = self.wildcard_mapping.valueIterator();
-    while (it.next()) |target_map| {
-        target_map.deinit(allocator);
+    var it = self.wildcard_mapping.iterator();
+    while (it.next()) |entry| {
+        entry.value_ptr.deinit(allocator);
     }
     self.wildcard_mapping.deinit(allocator);
     self.exact_mapping.deinit(allocator);
@@ -113,9 +113,9 @@ fn parse(allocator: std.mem.Allocator, content: []const u8, file_path: []const u
 
     var wildcard_mapping: WildcardMap = .{};
     errdefer {
-        var it = wildcard_mapping.valueIterator();
-        while (it.next()) |target_map| {
-            target_map.deinit(allocator);
+        var it = wildcard_mapping.iterator();
+        while (it.next()) |entry| {
+            entry.value_ptr.deinit(allocator);
         }
         wildcard_mapping.deinit(allocator);
     }
@@ -162,7 +162,7 @@ test "parse empty" {
     defer exact_mapping.deinit(std.testing.allocator);
     defer wildcard_mapping.deinit(std.testing.allocator);
     try std.testing.expectEqual(@as(usize, 0), exact_mapping.size);
-    try std.testing.expectEqual(@as(usize, 0), wildcard_mapping.size);
+    try std.testing.expectEqual(@as(usize, 0), wildcard_mapping.entries.len);
 }
 
 test "parse mappings" {
@@ -175,7 +175,7 @@ test "parse mappings" {
     defer exact_mapping.deinit(std.testing.allocator);
     defer wildcard_mapping.deinit(std.testing.allocator);
     try std.testing.expectEqual(@as(usize, 3), exact_mapping.size);
-    try std.testing.expectEqual(@as(usize, 0), wildcard_mapping.size);
+    try std.testing.expectEqual(@as(usize, 0), wildcard_mapping.entries.len);
 
     try std.testing.expectEqualStrings("mapping_1", exact_mapping.get(.{ .source = "source_1", .target = "target_1" }).?);
     try std.testing.expectEqualStrings("mapping_2", exact_mapping.get(.{ .source = "source_2", .target = "target_2" }).?);
@@ -192,9 +192,9 @@ test "parse compact mappings" {
     var exact_mapping, var wildcard_mapping = try parse(std.testing.allocator, content, "_repo_mapping");
     defer {
         exact_mapping.deinit(std.testing.allocator);
-        var it = wildcard_mapping.valueIterator();
-        while (it.next()) |target_map| {
-            target_map.deinit(std.testing.allocator);
+        var it = wildcard_mapping.iterator();
+        while (it.next()) |entry| {
+            entry.value_ptr.*.deinit(std.testing.allocator);
         }
         wildcard_mapping.deinit(std.testing.allocator);
     }
