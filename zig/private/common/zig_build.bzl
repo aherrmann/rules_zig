@@ -80,21 +80,6 @@ Note that in that case, 'srcs', 'extra_srcs' and 'csrcs' must also be empty as t
         mandatory = False,
         providers = [[ZigModuleInfo], [CcInfo]],
     ),
-    "cdeps": attr.label_list(
-        doc = """\
-C dependencies providing headers to include and libraries to link against, typically `cc_library` targets.
-Note, if you need to include C or C++ standard library headers and encounter errors of the following form:
-```
-note: libc headers not available; compilation does not link against libc
-error: 'math.h' file not found
-```
-Then you may need to list `@rules_zig//zig/lib:libc` or `@rules_zig//zig/lib:libc++` in this attribute.
-
-This is deprecated, use deps instead and pass your C/C++ dependencies there.
-""",
-        mandatory = False,
-        providers = [CcInfo],
-    ),
     "compiler_runtime": attr.string(
         doc = """\
 Whether to include Zig compiler runtime symbols in the generated output.
@@ -338,17 +323,8 @@ def zig_build_impl(ctx, *, kind):
         strings = ctx.attr.zigopts,
     )
 
-    cdeps = []
-    if ctx.attr.cdeps:
-        # buildifier: disable=print
-        print("""\
-The `cdeps` attribute of `zig_build` is deprecated, use `deps` instead.
-You can use the following buildozer command to fix it.
-buildozer 'move cdeps deps *' {target}
-""".format(target = str(ctx.label)))
-        cdeps = [dep[CcInfo] for dep in ctx.attr.cdeps]
-
     zdeps = []
+    cdeps = []
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])

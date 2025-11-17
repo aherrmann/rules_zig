@@ -6,7 +6,7 @@ module(
 
 bazel_dep(name = "aspect_bazel_lib", version = "2.21.2")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
-bazel_dep(name = "rules_cc", version = "0.2.11")
+bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "platforms", version = "1.0.0")
 
 zig = use_extension("//zig:extensions.bzl", "zig")
@@ -22,7 +22,7 @@ zig_dev = use_extension(
     "zig",
     dev_dependency = True,
 )
-zig_dev.toolchain(zig_version = "0.15.1")
+zig_dev.toolchain(zig_version = "0.15.2")
 zig_dev.toolchain(zig_version = "0.14.1")
 
 bazel_dep(name = "toolchains_buildbuddy", dev_dependency = True)
@@ -42,15 +42,15 @@ use_repo(buildbuddy, "buildbuddy_toolchain")
 
 bazel_dep(name = "bazel_features", version = "1.38.0", dev_dependency = True)
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
-bazel_dep(name = "gazelle", version = "0.45.0", dev_dependency = True, repo_name = "bazel_gazelle")
+bazel_dep(name = "gazelle", version = "0.47.0", dev_dependency = True, repo_name = "bazel_gazelle")
 bazel_dep(name = "bazel_skylib_gazelle_plugin", version = "1.8.2", dev_dependency = True)
 bazel_dep(
     name = "buildifier_prebuilt",
-    version = "8.2.0.2",
+    version = "8.2.1",
     dev_dependency = True,
 )
 bazel_dep(name = "rules_multirun", version = "0.13.0", dev_dependency = True)
-bazel_dep(name = "rules_python", version = "1.6.3", dev_dependency = True)
+bazel_dep(name = "rules_python", version = "1.7.0", dev_dependency = True)
 bazel_dep(
     name = "rules_bazel_integration_test",
     version = "0.34.0",

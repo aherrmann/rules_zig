@@ -14,8 +14,8 @@ cc_library(
 
 zig_static_library(
     name = "mul",
-    cdeps = [":c-add"],
     main = "mul.zig",
+    deps = [":c-add"],
 )
 
 # See add-small above for reasoning.
