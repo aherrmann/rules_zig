@@ -33,7 +33,7 @@ jobs:
     # Prepares the 'bazelversion' axis of the test matrix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: versions_from_bazel_versions_bzl
         run: echo "bazelversions=$(.github/scripts/bazel_versions.py)" >> $GITHUB_OUTPUT
     outputs:
@@ -44,7 +44,7 @@ jobs:
     # Prepares the 'zigversion' axis of the test matrix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: versions_from_zig_versions_json
         run: |
           # https://stackoverflow.com/a/75770668/841562 by tlwhitec
@@ -90,7 +90,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/test
         with:
@@ -141,7 +141,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/test
         with:
@@ -241,7 +241,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/test
         with:
