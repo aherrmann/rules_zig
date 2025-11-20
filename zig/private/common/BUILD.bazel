@@ -25,6 +25,7 @@ bzl_library(
         ":cdeps",
         ":csrcs",
         ":data",
+        ":escape_label",
         ":filetypes",
         ":linker_script",
         ":location_expansion",
@@ -50,6 +51,7 @@ bzl_library(
         ":bazel_builtin",
         ":cdeps",
         ":csrcs",
+        ":escape_label",
         ":location_expansion",
         ":zig_cache",
         ":zig_lib_dir",
@@ -65,6 +67,12 @@ bzl_library(
     srcs = ["cdeps.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = ["@bazel_skylib//lib:paths"],
+)
+
+bzl_library(
+    name = "escape_label",
+    srcs = ["escape_label.bzl"],
+    visibility = ["//zig:__subpackages__"],
 )
 
 bzl_library(
@@ -86,6 +94,7 @@ bzl_library(
     srcs = ["translate_c.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        ":escape_label",
         "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
         "@rules_cc//cc:action_names.bzl",
@@ -138,6 +147,7 @@ filegroup(
         ":cdeps.bzl",
         ":csrcs.bzl",
         ":data.bzl",
+        ":escape_label.bzl",
         ":filetypes.bzl",
         ":linker_script.bzl",
         ":location_expansion.bzl",

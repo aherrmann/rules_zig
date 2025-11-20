@@ -3,6 +3,7 @@
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//zig/private/common:escape_label.bzl", "escape_label")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
 
 def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, output_prefix = ""):
@@ -84,7 +85,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
 
     return zig_module_info(
         name = name,
-        canonical_name = "{}/{}".format(str(ctx.label), name),
+        canonical_name = "{}_U{}".format(escape_label(label = ctx.label), name),
         main = zig_out,
         cdeps = [cc_info],
     )

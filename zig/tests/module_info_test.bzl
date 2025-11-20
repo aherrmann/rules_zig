@@ -39,7 +39,7 @@ def _write_simple_module_expected_specs_args_impl(ctx):
     expected = []
     expected.extend(["--dep", _bazel_builtin_dep(ctx.attr.mod.label)])
     expected.extend(["'-M{name}={src}'".format(
-        name = mod.name,
+        name = mod.canonical_name,
         src = ctx.file.mod_main.path,
     )])
     expected.extend(_bazel_builtin_mod_flags(ctx, ctx.attr.mod.label))
@@ -85,11 +85,11 @@ def _write_transitive_modules_with_zigopts_expected_args_impl(ctx):
     expected = []
     expected.extend([
         "--dep",
-        "'a=a'",
+        "'a={}'".format(mods["a"].canonical_name),
         "--dep",
         bazel_builtins["b"].dep,
         "-DFOR_MODULE_B",
-        "'-Mb={}'".format(mod_mains["b"].path),
+        "'-M{}={}'".format(mods["b"].canonical_name, mod_mains["b"].path),
     ])
 
     expected.extend(bazel_builtins["a"].mod_flags)
@@ -97,7 +97,7 @@ def _write_transitive_modules_with_zigopts_expected_args_impl(ctx):
         "--dep",
         bazel_builtins["a"].dep,
         "-DFOR_MODULE_A",
-        "'-Ma={}'".format(mod_mains["a"].path),
+        "'-M{}={}'".format(mods["a"].canonical_name, mod_mains["a"].path),
     ])
     expected.extend(bazel_builtins["b"].mod_flags)
 
@@ -169,21 +169,21 @@ def _write_nested_module_expected_specs_args_impl(ctx):
     expected = []
     expected.extend([
         "--dep",
-        "'b=b'",
+        "'b={}'".format(mods["b"].canonical_name),
         "--dep",
-        "'c=c'",
+        "'c={}'".format(mods["c"].canonical_name),
         "--dep",
-        "'d=d'",
+        "'d={}'".format(mods["d"].canonical_name),
         "--dep",
         bazel_builtins["a"].dep,
-        "'-Ma={}'".format(mod_mains["a"].path),
+        "'-M{}={}'".format(mods["a"].canonical_name, mod_mains["a"].path),
     ])
 
     expected.extend(bazel_builtins["e"].mod_flags)
     expected.extend([
         "--dep",
         bazel_builtins["e"].dep,
-        "'-Me={}'".format(mod_mains["e"].path),
+        "'-M{}={}'".format(mods["e"].canonical_name, mod_mains["e"].path),
     ])
     expected.extend(bazel_builtins["b"].mod_flags)
     expected.extend(bazel_builtins["c"].mod_flags)
@@ -191,32 +191,32 @@ def _write_nested_module_expected_specs_args_impl(ctx):
 
     expected.extend([
         "--dep",
-        "'e=e'",
+        "'e={}'".format(mods["e"].canonical_name),
         "--dep",
         bazel_builtins["f"].dep,
-        "'-Mf={}'".format(mod_mains["f"].path),
+        "'-M{}={}'".format(mods["f"].canonical_name, mod_mains["f"].path),
     ])
     expected.extend(bazel_builtins["d"].mod_flags)
     expected.extend([
         "--dep",
-        "'e=e'",
+        "'e={}'".format(mods["e"].canonical_name),
         "--dep",
         bazel_builtins["b"].dep,
-        "'-Mb={}'".format(mod_mains["b"].path),
+        "'-M{}={}'".format(mods["b"].canonical_name, mod_mains["b"].path),
     ])
     expected.extend([
         "--dep",
-        "'e=e'",
+        "'e={}'".format(mods["e"].canonical_name),
         "--dep",
         bazel_builtins["c"].dep,
-        "'-Mc={}'".format(mod_mains["c"].path),
+        "'-M{}={}'".format(mods["c"].canonical_name, mod_mains["c"].path),
     ])
     expected.extend([
         "--dep",
-        "'f=f'",
+        "'f={}'".format(mods["f"].canonical_name),
         "--dep",
         bazel_builtins["d"].dep,
-        "'-Md={}'".format(mod_mains["d"].path),
+        "'-M{}={}'".format(mods["d"].canonical_name, mod_mains["d"].path),
     ])
     expected.extend(bazel_builtins["a"].mod_flags)
 
@@ -254,13 +254,13 @@ def _write_simple_module_with_c_expected_specs_args_impl(ctx):
     }
 
     expected = []
-    expected.extend(["--dep", "'data_c_zig={}'".format(mods["data_c_zig"].module_context.canonical_name)])
+    expected.extend(["--dep", "'data_c_zig={}'".format(mods["data_c_zig"].canonical_name)])
     expected.extend(["--dep", bazel_builtins["data"].dep])
     expected.extend(["'-M{name}={src}'".format(
-        name = mods["data"].name,
+        name = mods["data"].canonical_name,
         src = mods["data"].module_context.main,
     )])
-    expected.extend(["'-M{}={}'".format(mods["data_c_zig"].module_context.canonical_name, mods["data_c_zig"].module_context.main)])
+    expected.extend(["'-M{}={}'".format(mods["data_c_zig"].canonical_name, mods["data_c_zig"].module_context.main)])
     expected.extend(bazel_builtins["data"].mod_flags)
 
     ctx.actions.write(
@@ -298,11 +298,10 @@ def _write_simple_module_with_global_c_expected_specs_args_impl(ctx):
 
     expected = []
 
-    # expected.extend(["--dep", "'data_c_zig={}'".format(mods["data_c_zig"].module_context.canonical_name)])
     expected.extend(["--dep", bazel_builtins["data_global_c"].dep])
     expected.extend(["--dep", "'c=c'"])
     expected.extend(["'-M{name}={src}'".format(
-        name = mods["data_global_c"].name,
+        name = mods["data_global_c"].canonical_name,
         src = mods["data_global_c"].module_context.main,
     )])
     expected.extend(bazel_builtins["data_global_c"].mod_flags)
@@ -348,17 +347,17 @@ def _write_simple_module_with_import_name_specs_args_impl(ctx):
 
     expected = []
 
-    expected.extend(["--dep", "'import-name-module/data=data'"])
+    expected.extend(["--dep", "'import-name-module/data={}'".format(mods["data"].canonical_name)])
     expected.extend(["--dep", bazel_builtins["main"].dep])
-    expected.extend(["'-M{name}={src}'".format(
-        name = mods["main"].name,
+    expected.extend(["'-M{canonical_name}={src}'".format(
+        canonical_name = mods["main"].canonical_name,
         src = mod_mains["main"].path,
     )])
 
     expected.extend(bazel_builtins["data"].mod_flags)
 
     expected.extend(["--dep", bazel_builtins["data"].dep])
-    expected.extend(["'-Mdata={}'".format(mod_mains["data"].path)])
+    expected.extend(["'-M{}={}'".format(mods["data"].canonical_name, mod_mains["data"].path)])
 
     expected.extend(bazel_builtins["main"].mod_flags)
 
