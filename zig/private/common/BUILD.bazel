@@ -70,16 +70,16 @@ bzl_library(
 )
 
 bzl_library(
-    name = "escape_label",
-    srcs = ["escape_label.bzl"],
-    visibility = ["//zig:__subpackages__"],
-)
-
-bzl_library(
     name = "location_expansion",
     srcs = ["location_expansion.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = ["@aspect_bazel_lib//lib:expand_make_vars"],
+)
+
+bzl_library(
+    name = "escape_label",
+    srcs = ["escape_label.bzl"],
+    visibility = ["//zig:__subpackages__"],
 )
 
 bzl_library(
