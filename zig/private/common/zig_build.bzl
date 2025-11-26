@@ -267,10 +267,12 @@ def zig_build_impl(ctx, *, kind):
     location_targets = ctx.attr.data
 
     default_output_is_executable = False
+    default_output_name = None
     default_output = None
     solib_parents = []
     if kind == "zig_binary" or kind == "zig_test":
-        default_output = ctx.actions.declare_file(ctx.label.name + _executable_extension(zigtargetinfo.triple.os))
+        default_output_name = ctx.label.name + _executable_extension(zigtargetinfo.triple.os)
+        default_output = ctx.actions.declare_file(default_output_name)
         default_output_is_executable = True
 
         # Calculate the RPATH components to discover the solib tree.
@@ -281,12 +283,15 @@ def zig_build_impl(ctx, *, kind):
             paths.join(default_output.basename + ".runfiles", ctx.workspace_name),
         ]
     elif kind == "zig_static_library":
-        default_output = ctx.actions.declare_file(_lib_prefix(zigtargetinfo.triple.os) + ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
+        default_output_name = _lib_prefix(zigtargetinfo.triple.os) + ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os)
+        default_output = ctx.actions.declare_file(default_output_name)
     elif kind == "zig_shared_library":
         if (ctx.attr.shared_lib_name):
-            default_output = ctx.actions.declare_file(ctx.attr.shared_lib_name)
+            default_output_name = ctx.attr.shared_lib_name
+            default_output = ctx.actions.declare_file(default_output_name)
         else:
-            default_output = ctx.actions.declare_file(_lib_prefix(zigtargetinfo.triple.os) + ctx.label.name + _shared_lib_extension(zigtargetinfo.triple.os))
+            default_output_name = _lib_prefix(zigtargetinfo.triple.os) + ctx.label.name + _shared_lib_extension(zigtargetinfo.triple.os)
+            default_output = ctx.actions.declare_file(default_output_name)
         solib_parents = [""]
 
     if kind == "zig_test" and ctx.attr.test_runner:
@@ -608,6 +613,16 @@ def zig_build_impl(ctx, *, kind):
 
         else:
             args.add(default_output, format = "-femit-bin=%s")
+
+            # By default, Zig build-lib -dynamic sets the SONAME of the shared
+            # library based on the name of its main module.
+            #
+            # This causes issue because the shared library name might:
+            # 1. Be set by the user using 'shared_lib_name' attribute.
+            # 2. Or default to a name based on the target label.
+            #
+            # Here we explicitly set the SONAME to match the output filename.
+            args.add(default_output_name, format = "-fsoname=%s")
 
             ctx.actions.run(
                 outputs = [default_output],
