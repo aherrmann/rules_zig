@@ -107,8 +107,8 @@ def _zig_transition_impl(settings, attr):
         result["//command_line_option:platforms"] = str(attr.target)
     if attr.zig_version:
         result["@zig_toolchains//:version"] = str(attr.zig_version)
-    if attr.use_cc_common_link:
-        result["//zig/settings:use_cc_common_link"] = attr.use_cc_common_link
+    if attr.use_cc_common_link != -1:
+        result["//zig/settings:use_cc_common_link"] = attr.use_cc_common_link == 1
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
     if attr.threaded:
@@ -159,9 +159,17 @@ def _make_attrs(*, executable):
             doc = "The Zig SDK version, must be registered using the `zig` module extension.",
             mandatory = False,
         ),
-        "use_cc_common_link": attr.bool(
-            doc = "Whether to use cc_common.link to link zig binaries, tests and shared libraries.",
+        "use_cc_common_link": attr.int(
+            doc = (
+                "Whether to use cc_common.link to link zig binaries, tests and shared libraries. " +
+                "Possible values: [-1, 0, 1]. " +
+                "-1 means use current configuration value for //zig/settings:experimental_use_cc_common_link. " +
+                "0 means do not use cc_common.link (use zig build-exe instead). " +
+                "1 means use cc_common.link."
+            ),
             mandatory = False,
+            values = [-1, 0, 1],
+            default = -1,
         ),
         "mode": attr.string(
             doc = "The build mode setting, corresponds to the `-O` Zig compiler flag.",
