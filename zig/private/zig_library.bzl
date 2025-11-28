@@ -7,6 +7,7 @@ load(
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
+load("//zig/private/common:escape_label.bzl", "escape_label")
 load("//zig/private/common:filetypes.bzl", "ZIG_SOURCE_EXTENSIONS")
 load(
     "//zig/private/providers:zig_module_info.bzl",
@@ -112,7 +113,7 @@ def _zig_library_impl(ctx):
 
     module = zig_module_info(
         name = ctx.attr.import_name or ctx.label.name,
-        canonical_name = ctx.label.name,
+        canonical_name = escape_label(label = ctx.label),
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         extra_srcs = ctx.files.extra_srcs,
