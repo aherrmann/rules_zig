@@ -24,6 +24,7 @@ def escape_label(*, label):
         ))
     return "".join(result)
 
+# buildifier: disable=function-docstring
 def escape_label_str(label_str):
     result = []
     for idx in range(len(label_str)):
