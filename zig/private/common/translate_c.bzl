@@ -85,7 +85,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
 
     return zig_module_info(
         name = name,
-        canonical_name = "{}_U{}".format(escape_label(label = ctx.label), name),
+        canonical_name = escape_label(label = "{}:{}".format(ctx.label, name)),
         main = zig_out,
         cdeps = [cc_info],
     )
