@@ -23,3 +23,13 @@ def escape_label(*, label):
             c,  # no escaping by default
         ))
     return "".join(result)
+
+def escape_label_str(label_str):
+    result = []
+    for idx in range(len(label_str)):
+        c = label_str[idx]
+        result.append(_PATH_ESCAPE_REPLACEMENTS.get(
+            c,
+            c,  # no escaping by default
+        ))
+    return "".join(result)
