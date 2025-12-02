@@ -85,15 +85,10 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
 
     return zig_module_info(
         name = name,
-        # If we only escape the label, we might have collisions:
-        #
-        # zig_c_library(name = "a", import_name = "b_Uc")  # --> canonical_name = "_S_S_Ca_Ub_Uc"
-        # zig_c_library(name = "a_b", import_name = "c")  # --> canonical_name = "_S_S_Ca_Ub_Uc"
-        #
-        # To avoid this, we escape both label and name, this way:
-        # zig_c_library(name = "a", import_name = "b_Uc")  # --> canonical_name = "_S_S_Ca_Ub_UUc"
-        # zig_c_library(name = "a_b", import_name = "c")  #--> canonical_name = "_S_S_Ca_Ub_Uc"
-        canonical_name = "{}{}".format(escape_label(label = ctx.label), escape_label_str(name)),
+        # To avoid collisions, we need to escape both label and name,
+        # joined using a separator that cannot appear in escapted text.
+        # (here "__" is used as separator, since "_" is escaped as "_U").
+        canonical_name = "{}__{}".format(escape_label(label = ctx.label), escape_label_str(name)),
         main = zig_out,
         cdeps = [cc_info],
     )
