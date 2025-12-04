@@ -15,14 +15,7 @@ def escape_label(*, label):
     path = label.package + ":" + label.name
     if label.repo_name:
         path = label.repo_name + "@" + path
-    result = []
-    for idx in range(len(path)):
-        c = path[idx]
-        result.append(_PATH_ESCAPE_REPLACEMENTS.get(
-            c,
-            c,  # no escaping by default
-        ))
-    return "".join(result)
+    return escape_label_str(path)
 
 # buildifier: disable=function-docstring
 def escape_label_str(label_str):
