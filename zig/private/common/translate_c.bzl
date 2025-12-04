@@ -3,6 +3,7 @@
 load("@rules_cc//cc:find_cc_toolchain.bzl", "find_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//zig/private/common:escape_label.bzl", "escape_label", "escape_label_str")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
 
 def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, output_prefix = ""):
@@ -84,7 +85,10 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
 
     return zig_module_info(
         name = name,
-        canonical_name = "{}/{}".format(str(ctx.label), name),
+        # To avoid collisions, we need to escape both label and name,
+        # joined using a separator that cannot appear in escapted text.
+        # (here "__" is used as separator, since "_" is escaped as "_U").
+        canonical_name = "{}__{}".format(escape_label(label = ctx.label), escape_label_str(name)),
         main = zig_out,
         cdeps = [cc_info],
     )
