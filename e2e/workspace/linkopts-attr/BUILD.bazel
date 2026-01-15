@@ -32,7 +32,7 @@ zig_configure_binary(
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    use_cc_common_link = True,
+    use_cc_common_link = 1,
 )
 
 zig_configure(
@@ -45,7 +45,7 @@ zig_configure(
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    use_cc_common_link = True,
+    use_cc_common_link = 1,
 )
 
 zig_configure_test(
@@ -58,7 +58,7 @@ zig_configure_test(
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    use_cc_common_link = True,
+    use_cc_common_link = 1,
 )
 
 build_test(
