@@ -21,6 +21,12 @@ zig.mirrors(urls = [
     "https://zig.florent.dev",
     "https://zig.mirror.mschae23.de/zig",
     "https://zigmirror.meox.dev",
+    "https://ziglang.freetls.fastly.net",
+    "https://zig.tilok.dev",
+    "https://zig-mirror.tsimnet.eu/zig",
+    "https://zig.karearl.com/zig",
+    "https://pkg.earth/zig",
+    "https://fs.liujiacai.net/zigbuilds",
 ])
 use_repo(zig, "zig_toolchains")
 
