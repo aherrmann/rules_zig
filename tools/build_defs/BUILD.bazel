@@ -1,0 +1,9 @@
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        "//tools/build_defs/android:all_files",
+    ],
+    visibility = ["//tools:__pkg__"],
+)
