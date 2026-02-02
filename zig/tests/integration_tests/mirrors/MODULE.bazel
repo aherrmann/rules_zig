@@ -11,16 +11,9 @@ local_path_override(
 )
 
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
-
-# https://ziglang.org/download/community-mirrors.txt
 zig.mirrors(urls = [
-    "https://pkg.machengine.org/zig",
-    "https://zigmirror.hryx.net/zig",
-    "https://zig.linus.dev/zig",
-    "https://zig.squirl.dev",
-    "https://zig.florent.dev",
-    "https://zig.mirror.mschae23.de/zig",
-    "https://zigmirror.meox.dev",
+    # test that user defined mirrors take precedence
+    "https://example.com/zig",
 ])
 zig.toolchain(
     default = True,

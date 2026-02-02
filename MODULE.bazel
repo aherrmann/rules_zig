@@ -11,6 +11,23 @@ bazel_dep(name = "platforms", version = "1.0.0")
 
 zig = use_extension("//zig:extensions.bzl", "zig")
 zig.index(file = "//zig/private:versions.json")
+
+# https://ziglang.org/download/community-mirrors.txt
+zig.mirrors(urls = [
+    "https://pkg.machengine.org/zig",
+    "https://zigmirror.hryx.net/zig",
+    "https://zig.linus.dev/zig",
+    "https://zig.squirl.dev",
+    "https://zig.florent.dev",
+    "https://zig.mirror.mschae23.de/zig",
+    "https://zigmirror.meox.dev",
+    "https://ziglang.freetls.fastly.net",
+    "https://zig.tilok.dev",
+    "https://zig-mirror.tsimnet.eu/zig",
+    "https://zig.karearl.com/zig",
+    "https://pkg.earth/zig",
+    "https://fs.liujiacai.net/zigbuilds",
+])
 use_repo(zig, "zig_toolchains")
 
 register_toolchains("@rules_zig//zig/target:all")

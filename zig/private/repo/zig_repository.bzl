@@ -67,7 +67,7 @@ def _get_integrity_args(*, sha256, integrity):
 def _mirrors_urls(url, mirrors):
     filename = _basename(url)
     return [
-        mirror + "/" + filename
+        mirror + "/" + filename + "?source=github-aherrmann-rules_zig"
         for mirror in mirrors
     ] + [url]
 
