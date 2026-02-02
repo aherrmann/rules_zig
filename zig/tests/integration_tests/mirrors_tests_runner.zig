@@ -39,7 +39,7 @@ test "Zig distribution is fetched from a mirror" {
     var adapter = line_writer.adaptToNewApi(&.{});
     const line = &adapter.new_interface;
 
-    const expected_url_prefix = "https://pkg.machengine.org/zig/zig";
+    const expected_url_prefix = "https://example.com/zig/zig";
     var fetch_used_mirror = false;
 
     while (true) {

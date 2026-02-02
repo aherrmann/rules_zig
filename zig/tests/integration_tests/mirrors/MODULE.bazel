@@ -12,6 +12,8 @@ local_path_override(
 
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
 zig.mirrors(urls = [
+    # test that user defined mirrors take precedence
+    "https://example.com/zig",
 ])
 zig.toolchain(
     default = True,
