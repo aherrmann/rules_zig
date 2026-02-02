@@ -91,7 +91,13 @@ The default behavior is to include them in executables and shared libraries.
         default = "default",
     ),
     "linker_script": attr.label(
-        doc = "Custom linker script for the target.",
+        doc = """\
+Custom linker script for the target.
+
+Note, as of Zig version 0.15.1 linker-scripts require the LLVM/LLD backend to be
+enabled, see https://github.com/ziglang/zig/issues/25069. Set
+`zigopts=["-fllvm", "-flld"]` to that end.
+""",
         allow_single_file = True,
         mandatory = False,
     ),
