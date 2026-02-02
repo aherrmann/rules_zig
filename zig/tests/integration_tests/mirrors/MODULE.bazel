@@ -21,13 +21,7 @@ zig.toolchain(
 )
 use_repo(zig, "zig_toolchains")
 
-bazel_dep(name = "toolchains_buildbuddy", dev_dependency = True)
-archive_override(
-    module_name = "toolchains_buildbuddy",
-    integrity = "sha256-UA+poYaWFbPxgtoA2re4mX89c3/8yYchpKwr4pvvGOw=",
-    strip_prefix = "buildbuddy-toolchain-ffd296b7a9821174cdb2188d1373fd262cacb09d",
-    urls = ["https://github.com/buildbuddy-io/buildbuddy-toolchain/archive/ffd296b7a9821174cdb2188d1373fd262cacb09d.tar.gz"],
-)
+bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4", dev_dependency = True)
 
 buildbuddy = use_extension(
     "@toolchains_buildbuddy//:extensions.bzl",
