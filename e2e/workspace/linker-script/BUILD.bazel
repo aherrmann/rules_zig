@@ -6,6 +6,7 @@ zig_binary(
     name = "binary",
     linker_script = "custom.ld",
     main = "bin.zig",
+    target_compatible_with = ["@platforms//os:linux"],
     # As of 0.15.1 linker-scripts require the LLVM/LLD backend,
     # see https://github.com/ziglang/zig/issues/25069.
     zigopts = [
@@ -32,6 +33,7 @@ zig_static_library(
     name = "library",
     linker_script = "custom.ld",
     main = "lib.zig",
+    target_compatible_with = ["@platforms//os:linux"],
     # As of 0.15.1 linker-scripts require the LLVM/LLD backend,
     # see https://github.com/ziglang/zig/issues/25069.
     zigopts = [
@@ -52,6 +54,7 @@ zig_test(
     size = "small",
     linker_script = "custom.ld",
     main = "test.zig",
+    target_compatible_with = ["@platforms//os:linux"],
     # As of 0.15.1 linker-scripts require the LLVM/LLD backend,
     # see https://github.com/ziglang/zig/issues/25069.
     zigopts = [
