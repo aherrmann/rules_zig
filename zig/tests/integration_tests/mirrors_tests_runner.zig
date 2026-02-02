@@ -41,6 +41,7 @@ test "Zig distribution is fetched from a mirror" {
 
     const expected_url_prefix = "https://example.com/zig/zig";
     var fetch_used_mirror = false;
+    var fetch_used_source_param = false;
 
     while (true) {
         line_buffer.clearRetainingCapacity();
@@ -65,6 +66,7 @@ test "Zig distribution is fetched from a mirror" {
                                     if (url_value == .string) {
                                         if (std.mem.startsWith(u8, url_value.string, expected_url_prefix)) {
                                             fetch_used_mirror = true;
+                                            fetch_used_source_param = std.mem.endsWith(u8, url_value.string, "?source=github-aherrmann-rules_zig");
                                         }
                                     }
                                 }
@@ -83,4 +85,5 @@ test "Zig distribution is fetched from a mirror" {
     }
 
     try std.testing.expectEqual(true, fetch_used_mirror);
+    try std.testing.expectEqual(true, fetch_used_source_param);
 }
