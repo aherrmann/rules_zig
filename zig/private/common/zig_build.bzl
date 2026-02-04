@@ -4,7 +4,6 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("//tools/build_defs/android:cc_common_link.bzl", "cc_common_link")
 load("//zig/private:cc_helper.bzl", "find_cc_toolchain", "need_translate_c")
 load(
     "//zig/private/common:bazel_builtin.bzl",
@@ -460,7 +459,7 @@ def zig_build_impl(ctx, *, kind):
                     ),
                 ]),
             )
-            link_outputs = cc_common_link(
+            link_outputs = cc_common.link(
                 actions = ctx.actions,
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain,
@@ -531,7 +530,7 @@ def zig_build_impl(ctx, *, kind):
                     ),
                 ]),
             )
-            link_outputs = cc_common_link(
+            link_outputs = cc_common.link(
                 actions = ctx.actions,
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain,
@@ -604,7 +603,7 @@ def zig_build_impl(ctx, *, kind):
                     ),
                 ]),
             )
-            link_outputs = cc_common_link(
+            link_outputs = cc_common.link(
                 actions = ctx.actions,
                 feature_configuration = feature_configuration,
                 cc_toolchain = cc_toolchain,

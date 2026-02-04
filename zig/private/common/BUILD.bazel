@@ -33,7 +33,6 @@ bzl_library(
         ":zig_cache",
         ":zig_lib_dir",
         ":zig_target_triple",
-        "//tools/build_defs/android:cc_common_link",
         "//zig:bazel_tools",
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
