@@ -34,6 +34,7 @@ filegroup(
         ":BUILD.bazel",
         ":MODULE.bazel",
         ":WORKSPACE",
+        "//tools:all_files",
         "//zig:all_files",
     ],
     visibility = ["//visibility:public"],

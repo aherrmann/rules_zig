@@ -1,10 +1,10 @@
 """Common implementation of the zig_binary|library|test rules."""
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
-load("@build_bazel_rules_android//:cc_common_link.bzl", "cc_common_link")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//tools/build_defs/android:cc_common_link.bzl", "cc_common_link")
 load("//zig/private:cc_helper.bzl", "find_cc_toolchain", "need_translate_c")
 load(
     "//zig/private/common:bazel_builtin.bzl",
