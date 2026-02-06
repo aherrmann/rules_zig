@@ -74,7 +74,7 @@ def _validate_zig_version(ctx, *, zig_exe_path, zig_files, zig_version):
         command = "\n".join([
             'actual_version="$($1 version)"',
             "if [[ $actual_version != $2 ]]; then",
-            '  echo "Zig SDK version mismatch. Expected \'$2\' but got \'$1\'." >&2',
+            '  echo "Zig SDK version mismatch. Expected \'$2\' but got \'$actual_version\'." >&2',
             "  exit 1",
             "fi",
             'touch "$3"',
