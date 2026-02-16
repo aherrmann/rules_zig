@@ -88,7 +88,7 @@ use_repo(
 # cgrindel_bazel_starlib/shlib/lib/message.sh fails in
 # rules_bazel_integration_test/tools/update_deleted_packages.sh when invoked
 # through the rules_multirun target //util:update.
-bazel_dep(name = "cgrindel_bazel_starlib", version = "0.29.3", dev_dependency = True)
+bazel_dep(name = "cgrindel_bazel_starlib", version = "0.30.0", dev_dependency = True)
 
 # Hack to get around a cc_common.link(main_output) private API limitation.
 # See https://github.com/bazelbuild/bazel/pull/23838
