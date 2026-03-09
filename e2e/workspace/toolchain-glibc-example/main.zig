@@ -1,18 +1,11 @@
 const std = @import("std");
 const c = @cImport({
-    @cInclude("zero.h");
+    @cInclude("features.h");
 });
 
-pub fn c_call() !void {
-    const len: u8 = 64;
-    var buf: [64]u8 = undefined;
-    c.zero(&buf, len);
-}
+extern "c" fn gnu_get_libc_version() [*c]const u8;
 
 pub fn main() !void {
-    try c_call();
-}
-
-test "call c library zero()\n" {
-    try c_call();
+    std.debug.print("glibc compile-time version: {d}.{d}\n", .{c.__GLIBC__, c.__GLIBC_MINOR__});
+    std.debug.print("glibc runtime version:      {s}\n", .{gnu_get_libc_version()});
 }
