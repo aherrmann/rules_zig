@@ -38,3 +38,8 @@ local_path_override(
     module_name = "runfiles_library_transitive_dependency",
     path = "runfiles-library/dependency/transitive-dependency",
 )
+
+bazel_dep(
+    name = "rules_foreign_cc",
+    version = "0.15.0",
+)
