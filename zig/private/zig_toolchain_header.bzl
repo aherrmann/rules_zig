@@ -81,14 +81,6 @@ def _zig_toolchain_header_impl(ctx):
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
-    header_files = zigtoolchaininfo.zig_files
-    header_path = zigtoolchaininfo.zig_lib_path
-    for file in zigtoolchaininfo.zig_files:
-        if file.basename == "zig.h":
-            header_files = [file]
-            header_path = file.dirname
-            break
-
     alignment = max_int_alignment(zigtargetinfo.triple.arch)
     defines = ["ZIG_TARGET_MAX_INT_ALIGNMENT={}".format(alignment)]
     if zigtargetinfo.triple.abi == "msvc":
@@ -96,8 +88,8 @@ def _zig_toolchain_header_impl(ctx):
 
     cc_info = CcInfo(
         compilation_context = cc_common.create_compilation_context(
-            headers = depset(direct = header_files),
-            includes = depset(direct = [header_path]),
+            headers = depset(direct = [zigtoolchaininfo.zig_h]),
+            includes = depset(direct = [zigtoolchaininfo.zig_lib.path]),
             defines = depset(direct = defines),
         ),
     )

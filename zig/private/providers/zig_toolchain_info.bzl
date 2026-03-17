@@ -5,23 +5,9 @@ Information about how to invoke the Zig executable.
 """
 
 FIELDS = {
-    "zig_exe_path": "Path to the Zig executable for the target platform.",
-    "zig_exe_rpath": """\
-Rlocation path to the Zig executable for the target platform.
-
-May be absolute if the zig_exe_path points to a locally installed Zig executable.
-""",
-    "zig_lib_path": "Path to the Zig library directory for the target platform.",
-    "zig_lib_rpath": """\
-Rlocation path to the Zig library directory for the target platform.
-
-May be absolute if the zig_exe_path points to a locally installed Zig executable.
-""",
-    "zig_files": """\
-Files required in runfiles to make the Zig executable available.
-
-May be empty if the zig_exe_path points to a locally installed Zig executable.
-""",
+    "zig_exe": "File for the Zig executable.",
+    "zig_h": "File for the Zig header at the root of the Zig lib directory.",
+    "zig_lib": "File for the Zig lib source directory.",
     "zig_version": "String, The Zig toolchain's version.",
     "zig_cache": "String, The Zig cache directory prefix used for the global and local cache.",
 }

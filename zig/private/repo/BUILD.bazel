@@ -5,10 +5,26 @@ bzl_library(
     srcs = ["zig_repository.bzl"],
     visibility = ["//zig:__subpackages__"],
     deps = [
+        ":toolchain_build_file",
         "//zig/private/common:zig_cache",
-        "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
     ],
+)
+
+bzl_library(
+    name = "local_zig_repository",
+    srcs = ["local_zig_repository.bzl"],
+    visibility = ["//zig:__subpackages__"],
+    deps = [
+        ":toolchain_build_file",
+        "//zig/private/common:zig_cache",
+    ],
+)
+
+bzl_library(
+    name = "toolchain_build_file",
+    srcs = ["toolchain_build_file.bzl"],
+    visibility = ["//zig:__subpackages__"],
 )
 
 bzl_library(
@@ -26,6 +42,8 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        ":local_zig_repository.bzl",
+        ":toolchain_build_file.bzl",
         ":toolchains_repo.bzl",
         ":zig_repository.bzl",
     ],

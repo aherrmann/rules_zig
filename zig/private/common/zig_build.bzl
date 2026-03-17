@@ -450,11 +450,11 @@ def zig_build_impl(ctx, *, kind):
 
     zig_build_kwargs = dict(
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
-        tools = zigtoolchaininfo.zig_files,
+        tools = [zigtoolchaininfo.zig_exe, zigtoolchaininfo.zig_lib],
         toolchain = "//zig:toolchain_type",
         env = {
             "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
-            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib_path,
+            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib.path,
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
     )
@@ -496,7 +496,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [static_lib] + auxiliary_outputs,
                 inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["build-lib", global_args, args],
                 mnemonic = "ZigBuildLib",
                 progress_message = "zig build-lib %{label}",
@@ -533,7 +533,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [bin_output] + auxiliary_outputs,
                 inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["build-exe", global_args, args],
                 mnemonic = "ZigBuildExe",
                 progress_message = "zig build-exe %{label}",
@@ -552,7 +552,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [bc] + auxiliary_outputs,
                 inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["test", "--test-no-exec", global_args, args, test_args],
                 mnemonic = "ZigBuildTest",
                 progress_message = "zig test %{label}",
@@ -570,7 +570,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [static_lib],
                 inputs = [bc],
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["build-lib", global_args, lib_args],
                 mnemonic = "ZigBuildLib",
                 progress_message = "zig build-lib %{label}",
@@ -607,7 +607,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [bin_output] + auxiliary_outputs,
                 inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["test", "--test-no-exec", global_args, args],
                 mnemonic = "ZigBuildTest",
                 progress_message = "zig test %{label}",
@@ -621,7 +621,7 @@ def zig_build_impl(ctx, *, kind):
         ctx.actions.run(
             outputs = ([bin_output] if ctx.attr.emit_bin else []) + auxiliary_outputs,
             inputs = inputs,
-            executable = zigtoolchaininfo.zig_exe_path,
+            executable = zigtoolchaininfo.zig_exe,
             arguments = ["build-lib", global_args, args],
             mnemonic = "ZigBuildStaticLib",
             progress_message = "zig build-lib %{label}",
@@ -645,7 +645,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [static_lib] + auxiliary_outputs,
                 inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["build-lib", global_args, args],
                 mnemonic = "ZigBuildLib",
                 progress_message = "zig build-lib %{label}",
@@ -697,7 +697,7 @@ def zig_build_impl(ctx, *, kind):
             ctx.actions.run(
                 outputs = [bin_output] + auxiliary_outputs,
                 inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
+                executable = zigtoolchaininfo.zig_exe,
                 arguments = ["build-lib", "-dynamic", global_args, args],
                 mnemonic = "ZigBuildSharedLib",
                 progress_message = "zig build-lib -dynamic %{label}",
