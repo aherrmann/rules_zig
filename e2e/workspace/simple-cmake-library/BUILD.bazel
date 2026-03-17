@@ -1,6 +1,5 @@
-load("@rules_zig//zig:defs.bzl", "zig_binary")
-load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+load("@rules_zig//zig:defs.bzl", "zig_binary")
 
 # --------------------
 # external library using foreign_cc
