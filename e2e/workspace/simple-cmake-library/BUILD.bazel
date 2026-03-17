@@ -1,0 +1,37 @@
+load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+
+# --------------------
+# external library using foreign_cc
+filegroup(
+    name = "c-hello-srcs",
+    srcs = glob(["external_library/**"]),
+)
+
+cmake(
+    name = "c-hello",
+    lib_source = ":c-hello-srcs",
+    out_include_dir = "hello",
+    out_shared_libs = select({
+        "@platforms//os:macos": ["libhello.dylib"],
+        "//conditions:default": ["libhello.so"],
+    }),
+)
+# --------------------
+# equivalent implementation with cc_rules
+# cc_library(
+#     name = "c-hello",
+#     srcs = ["external_library/hello.c"],
+#     hdrs = ["external_library/hello.h"],
+#     includes = ["external_library"],
+# )
+# --------------------
+
+zig_binary(
+    name = "main",
+    main = "main.zig",
+    deps = [
+        ":c-hello",
+        "@rules_zig//zig/lib:libc",
+    ],
+)
