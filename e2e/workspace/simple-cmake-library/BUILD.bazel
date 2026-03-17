@@ -12,7 +12,10 @@ cmake(
     name = "c-hello",
     lib_source = ":c-hello-srcs",
     out_include_dir = "hello",
-    out_shared_libs = ["libhello.so"],
+    out_shared_libs = select({
+        "@platforms//os:macos": ["libhello.dylib"],
+        "//conditions:default": ["libhello.so"],
+    }),
 )
 # --------------------
 # equivalent implementation with cc_rules
