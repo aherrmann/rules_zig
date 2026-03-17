@@ -1,6 +1,6 @@
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_configure_binary")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_configure_binary", "zig_test")
 load("@rules_zig//zig:toolchain.bzl", "zig_target_toolchain")
-load("@rules_zig//zig:defs.bzl", "zig_test")
 
 platform(
     name = "x86_64-linux-gnu-2.25",
@@ -56,4 +56,18 @@ zig_test(
     deps = [
         "@rules_zig//zig/lib:libc",
     ],
+)
+
+genrule(
+    name = "main-2.25-glibc-version",
+    outs = ["main-2.25-glibc-version.actual"],
+    cmd = "$(execpath :main-2.25) |& grep compile-time > $(OUTS)",
+    tools = [":main-2.25"],
+)
+
+diff_test(
+    name = "main-2.25-glibc-version-test",
+    size = "small",
+    file1 = ":main-2.25-glibc-version.expected",
+    file2 = ":main-2.25-glibc-version.actual",
 )
