@@ -36,6 +36,7 @@ toolchain(
 zig_binary(
     name = "main-unconfigured",
     main = "main.zig",
+    target_compatible_with = ["@platforms//os:linux"],
     deps = [
         "@rules_zig//zig/lib:libc",
     ],
@@ -46,12 +47,14 @@ zig_configure_binary(
     actual = ":main-unconfigured",
     extra_toolchains = [":glibc_2.25_toolchain"],
     target = ":x86_64-linux-gnu-2.25",
+    target_compatible_with = ["@platforms//os:linux"],
 )
 
 zig_test(
     name = "fallback_glibc.2.17",
     size = "small",
     main = "main.zig",
+    target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//zig/tests:__pkg__"],
     deps = [
         "@rules_zig//zig/lib:libc",
@@ -62,6 +65,7 @@ genrule(
     name = "main-2.25-glibc-version",
     outs = ["main-2.25-glibc-version.actual"],
     cmd = "$(execpath :main-2.25) |& grep compile-time > $(OUTS)",
+    target_compatible_with = ["@platforms//os:linux"],
     tools = [":main-2.25"],
 )
 
@@ -70,4 +74,5 @@ diff_test(
     size = "small",
     file1 = ":main-2.25-glibc-version.expected",
     file2 = ":main-2.25-glibc-version.actual",
+    target_compatible_with = ["@platforms//os:linux"],
 )
