@@ -26,7 +26,7 @@ jobs:
       - name: Prepare release notes and artifacts
         run: .github/scripts/release_prep.sh > release_notes.txt
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           prerelease: true
