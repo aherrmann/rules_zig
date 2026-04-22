@@ -8,6 +8,10 @@ load(
 
 settings(
     name = "settings",
+    host_mode = ":host_mode",
+    host_threaded = ":host_threaded",
+    host_use_cc_common_link = ":host_use_cc_common_link",
+    host_zigopt = ":host_zigopt",
     mode = ":mode",
     threaded = ":threaded",
     use_cc_common_link = ":use_cc_common_link",
@@ -21,9 +25,22 @@ bool_flag(
     visibility = ["//visibility:private"],
 )
 
+bool_flag(
+    name = "host_use_cc_common_link",
+    build_setting_default = False,
+    visibility = ["//visibility:private"],
+)
+
 string_flag(
     name = "mode",
     build_setting_default = "debug",
+    values = MODE_VALUES,
+    visibility = ["//zig/config/mode:__pkg__"],
+)
+
+string_flag(
+    name = "host_mode",
+    build_setting_default = "release_safe",
     values = MODE_VALUES,
     visibility = ["//zig/config/mode:__pkg__"],
 )
@@ -35,8 +52,21 @@ string_flag(
     visibility = ["//zig/config/threaded:__pkg__"],
 )
 
+string_flag(
+    name = "host_threaded",
+    build_setting_default = "multi",
+    values = THREADED_VALUES,
+    visibility = ["//zig/config/threaded:__pkg__"],
+)
+
 repeatable_string_flag(
     name = "zigopt",
+    build_setting_default = [],
+    visibility = ["//visibility:private"],
+)
+
+repeatable_string_flag(
+    name = "host_zigopt",
     build_setting_default = [],
     visibility = ["//visibility:private"],
 )
