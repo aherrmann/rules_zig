@@ -7,10 +7,12 @@ load(
     ":util.bzl",
     "assert_find_action",
     "assert_flag_set",
+    "assert_flag_unset",
     "canonical_label",
 )
 
 _SETTINGS_ZIGOPT = canonical_label("@//zig/settings:zigopt")
+_SETTINGS_HOST_ZIGOPT = canonical_label("@//zig/settings:host_zigopt")
 
 def _define_settings_zigopt_test(zigopts):
     def _test_impl(ctx):
@@ -30,6 +32,29 @@ def _define_settings_zigopt_test(zigopts):
 
 _settings_zigopt_test = _define_settings_zigopt_test(["-mcpu=native", "-flto"])
 
+def _define_exec_settings_zigopt_test(target_zigopts, host_zigopts):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+
+        settings = analysistest.target_under_test(env)[ZigSettingsInfo]
+
+        for zigopt in target_zigopts:
+            assert_flag_unset(env, zigopt, settings.args)
+        for zigopt in host_zigopts:
+            assert_flag_set(env, zigopt, settings.args)
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {
+            _SETTINGS_ZIGOPT: target_zigopts,
+            _SETTINGS_HOST_ZIGOPT: host_zigopts,
+        },
+    )
+
+_settings_exec_zigopt_test = _define_exec_settings_zigopt_test(["-mcpu=native", "-flto"], ["-fstrip", "-femit-bin"])
+
 def _define_build_zigopt_test(mnemonic, zigopts):
     def _test_impl(ctx):
         env = analysistest.begin(ctx)
@@ -46,19 +71,21 @@ def _define_build_zigopt_test(mnemonic, zigopts):
         config_settings = {_SETTINGS_ZIGOPT: zigopts},
     )
 
-_build_exe_zigopt_test = _define_build_zigopt_test("ZigBuildExe", ["-mcpu-native", "-flto"])
+_build_exe_zigopt_test = _define_build_zigopt_test("ZigBuildExe", ["-mcpu=native", "-flto"])
 
-_build_static_lib_zigopt_test = _define_build_zigopt_test("ZigBuildStaticLib", ["-mcpu-native", "-flto"])
+_build_static_lib_zigopt_test = _define_build_zigopt_test("ZigBuildStaticLib", ["-mcpu=native", "-flto"])
 
-_build_shared_lib_zigopt_test = _define_build_zigopt_test("ZigBuildSharedLib", ["-mcpu-native", "-flto"])
+_build_shared_lib_zigopt_test = _define_build_zigopt_test("ZigBuildSharedLib", ["-mcpu=native", "-flto"])
 
-_build_test_zigopt_test = _define_build_zigopt_test("ZigBuildTest", ["-mcpu-native", "-flto"])
+_build_test_zigopt_test = _define_build_zigopt_test("ZigBuildTest", ["-mcpu=native", "-flto"])
 
 def zigopt_test_suite(name):
     unittest.suite(
         name,
         # Test Zig zigopt setting on the settings target
         partial.make(_settings_zigopt_test, target_under_test = "//zig/settings", size = "small"),
+        # Test Zig exec zigopt setting uses host_zigopt instead of zigopt
+        partial.make(_settings_exec_zigopt_test, target_under_test = "//zig/tests:exec_settings", size = "small"),
         # Test Zig zigopt setting on a binary target
         partial.make(_build_exe_zigopt_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
         # Test Zig zigopt setting on a library target

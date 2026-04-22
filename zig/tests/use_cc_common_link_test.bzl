@@ -10,6 +10,7 @@ load(
 )
 
 _SETTINGS_USE_CC_COMMON_LINK = canonical_label("@//zig/settings:use_cc_common_link")
+_SETTINGS_HOST_USE_CC_COMMON_LINK = canonical_label("@//zig/settings:host_use_cc_common_link")
 
 def _define_settings_use_cc_common_link_test(use_cc_common_link):
     def _test_impl(ctx):
@@ -27,6 +28,25 @@ def _define_settings_use_cc_common_link_test(use_cc_common_link):
 
 _settings_use_cc_common_link_cc_test = _define_settings_use_cc_common_link_test(use_cc_common_link = True)
 _settings_use_cc_common_link_zig_test = _define_settings_use_cc_common_link_test(use_cc_common_link = False)
+
+def _define_exec_settings_use_cc_common_link_test(target_use_cc_common_link, host_use_cc_common_link):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+
+        settings = analysistest.target_under_test(env)[ZigSettingsInfo]
+        asserts.equals(env, host_use_cc_common_link, settings.use_cc_common_link)
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {
+            _SETTINGS_USE_CC_COMMON_LINK: target_use_cc_common_link,
+            _SETTINGS_HOST_USE_CC_COMMON_LINK: host_use_cc_common_link,
+        },
+    )
+
+_settings_exec_use_cc_common_link_test = _define_exec_settings_use_cc_common_link_test(False, True)
 
 def _define_build_use_cc_common_link_test(mnemonics, use_cc_common_link):
     def _test_impl(ctx):
@@ -59,6 +79,8 @@ def use_cc_common_link_test_suite(name):
         # Test Zig build mode on the settings target
         partial.make(_settings_use_cc_common_link_cc_test, target_under_test = "//zig/settings", size = "small"),
         partial.make(_settings_use_cc_common_link_zig_test, target_under_test = "//zig/settings", size = "small"),
+        # Test Zig exec use_cc_common_link setting uses host_use_cc_common_link instead of use_cc_common_link
+        partial.make(_settings_exec_use_cc_common_link_test, target_under_test = "//zig/tests:exec_settings", size = "small"),
         # Test Zig build use_cc_common_link on a binary target
         partial.make(_build_exe_use_cc_common_link_cc_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
         partial.make(_build_exe_use_cc_common_link_zig_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),

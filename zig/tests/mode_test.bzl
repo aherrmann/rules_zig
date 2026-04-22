@@ -11,6 +11,7 @@ load(
 )
 
 _SETTINGS_MODE = canonical_label("@//zig/settings:mode")
+_SETTINGS_HOST_MODE = canonical_label("@//zig/settings:host_mode")
 
 def _define_settings_mode_test(mode, option):
     def _test_impl(ctx):
@@ -33,6 +34,28 @@ _settings_mode_debug_test = _define_settings_mode_test("debug", "Debug")
 _settings_mode_release_safe_test = _define_settings_mode_test("release_safe", "ReleaseSafe")
 _settings_mode_release_small_test = _define_settings_mode_test("release_small", "ReleaseSmall")
 _settings_mode_release_fast_test = _define_settings_mode_test("release_fast", "ReleaseFast")
+
+def _define_exec_settings_mode_test(target_mode, host_mode, host_option):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+
+        settings = analysistest.target_under_test(env)[ZigSettingsInfo]
+        asserts.equals(env, host_mode, settings.mode)
+
+        mode_option = assert_find_unique_option(env, "-O", settings.args)
+        asserts.equals(env, host_option, mode_option)
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {
+            _SETTINGS_MODE: target_mode,
+            _SETTINGS_HOST_MODE: host_mode,
+        },
+    )
+
+_settings_exec_mode_test = _define_exec_settings_mode_test("debug", "release_fast", "ReleaseFast")
 
 def _define_build_mode_test(mnemonic, mode, option):
     def _test_impl(ctx):
@@ -77,6 +100,8 @@ def mode_test_suite(name):
         partial.make(_settings_mode_release_safe_test, target_under_test = "//zig/settings", size = "small"),
         partial.make(_settings_mode_release_small_test, target_under_test = "//zig/settings", size = "small"),
         partial.make(_settings_mode_release_fast_test, target_under_test = "//zig/settings", size = "small"),
+        # Test Zig exec build mode uses host_mode instead of mode
+        partial.make(_settings_exec_mode_test, target_under_test = "//zig/tests:exec_settings", size = "small"),
         # Test Zig build mode on a binary target
         partial.make(_build_exe_mode_debug_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
         partial.make(_build_exe_mode_release_safe_test, target_under_test = "//zig/tests/simple-binary:binary", size = "small"),
