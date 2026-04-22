@@ -418,6 +418,11 @@ def zig_build_impl(ctx, *, kind):
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
         tools = zigtoolchaininfo.zig_files,
         toolchain = "//zig:toolchain_type",
+        env = {
+            "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
+            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib_path,
+            "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
+        },
     )
 
     linkopts = location_expansion(

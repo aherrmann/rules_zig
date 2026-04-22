@@ -5,6 +5,7 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
+const testutil = @import("testutil.zig");
 const log = if (builtin.is_test)
     // Downgrade `err` to `warn` for tests.
     // Zig fails any test that does `log.err`, but we want to test those code paths here.
@@ -34,11 +35,18 @@ content: []const u8,
 
 pub const InitError = ParseError || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
     std.os.OpenError || std.os.PReadError || std.os.RealPathError
+else if (builtin.zig_version.major == 0 and builtin.zig_version.minor <= 15)
+    std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError
 else
-    std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError);
+    std.Io.File.OpenError || std.Io.Reader.LimitedAllocError || std.Io.Dir.RealPathFileAllocError);
+
+pub const init = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    init_io
+else
+    init_non_io;
 
 /// Reads the given file into memory and parses the repo-mapping file format.
-pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoMapping {
+pub fn init_non_io(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoMapping {
     const content = std.fs.cwd().readFileAlloc(allocator, file_path, std.math.maxInt(usize)) catch |e| {
         log.err("Failed to open repository mapping ({s}) at '{s}'", .{
             @errorName(e),
@@ -51,6 +59,27 @@ pub fn init(allocator: std.mem.Allocator, file_path: []const u8) InitError!RepoM
     return .{
         .exact_mapping = exact_map,
         .wildcard_mapping = wildcard_map,
+        .content = content,
+    };
+}
+
+pub fn init_io(allocator: std.mem.Allocator, io: std.Io, file_path: []const u8) InitError!RepoMapping {
+    const file = std.Io.Dir.cwd().openFile(io, file_path, .{}) catch |e| {
+        log.err("Failed to open repository mapping ({s}) at '{s}'", .{
+            @errorName(e),
+            file_path,
+        });
+        return e;
+    };
+    defer file.close(io);
+    var buf: [1024]u8 = undefined;
+    var file_reader = file.reader(io, &buf);
+    const content = try file_reader.interface.allocRemaining(allocator, .unlimited);
+    errdefer allocator.free(content);
+    const exact_mapping, const wildcard_mapping = try parse(allocator, content, file_path);
+    return .{
+        .exact_mapping = exact_mapping,
+        .wildcard_mapping = wildcard_mapping,
         .content = content,
     };
 }
@@ -282,24 +311,18 @@ const Ctx = struct {
 test "RepoMapping init from file" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("_repo_mapping",
-            \\,my_module,my_workspace
-            \\,my_protobuf,protobuf~3.19.2
-            \\,my_workspace,my_workspace
-            \\protobuf~3.19.2,protobuf,protobuf~3.19.2
-        );
-    } else {
-        try tmp.dir.writeFile(.{ .sub_path = "_repo_mapping", .data = 
-            \\,my_module,my_workspace
-            \\,my_protobuf,protobuf~3.19.2
-            \\,my_workspace,my_workspace
-            \\protobuf~3.19.2,protobuf,protobuf~3.19.2
-        });
-    }
-    const mapping_path = try tmp.dir.realpathAlloc(std.testing.allocator, "_repo_mapping");
+    try testutil.tmpWriteFile(tmp.dir, "_repo_mapping",
+        \\,my_module,my_workspace
+        \\,my_protobuf,protobuf~3.19.2
+        \\,my_workspace,my_workspace
+        \\protobuf~3.19.2,protobuf,protobuf~3.19.2
+    );
+    const mapping_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "_repo_mapping");
     defer std.testing.allocator.free(mapping_path);
-    var repo_mapping = try RepoMapping.init(std.testing.allocator, mapping_path);
+    var repo_mapping = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+        try RepoMapping.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), mapping_path)
+    else
+        try RepoMapping.init(std.testing.allocator, mapping_path);
     defer repo_mapping.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("my_workspace", repo_mapping.exact_mapping.get(.{ .source = "", .target = "my_module" }).?);
     try std.testing.expectEqualStrings("protobuf~3.19.2", repo_mapping.exact_mapping.get(.{ .source = "", .target = "my_protobuf" }).?);
@@ -310,13 +333,16 @@ test "RepoMapping init from file" {
 test "RepoMapping init missing file" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    const tmp_path = try tmp.dir.realpathAlloc(std.testing.allocator, ".");
+    const tmp_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, ".");
     defer std.testing.allocator.free(tmp_path);
     const missing_path = try std.fs.path.join(std.testing.allocator, &[_][]const u8{
         tmp_path,
         "_repo_mapping",
     });
     defer std.testing.allocator.free(missing_path);
-    const result = RepoMapping.init(std.testing.allocator, missing_path);
+    const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+        RepoMapping.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), missing_path)
+    else
+        RepoMapping.init(std.testing.allocator, missing_path);
     try std.testing.expectError(error.FileNotFound, result);
 }

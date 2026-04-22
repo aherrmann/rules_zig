@@ -20,7 +20,16 @@ pub fn main() !void {
     defer if (env_genrule) |value| allocator.free(value);
 
     if (env_attr) |value| {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+            var buffer: [512]u8 = undefined;
+            var writer = std.Io.File.stdout().writer(
+                std.Io.Threaded.global_single_threaded.io(),
+                &buffer,
+            );
+            const stdout = &writer.interface;
+            try stdout.print("ENV_ATTR: '{s}'\n", .{value});
+            try stdout.flush();
+        } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
             var buffer: [512]u8 = undefined;
             var writer = std.fs.File.stdout().writer(&buffer);
             const stdout = &writer.interface;
@@ -31,7 +40,16 @@ pub fn main() !void {
         }
     }
     if (env_genrule) |value| {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+            var buffer: [512]u8 = undefined;
+            var writer = std.Io.File.stdout().writer(
+                std.Io.Threaded.global_single_threaded.io(),
+                &buffer,
+            );
+            const stdout = &writer.interface;
+            try stdout.print("ENV_GENRULE: '{s}'\n", .{value});
+            try stdout.flush();
+        } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
             var buffer: [512]u8 = undefined;
             var writer = std.fs.File.stdout().writer(&buffer);
             const stdout = &writer.interface;

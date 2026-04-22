@@ -139,7 +139,14 @@ test "can compile to target platform aarch64-linux" {
     defer file.close();
 
     const elf_header = header: {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+            var buffer: [1024]u8 = undefined;
+            var reader = file.reader(
+                std.Io.Threaded.global_single_threaded.io(),
+                &buffer,
+            );
+            break :header try std.elf.Header.read(&reader.interface);
+        } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
             var buffer: [1024]u8 = undefined;
             var reader = file.reader(&buffer);
             break :header try std.elf.Header.read(&reader.interface);
@@ -246,7 +253,30 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
     const file = try workspace.openFile("bazel-bin/custom_interpreter/binary-custom_interpreter", .{});
     defer file.close();
 
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+        var buffer: [1024]u8 = undefined;
+        var reader = file.reader(
+            std.Io.Threaded.global_single_threaded.io(),
+            &buffer,
+        );
+        const elf_header = try std.elf.Header.read(&reader.interface);
+        var ph_iter = elf_header.iterateProgramHeaders(&reader);
+        var interp = std.array_list.Managed(u8).init(std.testing.allocator);
+        defer interp.deinit();
+        var old_writer = interp.writer();
+        var write_buffer: [1024]u8 = undefined;
+        var writer = old_writer.adaptToNewApi(&write_buffer);
+        while (try ph_iter.next()) |phdr| {
+            if (phdr.p_type == std.elf.PT_INTERP) {
+                try reader.seekTo(phdr.p_offset);
+                _ = try reader.interface.streamDelimiter(&writer.new_interface, 0);
+                try writer.new_interface.flush();
+                break;
+            }
+        }
+
+        try std.testing.expectEqualStrings("/custom/loader.so", interp.items);
+    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
         var buffer: [1024]u8 = undefined;
         var reader = file.reader(&buffer);
         const elf_header = try std.elf.Header.read(&reader.interface);

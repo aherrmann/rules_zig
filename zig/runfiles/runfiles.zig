@@ -9,9 +9,11 @@
 //!
 //!zig-autodoc-guide: guide.md
 
+const builtin = @import("builtin");
 const std = @import("std");
 
 pub const Runfiles = @import("src/Runfiles.zig");
+const testutil = @import("src/testutil.zig");
 
 test {
     _ = @import("src/Directory.zig");
@@ -24,9 +26,16 @@ test {
 
 test Runfiles {
     var allocator = std.testing.allocator;
-
-    var r_ = try Runfiles.create(.{ .allocator = allocator }) orelse
-        return error.RunfilesNotFound;
+    var r_ = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) blk: {
+        const io = std.Io.Threaded.global_single_threaded.io();
+        const argv0 = try std.process.executablePathAlloc(io, allocator);
+        defer allocator.free(argv0);
+        break :blk try Runfiles.create(.{
+            .allocator = allocator,
+            .io = io,
+            .argv0 = argv0,
+        }) orelse return error.RunfilesNotFound;
+    } else try Runfiles.create(.{ .allocator = allocator }) orelse return error.RunfilesNotFound;
     defer r_.deinit(allocator);
 
     // Runfiles lookup is subject to repository remapping. You must pass the
@@ -46,16 +55,13 @@ test Runfiles {
         return error.RPathNotFound;
     defer allocator.free(allocated_path);
 
-    const file = std.fs.openFileAbsolute(allocated_path, .{}) catch |e| switch (e) {
+    const content = testutil.readAbsoluteFileAlloc(allocator, allocated_path, 4096) catch |e| switch (e) {
         error.FileNotFound => {
             // Runfiles path lookup may return a non-existent path.
             return error.RPathNotFound;
         },
         else => |e_| return e_,
     };
-    defer file.close();
-
-    const content = try file.readToEndAlloc(allocator, 4096);
     defer allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello World!\n", content);

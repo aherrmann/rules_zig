@@ -6,7 +6,13 @@ pub const hello_world = @import("hello_world");
 
 /// Prints "Hello World!".
 pub fn say_hello_world() !void {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+        try std.Io.File.writeStreamingAll(
+            .stdout(),
+            std.Io.Threaded.global_single_threaded.io(),
+            hello_world.msg ++ "\n",
+        );
+    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
         try std.fs.File.stdout().writeAll(
             hello_world.msg ++ "\n",
         );

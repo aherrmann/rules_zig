@@ -4,6 +4,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const log = std.log.scoped(.runfiles);
+const testutil = @import("testutil.zig");
 
 pub const runfiles_manifest_var_name = "RUNFILES_MANIFEST_FILE";
 pub const runfiles_directory_var_name = "RUNFILES_DIR";
@@ -32,18 +33,36 @@ pub const Location = union(Strategy) {
     }
 };
 
-pub const DiscoverOptions = struct {
-    /// Used during runfiles discovery.
-    allocator: std.mem.Allocator,
-    /// User override for the `RUNFILES_MANIFEST_FILE` variable.
-    manifest: ?[]const u8 = null,
-    /// User override for the `RUNFILES_DIRECTORY` variable.
-    directory: ?[]const u8 = null,
-    /// User override for `argv[0]`.
-    argv0: ?[]const u8 = null,
-};
+pub const DiscoverOptions = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    struct {
+        /// Used during runfiles discovery.
+        allocator: std.mem.Allocator,
+        /// Used for IO operations during discovery.
+        io: std.Io,
+        /// EnvironMap
+        argv: ?std.process.Args = null,
+        /// EnvironMap
+        environ_map: ?*std.process.Environ.Map = null,
+        /// User override for the `RUNFILES_MANIFEST_FILE` variable.
+        manifest: ?[]const u8 = null,
+        /// User override for the `RUNFILES_DIRECTORY` variable.
+        directory: ?[]const u8 = null,
+        /// User override for `argv[0]`.
+        argv0: ?[]const u8 = null,
+    }
+else
+    struct {
+        /// Used during runfiles discovery.
+        allocator: std.mem.Allocator,
+        /// User override for the `RUNFILES_MANIFEST_FILE` variable.
+        manifest: ?[]const u8 = null,
+        /// User override for the `RUNFILES_DIRECTORY` variable.
+        directory: ?[]const u8 = null,
+        /// User override for `argv[0]`.
+        argv0: ?[]const u8 = null,
+    };
 
-pub const DiscoverError = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
+pub const DiscoverError = std.fmt.BufPrintError || if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
     error{
         OutOfMemory,
         InvalidCmdLine,
@@ -68,17 +87,22 @@ else
 /// * assume the binary has no runfiles.
 ///
 /// The caller has to free the path contained in the returned location.
-pub fn discoverRunfiles(options: DiscoverOptions) DiscoverError!?Location {
+pub const discoverRunfiles = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    discoverRunfiles_016
+else
+    discoverRunfiles_pre_016;
+
+pub fn discoverRunfiles_pre_016(options: DiscoverOptions) DiscoverError!?Location {
     if (options.manifest) |value|
         return .{ .manifest = try options.allocator.dupe(u8, value) };
 
     if (options.directory) |value|
         return .{ .directory = try options.allocator.dupe(u8, value) };
 
-    if (try getEnvVar(options.allocator, runfiles_manifest_var_name)) |value|
+    if (try getEnvVar_pre_016(options.allocator, runfiles_manifest_var_name)) |value|
         return .{ .manifest = value };
 
-    if (try getEnvVar(options.allocator, runfiles_directory_var_name)) |value|
+    if (try getEnvVar_pre_016(options.allocator, runfiles_directory_var_name)) |value|
         return .{ .directory = value };
 
     var iter = try std.process.argsWithAllocator(options.allocator);
@@ -86,51 +110,110 @@ pub fn discoverRunfiles(options: DiscoverOptions) DiscoverError!?Location {
     const argv0 = options.argv0 orelse iter.next() orelse
         return error.MissingArg0;
 
-    var buffer = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15)
-        std.array_list.Managed(u8).init(options.allocator)
-    else
-        std.ArrayList(u8).init(options.allocator);
-    defer buffer.deinit();
+    var buffer: [std.fs.max_path_bytes]u8 = undefined;
 
-    buffer.clearRetainingCapacity();
-    try buffer.writer().print("{s}{s}", .{ argv0, runfiles_manifest_suffix });
-    if (isReadableFile(buffer.items))
-        return .{ .manifest = try buffer.toOwnedSlice() };
+    var path = try std.fmt.bufPrint(&buffer, "{s}{s}", .{ argv0, runfiles_manifest_suffix });
+    if (isReadableFile_pre_016(path))
+        return .{ .manifest = try options.allocator.dupe(u8, path) };
 
-    buffer.clearRetainingCapacity();
-    try buffer.writer().print("{s}.exe{s}", .{ argv0, runfiles_manifest_suffix });
-    if (isReadableFile(buffer.items))
-        return .{ .manifest = try buffer.toOwnedSlice() };
+    path = try std.fmt.bufPrint(&buffer, "{s}.exe{s}", .{ argv0, runfiles_manifest_suffix });
+    if (isReadableFile_pre_016(path))
+        return .{ .manifest = try options.allocator.dupe(u8, path) };
 
-    buffer.clearRetainingCapacity();
-    try buffer.writer().print("{s}{s}", .{ argv0, runfiles_directory_suffix });
-    if (isOpenableDir(buffer.items))
-        return .{ .directory = try buffer.toOwnedSlice() };
+    path = try std.fmt.bufPrint(&buffer, "{s}{s}", .{ argv0, runfiles_directory_suffix });
+    if (isOpenableDir_pre_016(path))
+        return .{ .directory = try options.allocator.dupe(u8, path) };
 
-    buffer.clearRetainingCapacity();
-    try buffer.writer().print("{s}.exe{s}", .{ argv0, runfiles_directory_suffix });
-    if (isOpenableDir(buffer.items))
-        return .{ .directory = try buffer.toOwnedSlice() };
+    path = try std.fmt.bufPrint(&buffer, "{s}.exe{s}", .{ argv0, runfiles_directory_suffix });
+    if (isOpenableDir_pre_016(path))
+        return .{ .directory = try options.allocator.dupe(u8, path) };
 
     return null;
 }
 
-fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
+fn getEnvVar_pre_016(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
         error.EnvironmentVariableNotFound => null,
         else => |e_| return e_,
     };
 }
 
-fn isReadableFile(file_path: []const u8) bool {
+pub fn discoverRunfiles_016(options: DiscoverOptions) DiscoverError!?Location {
+    if (options.manifest) |value|
+        return .{ .manifest = try options.allocator.dupe(u8, value) };
+
+    if (options.directory) |value|
+        return .{ .directory = try options.allocator.dupe(u8, value) };
+
+    if (options.environ_map) |environ_map| {
+        if (environ_map.get(runfiles_manifest_var_name)) |value|
+            return .{ .manifest = try options.allocator.dupe(u8, value) };
+        if (environ_map.get(runfiles_directory_var_name)) |value|
+            return .{ .directory = try options.allocator.dupe(u8, value) };
+    }
+
+    var iter: ?std.process.Args.Iterator = null;
+    defer if (iter) |*it| it.deinit();
+    const argv0 = options.argv0 orelse blk: {
+        if (options.argv) |argv| {
+            iter = try argv.iterateAllocator(options.allocator);
+            break :blk iter.?.next();
+        }
+        break :blk null;
+    } orelse return error.MissingArg0;
+
+    var buffer: [std.Io.Dir.max_path_bytes]u8 = undefined;
+
+    var path = try std.fmt.bufPrint(&buffer, "{s}{s}", .{ argv0, runfiles_manifest_suffix });
+    if (isReadableFile(options.io, path))
+        return .{ .manifest = try options.allocator.dupe(u8, path) };
+
+    path = try std.fmt.bufPrint(&buffer, "{s}.exe{s}", .{ argv0, runfiles_manifest_suffix });
+    if (isReadableFile(options.io, path))
+        return .{ .manifest = try options.allocator.dupe(u8, path) };
+
+    path = try std.fmt.bufPrint(&buffer, "{s}{s}", .{ argv0, runfiles_directory_suffix });
+    if (isOpenableDir(options.io, path))
+        return .{ .directory = try options.allocator.dupe(u8, path) };
+
+    path = try std.fmt.bufPrint(&buffer, "{s}.exe{s}", .{ argv0, runfiles_directory_suffix });
+    if (isOpenableDir(options.io, path))
+        return .{ .directory = try options.allocator.dupe(u8, path) };
+
+    return null;
+}
+
+pub const isReadableFile = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    isReadableFile_016
+else
+    isReadableFile_pre_016;
+
+pub const isOpenableDir = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    isOpenableDir_016
+else
+    isOpenableDir_pre_016;
+
+fn isReadableFile_pre_016(file_path: []const u8) bool {
     var file = std.fs.cwd().openFile(file_path, .{}) catch return false;
     file.close();
     return true;
 }
 
-fn isOpenableDir(dir_path: []const u8) bool {
+fn isOpenableDir_pre_016(dir_path: []const u8) bool {
     var dir = std.fs.cwd().openDir(dir_path, .{}) catch return false;
     dir.close();
+    return true;
+}
+
+fn isReadableFile_016(io: std.Io, file_path: []const u8) bool {
+    var file = std.Io.Dir.cwd().openFile(io, file_path, .{}) catch return false;
+    file.close(io);
+    return true;
+}
+
+fn isOpenableDir_016(io: std.Io, dir_path: []const u8) bool {
+    var dir = std.Io.Dir.cwd().openDir(io, dir_path, .{}) catch return false;
+    dir.close(io);
     return true;
 }
 
@@ -166,28 +249,80 @@ const testing = struct {
     }
 };
 
+const TestEnvMap = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    std.process.Environ.Map
+else
+    std.process.EnvMap;
+
+const testingEnvironMap = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    testingEnvironMap_016
+else
+    testingEnvironMap_pre_016;
+
+fn testingEnvironMap_016() !TestEnvMap {
+    const environ: std.process.Environ = switch (builtin.os.tag) {
+        .windows => .{ .block = .global },
+        else => environ: {
+            const c_environ = std.c.environ;
+            var env_count: usize = 0;
+            while (c_environ[env_count] != null) : (env_count += 1) {}
+            break :environ .{ .block = .{ .slice = c_environ[0..env_count :null] } };
+        },
+    };
+    return try std.process.Environ.createMap(environ, std.testing.allocator);
+}
+
+fn testingEnvironMap_pre_016() !TestEnvMap {
+    return try std.process.getEnvMap(std.testing.allocator);
+}
+
+const discoverTestOptions = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    discoverTestOptions_016
+else
+    discoverTestOptions_pre_016;
+
+fn discoverTestOptions_016(
+    manifest: ?[]const u8,
+    directory: ?[]const u8,
+    argv0: ?[]const u8,
+    environ_map: ?*TestEnvMap,
+) DiscoverOptions {
+    return .{
+        .allocator = std.testing.allocator,
+        .io = std.Io.Threaded.global_single_threaded.io(),
+        .manifest = manifest,
+        .directory = directory,
+        .argv0 = argv0,
+        .environ_map = environ_map,
+    };
+}
+
+fn discoverTestOptions_pre_016(
+    manifest: ?[]const u8,
+    directory: ?[]const u8,
+    argv0: ?[]const u8,
+    _: ?*TestEnvMap,
+) DiscoverOptions {
+    return .{
+        .allocator = std.testing.allocator,
+        .manifest = manifest,
+        .directory = directory,
+        .argv0 = argv0,
+    };
+}
+
 test "discover user specified manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.runfiles_manifest", "");
-    } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.runfiles_manifest",
-            .data = "",
-        });
-    }
+    try testutil.tmpWriteFile(tmp.dir, "test.runfiles_manifest", "");
 
-    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
+    const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
     try testing.setenv(runfiles_manifest_var_name, "MANIFEST_DOES_NOT_EXIST");
     try testing.setenv(runfiles_directory_var_name, "DIRECTORY_DOES_NOT_EXIST");
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-        .manifest = manifest_path,
-    }) orelse
+    var location = try discoverRunfiles(discoverTestOptions(manifest_path, null, null, null)) orelse
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
@@ -198,25 +333,24 @@ test "discover user specified manifest" {
 test "discover environment specified manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.runfiles_manifest", "");
-    } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.runfiles_manifest",
-            .data = "",
-        });
-    }
+    try testutil.tmpWriteFile(tmp.dir, "test.runfiles_manifest", "");
 
-    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
+    const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
     try testing.setenv(runfiles_manifest_var_name, manifest_path);
     try testing.unsetenv(runfiles_directory_var_name);
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-    }) orelse
-        return error.TestRunfilesNotFound;
+    var location = blk: {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+            var env_map = try testingEnvironMap();
+            defer env_map.deinit();
+            break :blk try discoverRunfiles(discoverTestOptions(null, null, null, &env_map)) orelse
+                return error.TestRunfilesNotFound;
+        }
+        break :blk try discoverRunfiles(discoverTestOptions(null, null, null, null)) orelse
+            return error.TestRunfilesNotFound;
+    };
     defer location.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
@@ -226,15 +360,15 @@ test "discover environment specified manifest" {
 test "discover user specified directory" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.makeDir("test.runfiles");
+    try testutil.tmpMakeDir(tmp.dir, "test.runfiles");
 
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
     try testing.setenv(runfiles_manifest_var_name, "MANIFEST_DOES_NOT_EXIST");
     try testing.setenv(runfiles_directory_var_name, "DIRECTORY_DOES_NOT_EXIST");
 
-    var location = try discoverRunfiles(.{ .allocator = std.testing.allocator, .directory = directory_path }) orelse
+    var location = try discoverRunfiles(discoverTestOptions(null, directory_path, null, null)) orelse
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
@@ -245,18 +379,24 @@ test "discover user specified directory" {
 test "discover environment specified directory" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.makeDir("test.runfiles");
+    try testutil.tmpMakeDir(tmp.dir, "test.runfiles");
 
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
     try testing.unsetenv(runfiles_manifest_var_name);
     try testing.setenv(runfiles_directory_var_name, directory_path);
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-    }) orelse
-        return error.TestRunfilesNotFound;
+    var location = blk: {
+        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+            var env_map = try testingEnvironMap();
+            defer env_map.deinit();
+            break :blk try discoverRunfiles(discoverTestOptions(null, null, null, &env_map)) orelse
+                return error.TestRunfilesNotFound;
+        }
+        break :blk try discoverRunfiles(discoverTestOptions(null, null, null, null)) orelse
+            return error.TestRunfilesNotFound;
+    };
     defer location.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
@@ -266,16 +406,9 @@ test "discover environment specified directory" {
 test "discover user specified argv0 manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.runfiles_manifest", "");
-    } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.runfiles_manifest",
-            .data = "",
-        });
-    }
+    try testutil.tmpWriteFile(tmp.dir, "test.runfiles_manifest", "");
 
-    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
+    const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
     try testing.unsetenv(runfiles_manifest_var_name);
@@ -283,10 +416,7 @@ test "discover user specified argv0 manifest" {
 
     const argv0 = manifest_path[0 .. manifest_path.len - ".runfiles_manifest".len];
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-        .argv0 = argv0,
-    }) orelse
+    var location = try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
@@ -297,16 +427,9 @@ test "discover user specified argv0 manifest" {
 test "discover user specified argv0 .exe manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.exe.runfiles_manifest", "");
-    } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.exe.runfiles_manifest",
-            .data = "",
-        });
-    }
+    try testutil.tmpWriteFile(tmp.dir, "test.exe.runfiles_manifest", "");
 
-    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.exe.runfiles_manifest");
+    const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.exe.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
     try testing.unsetenv(runfiles_manifest_var_name);
@@ -314,10 +437,7 @@ test "discover user specified argv0 .exe manifest" {
 
     const argv0 = manifest_path[0 .. manifest_path.len - ".exe.runfiles_manifest".len];
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-        .argv0 = argv0,
-    }) orelse
+    var location = try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
@@ -328,9 +448,9 @@ test "discover user specified argv0 .exe manifest" {
 test "discover user specified argv0 directory" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.makeDir("test.runfiles");
+    try testutil.tmpMakeDir(tmp.dir, "test.runfiles");
 
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
     try testing.unsetenv(runfiles_manifest_var_name);
@@ -338,10 +458,7 @@ test "discover user specified argv0 directory" {
 
     const argv0 = directory_path[0 .. directory_path.len - ".runfiles".len];
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-        .argv0 = argv0,
-    }) orelse
+    var location = try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
@@ -352,9 +469,9 @@ test "discover user specified argv0 directory" {
 test "discover user specified argv0 .exe directory" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.makeDir("test.exe.runfiles");
+    try testutil.tmpMakeDir(tmp.dir, "test.exe.runfiles");
 
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.exe.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.exe.runfiles");
     defer std.testing.allocator.free(directory_path);
 
     try testing.unsetenv(runfiles_manifest_var_name);
@@ -362,10 +479,7 @@ test "discover user specified argv0 .exe directory" {
 
     const argv0 = directory_path[0 .. directory_path.len - ".exe.runfiles".len];
 
-    var location = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-        .argv0 = argv0,
-    }) orelse
+    var location = try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
         return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
@@ -377,7 +491,7 @@ test "discover not found" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
-    const tmp_path = try tmp.dir.realpathAlloc(std.testing.allocator, ".");
+    const tmp_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, ".");
     defer std.testing.allocator.free(tmp_path);
 
     try testing.unsetenv(runfiles_manifest_var_name);
@@ -386,10 +500,7 @@ test "discover not found" {
     const argv0 = try std.fmt.allocPrint(std.testing.allocator, "{s}/does-not-exist", .{tmp_path});
     defer std.testing.allocator.free(argv0);
 
-    const result = try discoverRunfiles(.{
-        .allocator = std.testing.allocator,
-        .argv0 = argv0,
-    });
+    const result = try discoverRunfiles(discoverTestOptions(null, null, argv0, null));
 
     try std.testing.expectEqual(@as(?Location, null), result);
 }
@@ -397,19 +508,12 @@ test "discover not found" {
 test "discover priority" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.runfiles_manifest", "");
-    } else {
-        try tmp.dir.writeFile(.{
-            .sub_path = "test.runfiles_manifest",
-            .data = "",
-        });
-    }
-    try tmp.dir.makeDir("test.runfiles");
+    try testutil.tmpWriteFile(tmp.dir, "test.runfiles_manifest", "");
+    try testutil.tmpMakeDir(tmp.dir, "test.runfiles");
 
-    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
+    const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
     const argv0 = manifest_path[0 .. manifest_path.len - ".runfiles_manifest".len];
@@ -420,12 +524,7 @@ test "discover priority" {
         try testing.setenv(runfiles_manifest_var_name, manifest_path);
         try testing.setenv(runfiles_directory_var_name, directory_path);
 
-        var location = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .manifest = manifest_path,
-            .directory = directory_path,
-            .argv0 = argv0,
-        }) orelse
+        var location = try discoverRunfiles(discoverTestOptions(manifest_path, directory_path, argv0, null)) orelse
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
@@ -439,11 +538,7 @@ test "discover priority" {
         try testing.setenv(runfiles_manifest_var_name, manifest_path);
         try testing.setenv(runfiles_directory_var_name, directory_path);
 
-        var location = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .directory = directory_path,
-            .argv0 = argv0,
-        }) orelse
+        var location = try discoverRunfiles(discoverTestOptions(null, directory_path, argv0, null)) orelse
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
@@ -457,11 +552,16 @@ test "discover priority" {
         try testing.setenv(runfiles_manifest_var_name, manifest_path);
         try testing.setenv(runfiles_directory_var_name, directory_path);
 
-        var location = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .argv0 = argv0,
-        }) orelse
-            return error.TestRunfilesNotFound;
+        var location = blk: {
+            if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+                var env_map = try testingEnvironMap();
+                defer env_map.deinit();
+                break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, &env_map)) orelse
+                    return error.TestRunfilesNotFound;
+            }
+            break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
+                return error.TestRunfilesNotFound;
+        };
         defer location.deinit(std.testing.allocator);
 
         try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
@@ -474,11 +574,16 @@ test "discover priority" {
         try testing.unsetenv(runfiles_manifest_var_name);
         try testing.setenv(runfiles_directory_var_name, directory_path);
 
-        var location = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .argv0 = argv0,
-        }) orelse
-            return error.TestRunfilesNotFound;
+        var location = blk: {
+            if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+                var env_map = try testingEnvironMap();
+                defer env_map.deinit();
+                break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, &env_map)) orelse
+                    return error.TestRunfilesNotFound;
+            }
+            break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
+                return error.TestRunfilesNotFound;
+        };
         defer location.deinit(std.testing.allocator);
 
         try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
@@ -491,10 +596,7 @@ test "discover priority" {
         try testing.unsetenv(runfiles_manifest_var_name);
         try testing.unsetenv(runfiles_directory_var_name);
 
-        var location = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .argv0 = argv0,
-        }) orelse
+        var location = try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
@@ -502,7 +604,7 @@ test "discover priority" {
         try std.testing.expectEqualStrings(manifest_path, location.manifest);
     }
 
-    try tmp.dir.deleteFile("test.runfiles_manifest");
+    try testutil.tmpDeleteFile(tmp.dir, "test.runfiles_manifest");
 
     {
         // argv0 specified directory next.
@@ -510,10 +612,7 @@ test "discover priority" {
         try testing.unsetenv(runfiles_manifest_var_name);
         try testing.unsetenv(runfiles_directory_var_name);
 
-        var location = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .argv0 = argv0,
-        }) orelse
+        var location = try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
             return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
@@ -521,7 +620,7 @@ test "discover priority" {
         try std.testing.expectEqualStrings(directory_path, location.directory);
     }
 
-    try tmp.dir.deleteDir("test.runfiles");
+    try testutil.tmpDeleteDir(tmp.dir, "test.runfiles");
 
     {
         // finally runfiles not found.
@@ -529,10 +628,7 @@ test "discover priority" {
         try testing.unsetenv(runfiles_manifest_var_name);
         try testing.unsetenv(runfiles_directory_var_name);
 
-        const result = try discoverRunfiles(.{
-            .allocator = std.testing.allocator,
-            .argv0 = argv0,
-        });
+        const result = try discoverRunfiles(discoverTestOptions(null, null, argv0, null));
 
         try std.testing.expectEqual(@as(?Location, null), result);
     }

@@ -4,7 +4,13 @@ const data = @import("data");
 const other_data = @import("other/data");
 
 pub fn main() void {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+        std.Io.File.writeStreamingAll(
+            .stdout(),
+            std.Io.Threaded.global_single_threaded.io(),
+            data.hello_world,
+        ) catch unreachable;
+    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
         std.fs.File.stdout().writeAll(
             data.hello_world,
         ) catch unreachable;
