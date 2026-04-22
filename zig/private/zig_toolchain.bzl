@@ -29,6 +29,19 @@ to access the resolved toolchain for the current execution platform.
 See https://bazel.build/extending/toolchains#defining-toolchains.
 """
 
+def _zig_no_translate_c_transition_impl(_, __):
+    return {
+        "//zig/settings:translate_c": False,
+    }
+
+_zig_no_translate_c_transition = transition(
+    implementation = _zig_no_translate_c_transition_impl,
+    inputs = [],
+    outputs = [
+        "//zig/settings:translate_c",
+    ],
+)
+
 ATTRS = {
     "zig_exe": attr.label(
         doc = "A hermetically downloaded Zig executable for the target platform.",
@@ -55,6 +68,11 @@ ATTRS = {
     "zig_cache": attr.string(
         doc = "The Zig cache directory prefix. Used for both the global and local cache.",
         mandatory = True,
+    ),
+    "translate_c": attr.label(
+        doc = "The translate-c label.",
+        mandatory = False,
+        cfg = "exec",
     ),
 }
 
@@ -148,6 +166,7 @@ def _zig_toolchain_impl(ctx):
         zig_files = zig_files,
         zig_version = zig_version,
         zig_cache = zig_cache,
+        translate_c = ctx.attr.translate_c,
     )
 
     # Export all the providers inside our ToolchainInfo
@@ -167,6 +186,7 @@ def _zig_toolchain_impl(ctx):
 
 zig_toolchain = rule(
     implementation = _zig_toolchain_impl,
+    cfg = _zig_no_translate_c_transition,
     attrs = ATTRS,
     doc = DOC,
 )

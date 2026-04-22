@@ -8,7 +8,7 @@ Extensions for bzlmod.
 
 <pre>
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
-zig.toolchain(<a href="#zig.toolchain-default">default</a>, <a href="#zig.toolchain-zig_version">zig_version</a>)
+zig.toolchain(<a href="#zig.toolchain-default">default</a>, <a href="#zig.toolchain-translate_c">translate_c</a>, <a href="#zig.toolchain-zig_version">zig_version</a>)
 zig.index(<a href="#zig.index-file">file</a>)
 zig.mirrors(<a href="#zig.mirrors-urls">urls</a>)
 </pre>
@@ -38,6 +38,7 @@ Defaults to the latest known version.
 | Name  | Description | Type | Mandatory | Default |
 | :------------- | :------------- | :------------- | :------------- | :------------- |
 | <a id="zig.toolchain-default"></a>default |  Make this the default Zig SDK version. Can only be used once, and only in the root module.   | Boolean | optional |  `False`  |
+| <a id="zig.toolchain-translate_c"></a>translate_c |  The translate-c label.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig.toolchain-zig_version"></a>zig_version |  The Zig SDK version.   | String | required |  |
 
 <a id="zig.index"></a>

@@ -100,7 +100,6 @@ def _zig_c_library_impl(ctx):
         ctx = ctx,
         name = ctx.attr.import_name or ctx.label.name,
         zigtoolchaininfo = zigtoolchaininfo,
-        global_args = global_args,
         cc_infos = cc_infos,
     )
 

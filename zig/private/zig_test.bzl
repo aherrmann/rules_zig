@@ -1,5 +1,6 @@
 """Implementation of the zig_test rule."""
 
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "//zig/private/common:zig_build.bzl",
     "TEST_ATTRS",
@@ -40,11 +41,11 @@ zig_test(
 ```
 """
 
-ATTRS = COMMON_ATTRS | TEST_ATTRS | DOCS_ATTRS
+ATTRS = COMMON_ATTRS | TEST_ATTRS | DOCS_ATTRS | apple_support.action_required_attrs()
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
-FRAGMENTS = COMMON_FRAGMENTS
+FRAGMENTS = COMMON_FRAGMENTS + ["apple"]
 
 def _zig_test_impl(ctx):
     build, build_groups = zig_build_impl(ctx, kind = "zig_test")

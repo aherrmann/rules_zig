@@ -19,6 +19,7 @@ ATTRS = {
     "integrity": attr.string(mandatory = False, doc = "The expected checksum of the downloaded artifact in Subresource Integrity format. Provide only one of `sha256` or `integrity`."),
     "zig_version": attr.string(mandatory = True, doc = "The Zig SDK version number."),
     "platform": attr.string(mandatory = True, doc = "The platform that the Zig SDK can execute on, e.g. `x86_64-linux` or `aarch64-macos`."),
+    "translate_c": attr.label(doc = "The translate-c label.", mandatory = False),
 }
 
 ENV = [
@@ -87,17 +88,28 @@ def _zig_repository_impl(repository_ctx):
 load("@rules_zig//zig:toolchain.bzl", "zig_toolchain")
 
 zig_toolchain(
-    name = "zig_toolchain",
+    name = "zig_toolchain_no_translate_c",
     zig_exe = {zig_exe},
     zig_lib = glob(["lib/**"]),
     zig_lib_path = "lib",
     zig_version = {zig_version},
     zig_cache = {zig_cache},
 )
+
+zig_toolchain(
+    name = "zig_toolchain",
+    zig_exe = {zig_exe},
+    zig_lib = glob(["lib/**"]),
+    zig_lib_path = "lib",
+    zig_version = {zig_version},
+    zig_cache = {zig_cache},
+    translate_c = {translate_c},
+)
 """.format(
         zig_cache = repr(cache_prefix),
         zig_exe = repr(zig_exe),
         zig_version = repr(repository_ctx.attr.zig_version),
+        translate_c = repository_ctx.attr.translate_c and repr(str(repository_ctx.attr.translate_c)) or None,
     )
 
     repository_ctx.file("BUILD.bazel", build_content)

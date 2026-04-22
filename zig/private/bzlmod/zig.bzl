@@ -22,6 +22,7 @@ _DEFAULT_NAME = "zig"
 zig_toolchain = tag_class(
     attrs = {
         "zig_version": attr.string(doc = "The Zig SDK version.", mandatory = True),
+        "translate_c": attr.label(doc = "The translate-c label.", mandatory = False),
         "default": attr.bool(
             doc = "Make this the default Zig SDK version. Can only be used once, and only in the root module.",
             mandatory = False,
@@ -183,6 +184,11 @@ def _toolchain_extension(module_ctx):
     known_versions = merge_version_specs(version_specs)
 
     (err, versions) = handle_toolchain_tags(module_ctx.modules, known_versions = known_versions.keys())
+    zig_translate_c_versions = {
+        toolchain.zig_version: toolchain.translate_c
+        for mod in module_ctx.modules
+        for toolchain in mod.tags.toolchain
+    }
 
     if err != None:
         fail(*err)
@@ -208,6 +214,7 @@ def _toolchain_extension(module_ctx):
                 sha256 = known_versions[zig_version][platform].sha256,
                 zig_version = zig_version,
                 platform = platform,
+                translate_c = zig_translate_c_versions.get(zig_version),
             )
 
     toolchains_repo(

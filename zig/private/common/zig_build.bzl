@@ -407,7 +407,6 @@ def zig_build_impl(ctx, *, kind):
             name = "c",
             canonical_name = "c",
             zigtoolchaininfo = zigtoolchaininfo,
-            global_args = global_args,
             cc_infos = [root_module.cc_info],
         )
         transitive_inputs.append(c_module.transitive_inputs)

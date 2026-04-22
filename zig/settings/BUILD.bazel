@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "repeatable_string_flag", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "bool_setting", "repeatable_string_flag", "string_flag")
 load(
     "//zig/private:settings.bzl",
     "MODE_VALUES",
@@ -69,6 +69,28 @@ repeatable_string_flag(
     name = "host_zigopt",
     build_setting_default = [],
     visibility = ["//visibility:private"],
+)
+
+bool_setting(
+    name = "translate_c",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "translate_c_enabled",
+    flag_values = {
+        ":translate_c": "1",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "translate_c_disabled",
+    flag_values = {
+        ":translate_c": "0",
+    },
+    visibility = ["//visibility:public"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

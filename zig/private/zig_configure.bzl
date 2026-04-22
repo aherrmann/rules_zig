@@ -123,6 +123,8 @@ def _zig_transition_impl(settings, attr):
         result["//zig/settings:zigopt"] = attr.zigopt
     if attr.host_zigopt:
         result["//zig/settings:host_zigopt"] = attr.host_zigopt
+    if attr.translate_c != -1:
+        result["//zig/settings:translate_c"] = attr.translate_c == 1
     return result
 
 _zig_transition = transition(
@@ -139,6 +141,7 @@ _zig_transition = transition(
         "//zig/settings:host_threaded",
         "//zig/settings:zigopt",
         "//zig/settings:host_zigopt",
+        "//zig/settings:translate_c",
     ],
     outputs = [
         "//command_line_option:extra_toolchains",
@@ -152,6 +155,7 @@ _zig_transition = transition(
         "//zig/settings:host_threaded",
         "//zig/settings:zigopt",
         "//zig/settings:host_zigopt",
+        "//zig/settings:translate_c",
     ],
 )
 
@@ -218,6 +222,12 @@ def _make_attrs(*, executable):
             doc = "The threaded setting for the host configuration, corresponds to the `-fsingle-threaded` Zig compiler flag.",
             mandatory = False,
             values = THREADED_VALUES,
+	),
+	"translate_c": attr.int(
+            doc = "If true, disables translation of C headers for C dependencies.",
+            mandatory = False,
+            values = [-1, 0, 1],
+            default = -1,
         ),
         "zigopt": attr.string_list(
             doc = """
@@ -291,14 +301,10 @@ def _make_zig_configure_rule(*, executable, test):
                 is_executable = True,
             )
 
-            # TODO[AH] Add a data attribute for executable rules.
-            runfiles = ctx.runfiles(files = [executable, actual_executable])
-            runfiles = runfiles.merge(actual[DefaultInfo].default_runfiles)
-
             providers.append(DefaultInfo(
                 executable = executable,
                 files = depset(direct = [executable]),
-                runfiles = runfiles,
+                runfiles = actual[DefaultInfo].default_runfiles,
             ))
         else:
             providers.append(actual[DefaultInfo])
