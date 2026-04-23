@@ -66,47 +66,49 @@ build_test(
 )
 
 zig_binary(
-    name = "binary",
+    name = "host_binary",
     main = "binary.zig",
     tags = ["manual"],
 )
 
 zig_configure_binary(
-    name = "binary_single",
-    actual = ":binary",
-    threaded = "single",
-)
-
-zig_configure_binary(
-    name = "binary_multi",
-    actual = ":binary",
+    name = "host_binary_single",
+    actual = ":host_binary",
+    host_threaded = "single",
     threaded = "multi",
 )
 
-run(
-    name = "binary_single_output",
-    out = "binary_single_output.actual",
-    tool = ":binary_single",
+zig_configure_binary(
+    name = "host_binary_multi",
+    actual = ":host_binary",
+    host_threaded = "multi",
+    threaded = "single",
 )
 
 run(
-    name = "binary_multi_output",
-    out = "binary_multi_output.actual",
-    tool = ":binary_multi",
+    name = "host_binary_single_output",
+    out = "host_binary_single_output.actual",
+    tool = ":host_binary_single",
+)
+
+run(
+    name = "host_binary_multi_output",
+    out = "host_binary_multi_output.actual",
+    tool = ":host_binary_multi",
 )
 
 diff_test(
-    name = "binary_single_output_test",
+    name = "host_binary_single_output_test",
     size = "small",
-    file1 = ":binary_single_output.expected",
-    file2 = ":binary_single_output.actual",
+    file1 = ":host_binary_single_output.expected",
+    file2 = ":host_binary_single_output.actual",
 )
 
 diff_test(
-    name = "binary_multi_output_test",
+    name = "host_binary_multi_output_test",
     size = "small",
-    file1 = ":binary_multi_output.expected",
-    file2 = ":binary_multi_output.actual",
+    file1 = ":host_binary_multi_output.expected",
+    file2 = ":host_binary_multi_output.actual",
 )
 
 zig_test(

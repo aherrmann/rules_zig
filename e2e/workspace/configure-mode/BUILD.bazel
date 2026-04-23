@@ -60,41 +60,43 @@ zig_binary(
 )
 
 zig_configure_binary(
-    name = "binary_debug",
+    name = "host_binary_debug",
     actual = ":binary",
-    mode = "debug",
-)
-
-zig_configure_binary(
-    name = "binary_release_safe",
-    actual = ":binary",
+    host_mode = "debug",
     mode = "release_safe",
 )
 
-run(
-    name = "binary_debug_output",
-    out = "binary_debug_output.actual",
-    tool = ":binary_debug",
+zig_configure_binary(
+    name = "host_binary_release_safe",
+    actual = ":binary",
+    host_mode = "release_safe",
+    mode = "debug",
 )
 
 run(
-    name = "binary_release_safe_output",
-    out = "binary_release_safe_output.actual",
-    tool = ":binary_release_safe",
+    name = "host_binary_debug_output",
+    out = "host_binary_debug_output.actual",
+    tool = ":host_binary_debug",
+)
+
+run(
+    name = "host_binary_release_safe_output",
+    out = "host_binary_release_safe_output.actual",
+    tool = ":host_binary_release_safe",
 )
 
 diff_test(
-    name = "binary_debug_output_test",
+    name = "host_binary_debug_output_test",
     size = "small",
-    file1 = ":binary_debug_output.expected",
-    file2 = ":binary_debug_output.actual",
+    file1 = ":host_binary_debug_output.expected",
+    file2 = ":host_binary_debug_output.actual",
 )
 
 diff_test(
-    name = "binary_release_safe_output_test",
+    name = "host_binary_release_safe_output_test",
     size = "small",
-    file1 = ":binary_release_safe_output.expected",
-    file2 = ":binary_release_safe_output.actual",
+    file1 = ":host_binary_release_safe_output.expected",
+    file2 = ":host_binary_release_safe_output.actual",
 )
 
 zig_test(
