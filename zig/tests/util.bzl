@@ -1,6 +1,23 @@
 """Utilities for unit and analysis tests."""
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
+load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
+
+def _forward_exec_settings_impl(ctx):
+    return [
+        DefaultInfo(),
+        ctx.attr._settings[ZigSettingsInfo],
+    ]
+
+forward_exec_settings = rule(
+    _forward_exec_settings_impl,
+    attrs = {
+        "_settings": attr.label(
+            cfg = "exec",
+            default = "//zig/settings",
+        ),
+    },
+)
 
 def _is_flag_set(flag, args):
     """Check whether the given flag is set.

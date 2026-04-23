@@ -109,12 +109,20 @@ def _zig_transition_impl(settings, attr):
         result["@zig_toolchains//:version"] = str(attr.zig_version)
     if attr.use_cc_common_link != -1:
         result["//zig/settings:use_cc_common_link"] = attr.use_cc_common_link == 1
+    if attr.host_use_cc_common_link != -1:
+        result["//zig/settings:host_use_cc_common_link"] = attr.host_use_cc_common_link == 1
     if attr.mode:
         result["//zig/settings:mode"] = attr.mode
+    if attr.host_mode:
+        result["//zig/settings:host_mode"] = attr.host_mode
     if attr.threaded:
         result["//zig/settings:threaded"] = attr.threaded
+    if attr.host_threaded:
+        result["//zig/settings:host_threaded"] = attr.host_threaded
     if attr.zigopt:
         result["//zig/settings:zigopt"] = attr.zigopt
+    if attr.host_zigopt:
+        result["//zig/settings:host_zigopt"] = attr.host_zigopt
     return result
 
 _zig_transition = transition(
@@ -124,18 +132,26 @@ _zig_transition = transition(
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
         "//zig/settings:use_cc_common_link",
+        "//zig/settings:host_use_cc_common_link",
         "//zig/settings:mode",
+        "//zig/settings:host_mode",
         "//zig/settings:threaded",
+        "//zig/settings:host_threaded",
         "//zig/settings:zigopt",
+        "//zig/settings:host_zigopt",
     ],
     outputs = [
         "//command_line_option:extra_toolchains",
         "//command_line_option:platforms",
         "@zig_toolchains//:version",
         "//zig/settings:use_cc_common_link",
+        "//zig/settings:host_use_cc_common_link",
         "//zig/settings:mode",
+        "//zig/settings:host_mode",
         "//zig/settings:threaded",
+        "//zig/settings:host_threaded",
         "//zig/settings:zigopt",
+        "//zig/settings:host_zigopt",
     ],
 )
 
@@ -171,8 +187,25 @@ def _make_attrs(*, executable):
             values = [-1, 0, 1],
             default = -1,
         ),
+        "host_use_cc_common_link": attr.int(
+            doc = (
+                "Whether to use cc_common.link to link zig binaries, tests and shared libraries in the host configuration. " +
+                "Possible values: [-1, 0, 1]. " +
+                "-1 means use current host configuration value for //zig/settings:host_use_cc_common_link. " +
+                "0 means do not use cc_common.link (use zig build-exe instead). " +
+                "1 means use cc_common.link."
+            ),
+            mandatory = False,
+            values = [-1, 0, 1],
+            default = -1,
+        ),
         "mode": attr.string(
             doc = "The build mode setting, corresponds to the `-O` Zig compiler flag.",
+            mandatory = False,
+            values = MODE_VALUES,
+        ),
+        "host_mode": attr.string(
+            doc = "The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag.",
             mandatory = False,
             values = MODE_VALUES,
         ),
@@ -181,9 +214,27 @@ def _make_attrs(*, executable):
             mandatory = False,
             values = THREADED_VALUES,
         ),
+        "host_threaded": attr.string(
+            doc = "The threaded setting for the host configuration, corresponds to the `-fsingle-threaded` Zig compiler flag.",
+            mandatory = False,
+            values = THREADED_VALUES,
+        ),
         "zigopt": attr.string_list(
             doc = """
 Additional list of flags passed to the zig compiler for all Zig compile actions.
+
+The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules.
+Instead, they are prepended to the command line before module specific flags.
+
+This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself.
+Use this at your own risk of hitting undefined behaviors.
+""",
+            mandatory = False,
+        ),
+        "host_zigopt": attr.string_list(
+            doc = """
+Additional list of flags passed to the zig compiler for all Zig compile actions
+when building for the host configuration.
 
 The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules.
 Instead, they are prepended to the command line before module specific flags.

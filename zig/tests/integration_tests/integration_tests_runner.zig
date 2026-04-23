@@ -74,7 +74,7 @@ test "target build mode defaults to Debug" {
     try std.testing.expectEqualStrings("Debug", result.stdout);
 }
 
-test "exec build mode defaults to Debug" {
+test "exec build mode defaults to ReleaseSafe" {
     const ctx = try BitContext.init();
 
     const result = try ctx.exec_bazel(.{
@@ -89,7 +89,7 @@ test "exec build mode defaults to Debug" {
 
     const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
     defer std.testing.allocator.free(build_mode);
-    try std.testing.expectEqualStrings("Debug", build_mode);
+    try std.testing.expectEqualStrings("ReleaseSafe", build_mode);
 }
 
 test "target build mode can be set on the command line" {
@@ -104,7 +104,7 @@ test "target build mode can be set on the command line" {
     try std.testing.expectEqualStrings("ReleaseSmall", result.stdout);
 }
 
-test "exec build mode can be set on the command line" {
+test "target build mode does not affect exec build mode" {
     const ctx = try BitContext.init();
 
     const result = try ctx.exec_bazel(.{
@@ -119,7 +119,7 @@ test "exec build mode can be set on the command line" {
 
     const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
     defer std.testing.allocator.free(build_mode);
-    try std.testing.expectEqualStrings("ReleaseSmall", build_mode);
+    try std.testing.expectEqualStrings("ReleaseSafe", build_mode);
 }
 
 test "can compile to target platform aarch64-linux" {
