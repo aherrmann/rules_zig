@@ -1,0 +1,32 @@
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_shared_library", "zig_static_library", "zig_test")
+
+zig_binary(
+    name = "binary_emit_asm",
+    emit_asm = True,
+    main = "binary.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_static_library(
+    name = "static_emit_asm_only",
+    emit_asm = True,
+    emit_bin = False,
+    main = "library.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_shared_library(
+    name = "shared_emit_asm",
+    emit_asm = True,
+    main = "library.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+zig_test(
+    name = "test_emit_asm_and_bc",
+    size = "small",
+    emit_asm = True,
+    emit_llvm_bc = True,
+    main = "test.zig",
+    visibility = ["//zig/tests:__pkg__"],
+)
