@@ -148,7 +148,7 @@ COMMON_EMIT_ATTRS = {
     ),
 }
 
-COMMON_LIBRARY_ATTRS = {
+STATIC_LIBRARY_ATTRS = {
     "emit_bin": attr.bool(
         doc = "Emit the binary.",
         mandatory = False,
@@ -161,7 +161,7 @@ SHARED_LIBRARY_ATTRS = {
         doc = "",
         mandatory = False,
     ),
-} | COMMON_LIBRARY_ATTRS | COMMON_EMIT_ATTRS
+} | COMMON_EMIT_ATTRS
 
 BINARY_ATTRS = {
     "env": attr.string_dict(
@@ -236,6 +236,9 @@ def zig_build_impl(ctx, *, kind):
             fail("'extra_srcs' cannot be set without a 'main'. They are taken from the root module defined by the single zig dependency.")
         if len(ctx.attr.csrcs) > 0:
             fail("'csrcs' cannot be set without a 'main'. They are taken from the root module defined by the single zig dependency.")
+    if kind == "zig_static_library":
+        if not (ctx.attr.emit_bin or ctx.attr.emit_asm or ctx.attr.emit_llvm_ir or ctx.attr.emit_llvm_bc):
+            fail("At least one emitted output must be enabled.")
 
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
@@ -250,7 +253,6 @@ def zig_build_impl(ctx, *, kind):
 
     outputs = []
     output_groups = {}
-
 
     direct_inputs = []
     transitive_inputs = []
@@ -318,7 +320,7 @@ def zig_build_impl(ctx, *, kind):
     elif kind == "zig_static_library" and ctx.attr.emit_bin:
         bin_output_name = _lib_prefix(zigtargetinfo.triple.os) + ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os)
         bin_output = ctx.actions.declare_file(bin_output_name)
-    elif kind == "zig_shared_library" and ctx.attr.emit_bin:
+    elif kind == "zig_shared_library":
         if (ctx.attr.shared_lib_name):
             bin_output_name = ctx.attr.shared_lib_name
             bin_output = ctx.actions.declare_file(bin_output_name)
@@ -331,8 +333,8 @@ def zig_build_impl(ctx, *, kind):
         args.add("--test-runner", ctx.file.test_runner)
         direct_inputs.append(ctx.file.test_runner)
 
-    # zig_binary and zig_test MUST produce an executable so emit_bin is not user configurable and considered true.
-    should_emit_bin = bin_output_is_executable or ctx.attr.emit_bin
+    # zig_binary, zig_test and zig_shared_library must produce their primary output, so emit_bin is not user configurable and considered true.
+    should_emit_bin = bin_output_is_executable or kind == "zig_shared_library" or ctx.attr.emit_bin
 
     if should_emit_bin:
         outputs.append(bin_output)
@@ -462,33 +464,31 @@ def zig_build_impl(ctx, *, kind):
     if not use_cc_common_link and kind != "zig_static_library":
         args.add_all(linkopts)
 
-
-    zig_build_outputs = []
-    if should_emit_bin:
-        zig_build_outputs.append(bin_output)
+    auxiliary_outputs = []
     if ctx.attr.emit_asm:
         asm_output = ctx.actions.declare_file(ctx.label.name + ".s")
-        zig_build_outputs.append(asm_output)
+        auxiliary_outputs.append(asm_output)
         args.add(asm_output, format = "-femit-asm=%s")
         output_groups["asm"] = depset([asm_output])
     if ctx.attr.emit_llvm_ir:
         llvm_ir_output = ctx.actions.declare_file(ctx.label.name + ".ll")
-        zig_build_outputs.append(llvm_ir_output)
+        auxiliary_outputs.append(llvm_ir_output)
         output_groups["llvm_ir"] = depset([llvm_ir_output])
         args.add(llvm_ir_output, format = "-femit-llvm-ir=%s")
-    if ctx.attr.emit_llvm_bc:
+
+    # TODO[CK] remove extra kind check once we drop support for Zig 0.15 and use test-obj.
+    if ctx.attr.emit_llvm_bc and not (kind == "zig_test" and use_cc_common_link):
         llvm_bc_output = ctx.actions.declare_file(ctx.label.name + ".bc")
-        zig_build_outputs.append(llvm_bc_output)
+        auxiliary_outputs.append(llvm_bc_output)
         output_groups["llvm_bc"] = depset([llvm_bc_output])
         args.add(llvm_bc_output, format = "-femit-llvm-bc=%s")
 
     if kind == "zig_binary":
         if use_cc_common_link:
             static_lib = ctx.actions.declare_file(ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
-            zig_build_outputs = [static_lib]
             args.add(static_lib, format = "-femit-bin=%s")
             ctx.actions.run(
-                outputs = zig_build_outputs,
+                outputs = [static_lib] + auxiliary_outputs,
                 inputs = inputs,
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["build-lib", global_args, args],
@@ -525,7 +525,7 @@ def zig_build_impl(ctx, *, kind):
         else:
             args.add(bin_output, format = "-femit-bin=%s")
             ctx.actions.run(
-                outputs = zig_build_outputs,
+                outputs = [bin_output] + auxiliary_outputs,
                 inputs = inputs,
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["build-exe", global_args, args],
@@ -538,9 +538,13 @@ def zig_build_impl(ctx, *, kind):
             bc = ctx.actions.declare_file(ctx.label.name + ".bc")
             test_args = ctx.actions.args()
             test_args.add("-fno-emit-bin")
+
+            # TODO[CK] Remove once we drop support for Zig 0.15 and use test-obj.
+            if ctx.attr.emit_llvm_bc:
+                output_groups["llvm_bc"] = depset([bc])
             test_args.add(bc, format = "-femit-llvm-bc=%s")
             ctx.actions.run(
-                outputs = [bc],
+                outputs = [bc] + auxiliary_outputs,
                 inputs = inputs,
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["test", "--test-no-exec", global_args, args, test_args],
@@ -595,7 +599,7 @@ def zig_build_impl(ctx, *, kind):
         else:
             args.add(bin_output, format = "-femit-bin=%s")
             ctx.actions.run(
-                outputs = zig_build_outputs,
+                outputs = [bin_output] + auxiliary_outputs,
                 inputs = inputs,
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["test", "--test-no-exec", global_args, args],
@@ -609,7 +613,7 @@ def zig_build_impl(ctx, *, kind):
         else:
             args.add("-fno-emit-bin")
         ctx.actions.run(
-            outputs = zig_build_outputs,
+            outputs = ([bin_output] if ctx.attr.emit_bin else []) + auxiliary_outputs,
             inputs = inputs,
             executable = zigtoolchaininfo.zig_exe_path,
             arguments = ["build-lib", global_args, args],
@@ -629,11 +633,11 @@ def zig_build_impl(ctx, *, kind):
                 )
 
     elif kind == "zig_shared_library":
-        if ctx.attr.emit_bin and use_cc_common_link:
+        if use_cc_common_link:
             static_lib = ctx.actions.declare_file(ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
             args.add(static_lib, format = "-femit-bin=%s")
             ctx.actions.run(
-                outputs = [static_lib],
+                outputs = [static_lib] + auxiliary_outputs,
                 inputs = inputs,
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["build-lib", global_args, args],
@@ -672,10 +676,7 @@ def zig_build_impl(ctx, *, kind):
             exported_library_to_link = link_outputs.library_to_link
 
         else:
-            if ctx.attr.emit_bin:
-                args.add(bin_output, format = "-femit-bin=%s")
-            else:
-                args.add("-fno-emit-bin")
+            args.add(bin_output, format = "-femit-bin=%s")
 
             # By default, Zig build-lib -dynamic sets the SONAME of the shared
             # library based on the name of its main module.
@@ -688,7 +689,7 @@ def zig_build_impl(ctx, *, kind):
             args.add(bin_output_name, format = "-fsoname=%s")
 
             ctx.actions.run(
-                outputs = zig_build_outputs,
+                outputs = [bin_output] + auxiliary_outputs,
                 inputs = inputs,
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["build-lib", "-dynamic", global_args, args],
@@ -697,15 +698,14 @@ def zig_build_impl(ctx, *, kind):
                 **zig_build_kwargs
             )
 
-            if ctx.attr.emit_bin:
-                cc_toolchain, feature_configuration = find_cc_toolchain(ctx, mandatory = False)
-                if cc_toolchain:
-                    exported_library_to_link = cc_common.create_library_to_link(
-                        actions = ctx.actions,
-                        feature_configuration = feature_configuration,
-                        cc_toolchain = cc_toolchain,
-                        dynamic_library = bin_output,
-                    )
+            cc_toolchain, feature_configuration = find_cc_toolchain(ctx, mandatory = False)
+            if cc_toolchain:
+                exported_library_to_link = cc_common.create_library_to_link(
+                    actions = ctx.actions,
+                    feature_configuration = feature_configuration,
+                    cc_toolchain = cc_toolchain,
+                    dynamic_library = bin_output,
+                )
     else:
         fail("Unknown rule kind '{}'.".format(kind))
 
