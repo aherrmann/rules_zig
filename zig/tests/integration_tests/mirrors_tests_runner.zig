@@ -1,14 +1,10 @@
-const builtin = @import("builtin");
 const std = @import("std");
 const integration_testing = @import("integration_testing");
 const BitContext = integration_testing.BitContext;
 
 test "Zig distribution is fetched from a mirror" {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 15) {
-        return error.SkipZigTest;
-    }
-
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{

@@ -4,9 +4,7 @@ const BitContext = integration_testing.BitContext;
 
 test "%ZIG_VERSION% - zig_binary prints Hello World!" {
     const ctx = try BitContext.init();
-
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{
@@ -23,6 +21,7 @@ test "%ZIG_VERSION% - zig_binary prints Hello World!" {
 
 test "%ZIG_VERSION% - builtin.zig_version_string matches" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{

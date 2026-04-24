@@ -5,6 +5,7 @@ const BitContext = integration_testing.BitContext;
 
 test "zig_test passes" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "test", "//:test" },
