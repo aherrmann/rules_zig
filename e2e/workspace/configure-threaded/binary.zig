@@ -14,7 +14,7 @@ pub fn main() void {
             .{builtin.single_threaded},
         ) catch unreachable;
         stdout.flush() catch unreachable;
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+    } else {
         var buffer: [512]u8 = undefined;
         var writer = std.fs.File.stdout().writer(&buffer);
         const stdout = &writer.interface;
@@ -23,10 +23,5 @@ pub fn main() void {
             .{builtin.single_threaded},
         ) catch unreachable;
         stdout.flush() catch unreachable;
-    } else {
-        std.io.getStdOut().writer().print(
-            "{}\n",
-            .{builtin.single_threaded},
-        ) catch unreachable;
     }
 }

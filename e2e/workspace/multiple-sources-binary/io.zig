@@ -8,9 +8,7 @@ pub fn print(msg: []const u8) void {
             std.Io.Threaded.global_single_threaded.io(),
             msg,
         ) catch unreachable;
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-        std.fs.File.stdout().writeAll(msg) catch unreachable;
     } else {
-        std.io.getStdOut().writeAll(msg) catch unreachable;
+        std.fs.File.stdout().writeAll(msg) catch unreachable;
     }
 }

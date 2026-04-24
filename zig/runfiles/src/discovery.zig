@@ -62,20 +62,12 @@ else
         argv0: ?[]const u8 = null,
     };
 
-pub const DiscoverError = std.fmt.BufPrintError || if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
-    error{
-        OutOfMemory,
-        InvalidCmdLine,
-        InvalidUtf8,
-        MissingArg0,
-    }
-else
-    error{
-        OutOfMemory,
-        InvalidCmdLine,
-        InvalidWtf8,
-        MissingArg0,
-    };
+pub const DiscoverError = std.fmt.BufPrintError || error{
+    OutOfMemory,
+    InvalidCmdLine,
+    InvalidWtf8,
+    MissingArg0,
+};
 
 /// The unified runfiles discovery strategy is to:
 /// * check if `RUNFILES_MANIFEST_FILE` or `RUNFILES_DIR` envvars are set, and

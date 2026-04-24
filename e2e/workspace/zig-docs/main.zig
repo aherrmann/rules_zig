@@ -12,12 +12,8 @@ pub fn say_hello_world() !void {
             std.Io.Threaded.global_single_threaded.io(),
             hello_world.msg ++ "\n",
         );
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-        try std.fs.File.stdout().writeAll(
-            hello_world.msg ++ "\n",
-        );
     } else {
-        try std.io.getStdOut().writeAll(
+        try std.fs.File.stdout().writeAll(
             hello_world.msg ++ "\n",
         );
     }

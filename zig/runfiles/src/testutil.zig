@@ -12,8 +12,6 @@ pub fn tmpWriteFile(dir: anytype, sub_path: []const u8, data: []const u8) !void 
             .sub_path = sub_path,
             .data = data,
         });
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try dir.writeFile(sub_path, data);
     } else {
         try dir.writeFile(.{
             .sub_path = sub_path,

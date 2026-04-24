@@ -33,12 +33,10 @@ exact_mapping: ExactMap,
 wildcard_mapping: WildcardMap,
 content: []const u8,
 
-pub const InitError = ParseError || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
-    std.os.OpenError || std.os.PReadError || std.os.RealPathError
-else if (builtin.zig_version.major == 0 and builtin.zig_version.minor <= 15)
-    std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError
+pub const InitError = ParseError || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    std.Io.File.OpenError || std.Io.Reader.LimitedAllocError || std.Io.Dir.RealPathFileAllocError
 else
-    std.Io.File.OpenError || std.Io.Reader.LimitedAllocError || std.Io.Dir.RealPathFileAllocError);
+    std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError);
 
 pub const init = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
     init_io

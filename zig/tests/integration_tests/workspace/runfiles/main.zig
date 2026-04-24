@@ -41,13 +41,11 @@ pub fn main() !void {
         const stdout = &writer.interface;
         try stdout.print("data: {s}", .{content});
         try stdout.flush();
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+    } else {
         var buffer: [512]u8 = undefined;
         var writer = std.fs.File.stdout().writer(&buffer);
         const stdout = &writer.interface;
         try stdout.print("data: {s}", .{content});
         try stdout.flush();
-    } else {
-        try std.io.getStdOut().writer().print("data: {s}", .{content});
     }
 }

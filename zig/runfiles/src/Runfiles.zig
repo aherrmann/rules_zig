@@ -2,7 +2,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 const log = std.log.scoped(.runfiles);
 
-const max_path_bytes = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 14) std.fs.MAX_PATH_BYTES else std.fs.max_path_bytes;
+const max_path_bytes = std.fs.max_path_bytes;
 
 const discovery = @import("discovery.zig");
 const Directory = @import("Directory.zig");

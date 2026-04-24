@@ -111,8 +111,44 @@ def _sorted(versions, *, reverse = False):
 
     return sorted(versions, key = key, reverse = reverse)
 
+def _is_at_least(version, minimum):
+    """Compare two semantic versions for a minimum version check."""
+    parsed_version = _parse(version)
+    parsed_minimum = _parse(minimum)
+
+    for attr in ["major", "minor", "patch"]:
+        version_component = getattr(parsed_version, attr)
+        minimum_component = getattr(parsed_minimum, attr)
+        if version_component > minimum_component:
+            return True
+        if version_component < minimum_component:
+            return False
+
+    # A release version is greater than any pre-release of the same version.
+    if parsed_version.pre_release == [True]:
+        return True
+    if parsed_minimum.pre_release == [True]:
+        return False
+
+    version_pre_release = parsed_version.pre_release[1:]
+    minimum_pre_release = parsed_minimum.pre_release[1:]
+    for i in range(min(len(version_pre_release), len(minimum_pre_release))):
+        version_component = version_pre_release[i]
+        minimum_component = minimum_pre_release[i]
+        if version_component[0] > minimum_component[0]:
+            return True
+        if version_component[0] < minimum_component[0]:
+            return False
+        if version_component[1] > minimum_component[1]:
+            return True
+        if version_component[1] < minimum_component[1]:
+            return False
+
+    return len(version_pre_release) >= len(minimum_pre_release)
+
 semver = struct(
     grouped = _grouped,
     sorted = _sorted,
     is_valid = _is_valid,
+    is_at_least = _is_at_least,
 )

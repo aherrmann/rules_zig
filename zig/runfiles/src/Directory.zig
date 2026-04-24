@@ -13,12 +13,10 @@ const Directory = @This();
 
 path: []const u8,
 
-pub const InitError = std.mem.Allocator.Error || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
-    std.os.OpenError || std.os.RealPathError
-else if (builtin.zig_version.major == 0 and builtin.zig_version.minor <= 15)
-    std.posix.OpenError || std.posix.RealPathError
+pub const InitError = std.mem.Allocator.Error || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    std.Io.Dir.OpenError || std.Io.Dir.RealPathFileAllocError
 else
-    std.Io.Dir.OpenError || std.Io.Dir.RealPathFileAllocError);
+    std.posix.OpenError || std.posix.RealPathError);
 
 pub const init = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
     init_016

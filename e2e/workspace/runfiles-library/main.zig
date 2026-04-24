@@ -43,14 +43,12 @@ pub fn main() !void {
         const stdout = &writer.interface;
         try stdout.print("data: {s}", .{content});
         try stdout.flush();
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+    } else {
         var buffer: [512]u8 = undefined;
         var writer = std.fs.File.stdout().writer(&buffer);
         const stdout = &writer.interface;
         try stdout.print("data: {s}", .{content});
         try stdout.flush();
-    } else {
-        try std.io.getStdOut().writer().print("data: {s}", .{content});
     }
 }
 
@@ -129,13 +127,7 @@ test "runfiles in nested binary" {
     try env.put("DATA", data_rpath);
     try r.environment(&env);
 
-    const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
-        std.ChildProcess.exec
-    else if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 12)
-        std.ChildProcess.run
-    else
-        std.process.Child.run;
-    const result = try run(.{
+    const result = try std.process.Child.run(.{
         .allocator = std.testing.allocator,
         .argv = &[_][]const u8{binary_path},
         .env_map = &env,
@@ -144,11 +136,7 @@ test "runfiles in nested binary" {
     defer std.testing.allocator.free(result.stderr);
 
     std.log.warn("stderr: {s}", .{result.stderr});
-    const Term = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13)
-        std.ChildProcess.Term
-    else
-        std.process.Child.Term;
-    try std.testing.expectEqual(Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqual(std.process.Child.Term{ .Exited = 0 }, result.term);
 
     try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
 }

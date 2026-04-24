@@ -8,12 +8,8 @@ pub fn main() void {
             std.Io.Threaded.global_single_threaded.io(),
             @import("hello.zig").hello ++ " " ++ @import("world.zig").world ++ "\n",
         ) catch unreachable;
-    } else if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-        std.fs.File.stdout().writeAll(
-            @import("hello.zig").hello ++ " " ++ @import("world.zig").world ++ "\n",
-        ) catch unreachable;
     } else {
-        std.io.getStdOut().writeAll(
+        std.fs.File.stdout().writeAll(
             @import("hello.zig").hello ++ " " ++ @import("world.zig").world ++ "\n",
         ) catch unreachable;
     }
