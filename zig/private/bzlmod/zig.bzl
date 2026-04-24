@@ -18,7 +18,6 @@ declares one as the default.
 """
 
 _DEFAULT_NAME = "zig"
-_MINIMUM_ZIG_VERSION = "0.15.2"
 
 zig_toolchain = tag_class(
     attrs = {
@@ -187,13 +186,6 @@ def _toolchain_extension(module_ctx):
 
     if err != None:
         fail(*err)
-
-    for zig_version in versions:
-        if not semver.is_at_least(zig_version, _MINIMUM_ZIG_VERSION):
-            fail("Zig SDK version '{}' is not supported. The minimum supported version is '{}'.".format(
-                zig_version,
-                _MINIMUM_ZIG_VERSION,
-            ))
 
     toolchain_names = []
     toolchain_labels = []
