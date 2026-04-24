@@ -111,12 +111,13 @@ def _zig_library_impl(ctx):
         elif CcInfo in dep:
             cdeps.append(dep[CcInfo])
 
+    import_name = ctx.attr.import_name or ctx.label.name
     module = zig_module_info(
-        name = ctx.attr.import_name or ctx.label.name,
+        name = import_name,
         # Zig doesn't allow having a different module name and import name for std
         # This is to ensure that all modules depend on the same std.
         # It is only helpful when compiling Zig itself with rules_zig
-        canonical_name = "std" if ctx.label.name == "std" else escape_label(label = ctx.label),
+        canonical_name = "std" if import_name == "std" else escape_label(label = ctx.label),
         main = ctx.file.main,
         srcs = ctx.files.srcs,
         extra_srcs = ctx.files.extra_srcs,
