@@ -29,16 +29,18 @@ const WildcardMap = std.StringArrayHashMapUnmanaged(TargetMap);
 
 const RepoMapping = @This();
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 exact_mapping: ExactMap,
 wildcard_mapping: WildcardMap,
 content: []const u8,
 
-pub const InitError = ParseError || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const InitError = ParseError || (if (is_zig_0_16_or_later)
     std.Io.File.OpenError || std.Io.Reader.LimitedAllocError || std.Io.Dir.RealPathFileAllocError
 else
     std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError);
 
-pub const init = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const init = if (is_zig_0_16_or_later)
     init_io
 else
     init_non_io;
@@ -317,7 +319,7 @@ test "RepoMapping init from file" {
     );
     const mapping_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "_repo_mapping");
     defer std.testing.allocator.free(mapping_path);
-    var repo_mapping = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var repo_mapping = if (is_zig_0_16_or_later)
         try RepoMapping.init(std.testing.allocator, std.testing.io, mapping_path)
     else
         try RepoMapping.init(std.testing.allocator, mapping_path);
@@ -338,7 +340,7 @@ test "RepoMapping init missing file" {
         "_repo_mapping",
     });
     defer std.testing.allocator.free(missing_path);
-    const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    const result = if (is_zig_0_16_or_later)
         RepoMapping.init(std.testing.allocator, std.testing.io, missing_path)
     else
         RepoMapping.init(std.testing.allocator, missing_path);

@@ -28,16 +28,18 @@ const RPath = @import("RPath.zig");
 
 const Manifest = @This();
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 mapping: HashMapUnmanaged,
 content: []const u8,
 path: []const u8,
 
-pub const InitError = ParseError || std.mem.Allocator.Error || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const InitError = ParseError || std.mem.Allocator.Error || (if (is_zig_0_16_or_later)
     std.Io.File.OpenError || std.Io.Reader.LimitedAllocError || std.Io.Dir.RealPathFileAllocError
 else
     std.posix.OpenError || std.posix.PReadError || std.posix.RealPathError);
 
-pub const init = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const init = if (is_zig_0_16_or_later)
     init_io
 else
     init_non_io;
@@ -182,7 +184,7 @@ test "RunfilesManifest init unmapped lookup" {
     const runfiles_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(runfiles_path);
 
-    var manifest = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var manifest = if (is_zig_0_16_or_later)
         try Manifest.init(std.testing.allocator, std.testing.io, runfiles_path)
     else
         try Manifest.init(std.testing.allocator, runfiles_path);
@@ -227,7 +229,7 @@ test "RunfilesManifest init missing file" {
     });
     defer std.testing.allocator.free(missing_path);
 
-    const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    const result = if (is_zig_0_16_or_later)
         Manifest.init(std.testing.allocator, std.testing.io, missing_path)
     else
         Manifest.init(std.testing.allocator, missing_path);

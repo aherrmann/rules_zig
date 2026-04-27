@@ -11,7 +11,9 @@ const RepoMapping = @import("RepoMapping.zig");
 const RPath = @import("RPath.zig");
 const testutil = @import("testutil.zig");
 
-const EnvMap = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
+const EnvMap = if (is_zig_0_16_or_later)
     std.process.Environ.Map
 else
     std.process.EnvMap;
@@ -61,7 +63,7 @@ pub fn create(options: CreateOptions) CreateError!?Runfiles {
         switch (result) {
             .manifest => |path| {
                 defer options.allocator.free(path);
-                const manifest = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+                const manifest = if (is_zig_0_16_or_later)
                     try Manifest.init(options.allocator, options.io, path)
                 else
                     try Manifest.init(options.allocator, path);
@@ -69,7 +71,7 @@ pub fn create(options: CreateOptions) CreateError!?Runfiles {
             },
             .directory => |path| {
                 defer options.allocator.free(path);
-                const directory = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+                const directory = if (is_zig_0_16_or_later)
                     try Directory.init(options.allocator, options.io, path)
                 else
                     try Directory.init(options.allocator, path);
@@ -79,7 +81,7 @@ pub fn create(options: CreateOptions) CreateError!?Runfiles {
     };
     errdefer implementation.deinit(options.allocator);
 
-    const repo_mapping = try if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    const repo_mapping = try if (is_zig_0_16_or_later)
         implementation.loadRepoMapping(options.allocator, options.io)
     else
         implementation.loadRepoMapping(options.allocator);
@@ -156,7 +158,7 @@ pub const WithSourceRepo = struct {
     };
 
     fn validateRPath(rpath: []const u8) !void {
-        var iter = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+        var iter = if (is_zig_0_16_or_later)
             std.fs.path.componentIterator(rpath)
         else
             try std.fs.path.componentIterator(rpath);
@@ -266,7 +268,7 @@ const Implementation = union(discovery.Strategy) {
         }
     }
 
-    pub const loadRepoMapping = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    pub const loadRepoMapping = if (is_zig_0_16_or_later)
         loadRepoMapping_io
     else
         loadRepoMapping_non_io;
@@ -352,7 +354,7 @@ test "Runfiles from manifest" {
     const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
-    var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
         .{
             .allocator = std.testing.allocator,
             .io = std.testing.io,
@@ -475,7 +477,7 @@ test "Runfiles from manifest with compact repo mapping" {
     );
     defer std.testing.allocator.free(manifest_path);
 
-    var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
         .{
             .allocator = std.testing.allocator,
             .io = std.testing.io,
@@ -571,7 +573,7 @@ test "Runfiles from directory" {
     const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
-    var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
         .{
             .allocator = std.testing.allocator,
             .io = std.testing.io,
@@ -696,7 +698,7 @@ test "Runfiles from directory with compact repo mapping" {
     const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "foo.runfiles");
     defer std.testing.allocator.free(directory_path);
 
-    var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
         .{
             .allocator = std.testing.allocator,
             .io = std.testing.io,

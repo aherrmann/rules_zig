@@ -6,6 +6,8 @@ const builtin = @import("builtin");
 const log = std.log.scoped(.runfiles);
 const testutil = @import("testutil.zig");
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 pub const runfiles_manifest_var_name = "RUNFILES_MANIFEST_FILE";
 pub const runfiles_directory_var_name = "RUNFILES_DIR";
 pub const runfiles_manifest_suffix = ".runfiles_manifest";
@@ -33,7 +35,7 @@ pub const Location = union(Strategy) {
     }
 };
 
-pub const DiscoverOptions = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const DiscoverOptions = if (is_zig_0_16_or_later)
     struct {
         /// Used during runfiles discovery.
         allocator: std.mem.Allocator,
@@ -79,7 +81,7 @@ pub const DiscoverError = std.fmt.BufPrintError || error{
 /// * assume the binary has no runfiles.
 ///
 /// The caller has to free the path contained in the returned location.
-pub const discoverRunfiles = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const discoverRunfiles = if (is_zig_0_16_or_later)
     discoverRunfiles_016
 else
     discoverRunfiles_pre_016;
@@ -175,12 +177,12 @@ pub fn discoverRunfiles_016(options: DiscoverOptions) DiscoverError!?Location {
     return null;
 }
 
-pub const isReadableFile = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const isReadableFile = if (is_zig_0_16_or_later)
     isReadableFile_016
 else
     isReadableFile_pre_016;
 
-pub const isOpenableDir = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const isOpenableDir = if (is_zig_0_16_or_later)
     isOpenableDir_016
 else
     isOpenableDir_pre_016;
@@ -241,12 +243,12 @@ const testing = struct {
     }
 };
 
-const TestEnvMap = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+const TestEnvMap = if (is_zig_0_16_or_later)
     std.process.Environ.Map
 else
     std.process.EnvMap;
 
-const testingEnvironMap = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+const testingEnvironMap = if (is_zig_0_16_or_later)
     testingEnvironMap_016
 else
     testingEnvironMap_pre_016;
@@ -268,7 +270,7 @@ fn testingEnvironMap_pre_016() !TestEnvMap {
     return try std.process.getEnvMap(std.testing.allocator);
 }
 
-const discoverTestOptions = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+const discoverTestOptions = if (is_zig_0_16_or_later)
     discoverTestOptions_016
 else
     discoverTestOptions_pre_016;
@@ -303,6 +305,19 @@ fn discoverTestOptions_pre_016(
     };
 }
 
+fn discoverTestRunfilesWithEnv(
+    manifest: ?[]const u8,
+    directory: ?[]const u8,
+    argv0: ?[]const u8,
+) !?Location {
+    if (is_zig_0_16_or_later) {
+        var env_map = try testingEnvironMap();
+        defer env_map.deinit();
+        return try discoverRunfiles(discoverTestOptions(manifest, directory, argv0, &env_map));
+    }
+    return try discoverRunfiles(discoverTestOptions(manifest, directory, argv0, null));
+}
+
 test "discover user specified manifest" {
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
@@ -333,16 +348,8 @@ test "discover environment specified manifest" {
     try testing.setenv(runfiles_manifest_var_name, manifest_path);
     try testing.unsetenv(runfiles_directory_var_name);
 
-    var location = blk: {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-            var env_map = try testingEnvironMap();
-            defer env_map.deinit();
-            break :blk try discoverRunfiles(discoverTestOptions(null, null, null, &env_map)) orelse
-                return error.TestRunfilesNotFound;
-        }
-        break :blk try discoverRunfiles(discoverTestOptions(null, null, null, null)) orelse
-            return error.TestRunfilesNotFound;
-    };
+    var location = try discoverTestRunfilesWithEnv(null, null, null) orelse
+        return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
@@ -379,16 +386,8 @@ test "discover environment specified directory" {
     try testing.unsetenv(runfiles_manifest_var_name);
     try testing.setenv(runfiles_directory_var_name, directory_path);
 
-    var location = blk: {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-            var env_map = try testingEnvironMap();
-            defer env_map.deinit();
-            break :blk try discoverRunfiles(discoverTestOptions(null, null, null, &env_map)) orelse
-                return error.TestRunfilesNotFound;
-        }
-        break :blk try discoverRunfiles(discoverTestOptions(null, null, null, null)) orelse
-            return error.TestRunfilesNotFound;
-    };
+    var location = try discoverTestRunfilesWithEnv(null, null, null) orelse
+        return error.TestRunfilesNotFound;
     defer location.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));
@@ -544,16 +543,8 @@ test "discover priority" {
         try testing.setenv(runfiles_manifest_var_name, manifest_path);
         try testing.setenv(runfiles_directory_var_name, directory_path);
 
-        var location = blk: {
-            if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-                var env_map = try testingEnvironMap();
-                defer env_map.deinit();
-                break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, &env_map)) orelse
-                    return error.TestRunfilesNotFound;
-            }
-            break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
-                return error.TestRunfilesNotFound;
-        };
+        var location = try discoverTestRunfilesWithEnv(null, null, argv0) orelse
+            return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
         try std.testing.expectEqual(Strategy.manifest, @as(Strategy, location));
@@ -566,16 +557,8 @@ test "discover priority" {
         try testing.unsetenv(runfiles_manifest_var_name);
         try testing.setenv(runfiles_directory_var_name, directory_path);
 
-        var location = blk: {
-            if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-                var env_map = try testingEnvironMap();
-                defer env_map.deinit();
-                break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, &env_map)) orelse
-                    return error.TestRunfilesNotFound;
-            }
-            break :blk try discoverRunfiles(discoverTestOptions(null, null, argv0, null)) orelse
-                return error.TestRunfilesNotFound;
-        };
+        var location = try discoverTestRunfilesWithEnv(null, null, argv0) orelse
+            return error.TestRunfilesNotFound;
         defer location.deinit(std.testing.allocator);
 
         try std.testing.expectEqual(Strategy.directory, @as(Strategy, location));

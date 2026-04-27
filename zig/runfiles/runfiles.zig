@@ -15,6 +15,24 @@ const std = @import("std");
 pub const Runfiles = @import("src/Runfiles.zig");
 const testutil = @import("src/testutil.zig");
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+const createTestRunfiles = if (is_zig_0_16_or_later) createTestRunfiles_016 else createTestRunfiles_pre_016;
+
+fn createTestRunfiles_pre_016(allocator: std.mem.Allocator) !?Runfiles {
+    return try Runfiles.create(.{ .allocator = allocator });
+}
+
+fn createTestRunfiles_016(allocator: std.mem.Allocator) !?Runfiles {
+    const io = std.testing.io;
+    const argv0 = try std.process.executablePathAlloc(io, allocator);
+    defer allocator.free(argv0);
+    return try Runfiles.create(.{
+        .allocator = allocator,
+        .io = io,
+        .argv0 = argv0,
+    });
+}
+
 test {
     _ = @import("src/Directory.zig");
     _ = @import("src/discovery.zig");
@@ -26,16 +44,7 @@ test {
 
 test Runfiles {
     var allocator = std.testing.allocator;
-    var r_ = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) blk: {
-        const io = std.testing.io;
-        const argv0 = try std.process.executablePathAlloc(io, allocator);
-        defer allocator.free(argv0);
-        break :blk try Runfiles.create(.{
-            .allocator = allocator,
-            .io = io,
-            .argv0 = argv0,
-        }) orelse return error.RunfilesNotFound;
-    } else try Runfiles.create(.{ .allocator = allocator }) orelse return error.RunfilesNotFound;
+    var r_ = try createTestRunfiles(allocator) orelse return error.RunfilesNotFound;
     defer r_.deinit(allocator);
 
     // Runfiles lookup is subject to repository remapping. You must pass the

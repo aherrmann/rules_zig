@@ -11,14 +11,16 @@ const RPath = @import("RPath.zig");
 
 const Directory = @This();
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 path: []const u8,
 
-pub const InitError = std.mem.Allocator.Error || (if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const InitError = std.mem.Allocator.Error || (if (is_zig_0_16_or_later)
     std.Io.Dir.OpenError || std.Io.Dir.RealPathFileAllocError
 else
     std.posix.OpenError || std.posix.RealPathError);
 
-pub const init = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const init = if (is_zig_0_16_or_later)
     init_016
 else
     init_pre_016;
@@ -75,20 +77,20 @@ test "Directory init and unmapped lookup" {
     try testutil.tmpWriteFile(tmp.dir, "test.runfiles/_repo_mapping", "_repo_mapping");
     try testutil.tmpWriteFile(tmp.dir, "test.runfiles/my_workspace/some/package/some_file", "some_file");
 
-    const cwd_path_absolute = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    const cwd_path_absolute = if (is_zig_0_16_or_later)
         try std.process.currentPathAlloc(std.testing.io, std.testing.allocator)
     else
         try std.fs.cwd().realpathAlloc(std.testing.allocator, ".");
     defer std.testing.allocator.free(cwd_path_absolute);
     const runfiles_path_absolute = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(runfiles_path_absolute);
-    const runfiles_path = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    const runfiles_path = if (is_zig_0_16_or_later)
         try std.fs.path.relative(std.testing.allocator, ".", null, cwd_path_absolute, runfiles_path_absolute)
     else
         try std.fs.path.relative(std.testing.allocator, cwd_path_absolute, runfiles_path_absolute);
     defer std.testing.allocator.free(runfiles_path);
 
-    var directory = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    var directory = if (is_zig_0_16_or_later)
         try Directory.init(std.testing.allocator, std.testing.io, runfiles_path)
     else
         try Directory.init(std.testing.allocator, runfiles_path);
