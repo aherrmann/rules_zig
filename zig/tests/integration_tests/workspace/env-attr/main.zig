@@ -2,7 +2,6 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
-const ProcessInit = if (is_zig_0_16_or_later) std.process.Init else void;
 
 pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
 
@@ -13,7 +12,7 @@ fn getEnvVarOwned(allocator: std.mem.Allocator, key: []const u8) !?[]u8 {
     };
 }
 
-fn getEnvVarOwnedFromInit(allocator: std.mem.Allocator, init: ProcessInit, key: []const u8) !?[]u8 {
+fn getEnvVarOwnedFromInit(allocator: std.mem.Allocator, init: std.process.Init, key: []const u8) !?[]u8 {
     const value = init.environ_map.get(key) orelse return null;
     return try allocator.dupe(u8, value);
 }
@@ -45,7 +44,7 @@ fn main_pre_016() !void {
     try printEnv(try getEnvVarOwned(allocator, "ENV_INHERIT"), "ENV_INHERIT");
 }
 
-fn main_016(init: ProcessInit) !void {
+fn main_016(init: std.process.Init) !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 

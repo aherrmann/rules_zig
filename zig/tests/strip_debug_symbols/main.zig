@@ -1,22 +1,29 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+const Io = if (is_zig_0_16_or_later) std.Io else void;
+
 export fn sayHello() void {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        std.Io.File.writeStreamingAll(
-            .stdout(),
-            std.Io.Threaded.global_single_threaded.io(),
-            "Hello World!\n",
-        ) catch unreachable;
+    if (is_zig_0_16_or_later) {
+        sayHelloWithIo(std.Io.Threaded.global_single_threaded.io());
     } else {
-        std.fs.File.stdout().writeAll(
-            "Hello World!\n",
-        ) catch unreachable;
+        std.fs.File.stdout().writeAll("Hello World!\n") catch unreachable;
     }
 }
 
-pub fn main() void {
+pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
+
+fn main_pre_016() void {
     sayHello();
+}
+
+fn main_016(init: std.process.Init) void {
+    sayHelloWithIo(init.io);
+}
+
+fn sayHelloWithIo(io: Io) void {
+    std.Io.File.writeStreamingAll(.stdout(), io, "Hello World!\n") catch unreachable;
 }
 
 test "test" {

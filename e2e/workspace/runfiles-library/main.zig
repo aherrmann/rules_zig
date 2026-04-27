@@ -7,7 +7,6 @@ const EnvMap = if (is_zig_0_16_or_later)
     std.process.Environ.Map
 else
     std.process.EnvMap;
-const ProcessInit = if (is_zig_0_16_or_later) std.process.Init else void;
 
 pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
 const createTestingRunfiles = if (is_zig_0_16_or_later) createTestingRunfiles_016 else createTestingRunfiles_pre_016;
@@ -28,7 +27,7 @@ fn getTestingEnvVar_016(allocator: std.mem.Allocator, key: []const u8) !?[]const
     };
 }
 
-fn getEnvVarFromInit(allocator: std.mem.Allocator, init: ProcessInit, key: []const u8) !?[]const u8 {
+fn getEnvVarFromInit(allocator: std.mem.Allocator, init: std.process.Init, key: []const u8) !?[]const u8 {
     const value = init.environ_map.get(key) orelse return null;
     return try allocator.dupe(u8, value);
 }
@@ -47,7 +46,7 @@ fn createTestingRunfiles_016(allocator: std.mem.Allocator) !?runfiles.Runfiles {
     });
 }
 
-fn createRunfilesFromInit(allocator: std.mem.Allocator, init: ProcessInit) !?runfiles.Runfiles {
+fn createRunfilesFromInit(allocator: std.mem.Allocator, init: std.process.Init) !?runfiles.Runfiles {
     return try runfiles.Runfiles.create(.{
         .allocator = allocator,
         .io = init.io,
@@ -115,7 +114,7 @@ fn main_pre_016() !void {
     try printData(content);
 }
 
-fn main_016(init: ProcessInit) !void {
+fn main_016(init: std.process.Init) !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 

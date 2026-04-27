@@ -1,16 +1,15 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
-pub fn main() void {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        std.Io.File.writeStreamingAll(
-            .stdout(),
-            std.Io.Threaded.global_single_threaded.io(),
-            @import("hello.zig").hello ++ " " ++ @import("world.zig").world ++ "\n",
-        ) catch unreachable;
-    } else {
-        std.fs.File.stdout().writeAll(
-            @import("hello.zig").hello ++ " " ++ @import("world.zig").world ++ "\n",
-        ) catch unreachable;
-    }
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+const message = @import("hello.zig").hello ++ " " ++ @import("world.zig").world ++ "\n";
+
+pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
+
+fn main_pre_016() void {
+    std.fs.File.stdout().writeAll(message) catch unreachable;
+}
+
+fn main_016(init: std.process.Init) void {
+    std.Io.File.writeStreamingAll(.stdout(), init.io, message) catch unreachable;
 }

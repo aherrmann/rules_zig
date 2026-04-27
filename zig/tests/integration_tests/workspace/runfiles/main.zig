@@ -4,7 +4,6 @@ const runfiles = @import("runfiles");
 const bazel_builtin = @import("bazel_builtin");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
-const ProcessInit = if (is_zig_0_16_or_later) std.process.Init else void;
 
 pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
 
@@ -44,7 +43,7 @@ fn main_pre_016() !void {
     try stdout.flush();
 }
 
-fn main_016(init: ProcessInit) !void {
+fn main_016(init: std.process.Init) !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
 
