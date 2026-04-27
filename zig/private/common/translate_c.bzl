@@ -73,6 +73,11 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
         mnemonic = "ZigTranslateC",
         progress_message = "zig translate-c %{label}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
+        env = {
+            "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
+            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib_path,
+            "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
+        },
         tools = zigtoolchaininfo.zig_files,
         toolchain = "//zig:toolchain_type",
     )
