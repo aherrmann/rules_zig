@@ -139,10 +139,7 @@ test "can compile to target platform aarch64-linux" {
     const elf_header = header: {
         if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
             var buffer: [1024]u8 = undefined;
-            var reader = file.reader(
-                std.Io.Threaded.global_single_threaded.io(),
-                &buffer,
-            );
+            var reader = file.reader(std.testing.io, &buffer);
             break :header try std.elf.Header.read(&reader.interface);
         } else {
             var buffer: [1024]u8 = undefined;
@@ -249,10 +246,7 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
 
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
         var buffer: [1024]u8 = undefined;
-        var reader = file.reader(
-            std.Io.Threaded.global_single_threaded.io(),
-            &buffer,
-        );
+        var reader = file.reader(std.testing.io, &buffer);
         const elf_header = try std.elf.Header.read(&reader.interface);
         var ph_iter = elf_header.iterateProgramHeaders(&reader);
         var interp: std.Io.Writer.Allocating = .init(std.testing.allocator);

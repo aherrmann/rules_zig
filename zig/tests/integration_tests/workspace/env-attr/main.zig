@@ -20,22 +20,20 @@ fn getEnvVarOwnedFromInit(allocator: std.mem.Allocator, init: ProcessInit, key: 
 
 fn printEnv(env_value: ?[]const u8, name: []const u8) !void {
     const value = env_value orelse return;
-    if (is_zig_0_16_or_later) {
-        var buffer: [512]u8 = undefined;
-        var writer = std.Io.File.stdout().writer(
-            std.Io.Threaded.global_single_threaded.io(),
-            &buffer,
-        );
-        const stdout = &writer.interface;
-        try stdout.print("{s}: '{s}'\n", .{ name, value });
-        try stdout.flush();
-    } else {
-        var buffer: [512]u8 = undefined;
-        var writer = std.fs.File.stdout().writer(&buffer);
-        const stdout = &writer.interface;
-        try stdout.print("{s}: '{s}'\n", .{ name, value });
-        try stdout.flush();
-    }
+    var buffer: [512]u8 = undefined;
+    var writer = std.fs.File.stdout().writer(&buffer);
+    const stdout = &writer.interface;
+    try stdout.print("{s}: '{s}'\n", .{ name, value });
+    try stdout.flush();
+}
+
+fn printEnv_016(io: anytype, env_value: ?[]const u8, name: []const u8) !void {
+    const value = env_value orelse return;
+    var buffer: [512]u8 = undefined;
+    var writer = std.Io.File.stdout().writer(io, &buffer);
+    const stdout = &writer.interface;
+    try stdout.print("{s}: '{s}'\n", .{ name, value });
+    try stdout.flush();
 }
 
 fn main_pre_016() !void {
@@ -52,6 +50,6 @@ fn main_016(init: ProcessInit) !void {
     defer arena.deinit();
 
     const allocator = arena.allocator();
-    try printEnv(try getEnvVarOwnedFromInit(allocator, init, "ENV_ATTR"), "ENV_ATTR");
-    try printEnv(try getEnvVarOwnedFromInit(allocator, init, "ENV_INHERIT"), "ENV_INHERIT");
+    try printEnv_016(init.io, try getEnvVarOwnedFromInit(allocator, init, "ENV_ATTR"), "ENV_ATTR");
+    try printEnv_016(init.io, try getEnvVarOwnedFromInit(allocator, init, "ENV_INHERIT"), "ENV_INHERIT");
 }
