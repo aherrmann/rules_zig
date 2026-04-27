@@ -9,7 +9,14 @@ pub fn main() !void {
 
     const allocator = arena.allocator();
 
-    var r_ = try runfiles.Runfiles.create(.{ .allocator = allocator }) orelse
+    var r_ = try runfiles.Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+        .{
+            .allocator = allocator,
+            .io = std.Io.Threaded.global_single_threaded.io(),
+            .argv0 = "bazel-bin/runfiles/binary",
+        }
+    else
+        .{ .allocator = allocator }) orelse
         return error.RunfilesNotFound;
     defer r_.deinit(allocator);
 
@@ -23,13 +30,26 @@ pub fn main() !void {
     };
     defer allocator.free(file_path);
 
-    const file = std.fs.cwd().openFile(file_path, .{}) catch |e| {
-        std.log.err("Failed to open file '{s}': {}", .{ file_path, e });
-        return e;
-    };
-    defer file.close();
+    const content = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) content: {
+        const io = std.Io.Threaded.global_single_threaded.io();
+        const file = std.Io.Dir.openFileAbsolute(io, file_path, .{}) catch |e| {
+            std.log.err("Failed to open file '{s}': {}", .{ file_path, e });
+            return e;
+        };
+        defer file.close(io);
 
-    const content = try file.readToEndAlloc(allocator, 4096);
+        var buffer: [4096]u8 = undefined;
+        var reader = file.reader(io, &buffer);
+        break :content try reader.interface.allocRemaining(allocator, .limited(4096));
+    } else content: {
+        const file = std.fs.cwd().openFile(file_path, .{}) catch |e| {
+            std.log.err("Failed to open file '{s}': {}", .{ file_path, e });
+            return e;
+        };
+        defer file.close();
+
+        break :content try file.readToEndAlloc(allocator, 4096);
+    };
     defer allocator.free(content);
 
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {

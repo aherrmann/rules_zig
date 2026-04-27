@@ -19,35 +19,16 @@ test "Zig distribution is fetched from a mirror" {
 
     try std.testing.expect(result.success);
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
-
-    const bes_file = try workspace.openFile("bes.json", .{});
-    defer bes_file.close();
-
-    var bes_buffer: [4096]u8 = undefined;
-    var bes_reader = bes_file.reader(&bes_buffer);
-    const bes = &bes_reader.interface;
-
-    var line_buffer = std.array_list.Managed(u8).init(std.testing.allocator);
-    defer line_buffer.deinit();
-    var line_writer = line_buffer.writer();
-    var adapter = line_writer.adaptToNewApi(&.{});
-    const line = &adapter.new_interface;
+    const bes = try ctx.readWorkspaceFileAlloc("bes.json", 4 * 1024 * 1024);
+    defer std.testing.allocator.free(bes);
 
     const expected_url_prefix = "https://example.com/zig/zig";
     var fetch_used_mirror = false;
     var fetch_used_source_param = false;
 
-    while (true) {
-        line_buffer.clearRetainingCapacity();
-        _ = bes.streamDelimiter(line, '\n') catch |err| switch (err) {
-            error.EndOfStream => break,
-            else => return err,
-        };
-        bes.toss(1);
-
-        const trimmed_line = std.mem.trim(u8, line_buffer.items, " \t\r\n");
+    var line_iter = std.mem.splitScalar(u8, bes, '\n');
+    while (line_iter.next()) |raw_line| {
+        const trimmed_line = std.mem.trim(u8, raw_line, " \t\r\n");
         if (trimmed_line.len > 0) {
             var parsed = try std.json.parseFromSlice(std.json.Value, std.testing.allocator, trimmed_line, .{});
             defer parsed.deinit();

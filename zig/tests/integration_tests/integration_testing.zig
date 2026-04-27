@@ -7,21 +7,31 @@ const BIT_WORKSPACE_DIR = "BIT_WORKSPACE_DIR";
 /// Location of the Bazel binary.
 const BIT_BAZEL_BINARY = "BIT_BAZEL_BINARY";
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 const Term = std.process.Child.Term;
-pub const EnvMap = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+pub const EnvMap = if (is_zig_0_16_or_later)
     std.process.Environ.Map
 else
     std.process.EnvMap;
+pub const WorkspaceDir = if (is_zig_0_16_or_later)
+    std.Io.Dir
+else
+    std.fs.Dir;
+pub const WorkspaceFile = if (is_zig_0_16_or_later)
+    std.Io.File
+else
+    std.fs.File;
 
 pub fn exitedTerm(code: u8) Term {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+    if (is_zig_0_16_or_later) {
         return .{ .exited = code };
     }
     return .{ .Exited = code };
 }
 
 fn termSucceeded(term: Term) bool {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+    if (is_zig_0_16_or_later) {
         return switch (term) {
             .exited => |code| code == 0,
             else => false,
@@ -34,14 +44,22 @@ fn termSucceeded(term: Term) bool {
 }
 
 pub fn currentEnvMap(allocator: std.mem.Allocator) !EnvMap {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+    if (is_zig_0_16_or_later) {
         return try std.process.Environ.createMap(std.testing.environ, allocator);
     }
     return try std.process.getEnvMap(allocator);
 }
 
+pub fn removeEnv(env_map: *EnvMap, key: []const u8) void {
+    if (is_zig_0_16_or_later) {
+        _ = env_map.swapRemove(key);
+    } else {
+        env_map.remove(key);
+    }
+}
+
 fn getEnvOwned(allocator: std.mem.Allocator, key: []const u8) ![]u8 {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+    if (is_zig_0_16_or_later) {
         var env_map = try currentEnvMap(allocator);
         defer env_map.deinit();
         const value = env_map.get(key) orelse return error.EnvironmentVariableNotFound;
@@ -85,6 +103,76 @@ pub const BitContext = struct {
         std.testing.allocator.free(self.bazel_path);
     }
 
+    pub fn openWorkspace(self: BitContext) !WorkspaceDir {
+        if (is_zig_0_16_or_later) {
+            return try std.Io.Dir.openDirAbsolute(std.testing.io, self.workspace_path, .{});
+        }
+        return try std.fs.cwd().openDir(self.workspace_path, .{});
+    }
+
+    pub fn closeWorkspaceDir(dir: *WorkspaceDir) void {
+        if (is_zig_0_16_or_later) {
+            dir.close(std.testing.io);
+        } else {
+            dir.close();
+        }
+    }
+
+    pub fn openWorkspaceFile(self: BitContext, sub_path: []const u8) !WorkspaceFile {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+
+        if (is_zig_0_16_or_later) {
+            return try workspace.openFile(std.testing.io, sub_path, .{});
+        }
+        return try workspace.openFile(sub_path, .{});
+    }
+
+    pub fn closeWorkspaceFile(file: *WorkspaceFile) void {
+        if (is_zig_0_16_or_later) {
+            file.close(std.testing.io);
+        } else {
+            file.close();
+        }
+    }
+
+    pub fn readWorkspaceFileAlloc(self: BitContext, sub_path: []const u8, max_bytes: usize) ![]u8 {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+
+        if (is_zig_0_16_or_later) {
+            return try workspace.readFileAlloc(std.testing.io, sub_path, std.testing.allocator, .limited(max_bytes));
+        }
+        return try workspace.readFileAlloc(std.testing.allocator, sub_path, max_bytes);
+    }
+
+    pub fn workspaceFileExists(self: BitContext, sub_path: []const u8) !bool {
+        var file = self.openWorkspaceFile(sub_path) catch |err| switch (err) {
+            error.FileNotFound => return false,
+            else => |e| return e,
+        };
+        closeWorkspaceFile(&file);
+        return true;
+    }
+
+    pub fn workspaceDirExists(self: BitContext, sub_path: []const u8) !bool {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+
+        var dir = if (is_zig_0_16_or_later)
+            workspace.openDir(std.testing.io, sub_path, .{}) catch |err| switch (err) {
+                error.FileNotFound => return false,
+                else => |e| return e,
+            }
+        else
+            workspace.openDir(sub_path, .{}) catch |err| switch (err) {
+                error.FileNotFound => return false,
+                else => |e| return e,
+            };
+        closeWorkspaceDir(&dir);
+        return true;
+    }
+
     pub const BazelResult = struct {
         success: bool,
         term: Term,
@@ -120,7 +208,7 @@ pub const BitContext = struct {
             while (iter.next()) |item|
                 try env_map.?.put(item.key_ptr.*, item.value_ptr.*);
         }
-        const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+        const result = if (is_zig_0_16_or_later)
             try std.process.run(std.testing.allocator, std.testing.io, .{
                 .argv = argv,
                 .cwd = .{ .path = self.workspace_path },

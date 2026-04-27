@@ -4,6 +4,7 @@ zig_binary(
     name = "binary",
     env = {"ENV_ATTR": "42"},
     main = "main.zig",
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 
 zig_test(
@@ -13,6 +14,7 @@ zig_test(
     env_inherit = ["ENV_INHERIT"],
     main = "test.zig",
     tags = ["manual"],
+    deps = ["@rules_zig//zig/lib:libc"],
 )
 
 zig_test(
@@ -21,4 +23,5 @@ zig_test(
     env = {"ENV_ATTR": "42"},
     main = "test-no-inherit.zig",
     tags = ["manual"],
+    deps = ["@rules_zig//zig/lib:libc"],
 )
