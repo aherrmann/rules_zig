@@ -27,7 +27,7 @@ test {
 test Runfiles {
     var allocator = std.testing.allocator;
     var r_ = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) blk: {
-        const io = std.Io.Threaded.global_single_threaded.io();
+        const io = std.testing.io;
         const argv0 = try std.process.executablePathAlloc(io, allocator);
         defer allocator.free(argv0);
         break :blk try Runfiles.create(.{

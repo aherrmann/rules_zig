@@ -355,7 +355,7 @@ test "Runfiles from manifest" {
     var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
         .{
             .allocator = std.testing.allocator,
-            .io = std.Io.Threaded.global_single_threaded.io(),
+            .io = std.testing.io,
             .manifest = manifest_path,
         }
     else
@@ -478,7 +478,7 @@ test "Runfiles from manifest with compact repo mapping" {
     var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
         .{
             .allocator = std.testing.allocator,
-            .io = std.Io.Threaded.global_single_threaded.io(),
+            .io = std.testing.io,
             .manifest = manifest_path,
         }
     else
@@ -574,7 +574,7 @@ test "Runfiles from directory" {
     var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
         .{
             .allocator = std.testing.allocator,
-            .io = std.Io.Threaded.global_single_threaded.io(),
+            .io = std.testing.io,
             .directory = directory_path,
         }
     else
@@ -699,7 +699,7 @@ test "Runfiles from directory with compact repo mapping" {
     var runfiles = try Runfiles.create(if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
         .{
             .allocator = std.testing.allocator,
-            .io = std.Io.Threaded.global_single_threaded.io(),
+            .io = std.testing.io,
             .directory = directory_path,
         }
     else

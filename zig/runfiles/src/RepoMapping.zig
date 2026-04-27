@@ -318,7 +318,7 @@ test "RepoMapping init from file" {
     const mapping_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "_repo_mapping");
     defer std.testing.allocator.free(mapping_path);
     var repo_mapping = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
-        try RepoMapping.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), mapping_path)
+        try RepoMapping.init(std.testing.allocator, std.testing.io, mapping_path)
     else
         try RepoMapping.init(std.testing.allocator, mapping_path);
     defer repo_mapping.deinit(std.testing.allocator);
@@ -339,7 +339,7 @@ test "RepoMapping init missing file" {
     });
     defer std.testing.allocator.free(missing_path);
     const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
-        RepoMapping.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), missing_path)
+        RepoMapping.init(std.testing.allocator, std.testing.io, missing_path)
     else
         RepoMapping.init(std.testing.allocator, missing_path);
     try std.testing.expectError(error.FileNotFound, result);

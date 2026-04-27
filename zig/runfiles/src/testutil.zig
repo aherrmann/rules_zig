@@ -8,7 +8,7 @@ pub fn ownNoSentinel(allocator: std.mem.Allocator, path_z: [:0]u8) ![]u8 {
 
 pub fn tmpWriteFile(dir: anytype, sub_path: []const u8, data: []const u8) !void {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        try dir.writeFile(std.Io.Threaded.global_single_threaded.io(), .{
+        try dir.writeFile(std.testing.io, .{
             .sub_path = sub_path,
             .data = data,
         });
@@ -22,7 +22,7 @@ pub fn tmpWriteFile(dir: anytype, sub_path: []const u8, data: []const u8) !void 
 
 pub fn tmpMakeDir(dir: anytype, sub_path: []const u8) !void {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        try dir.createDir(std.Io.Threaded.global_single_threaded.io(), sub_path, .default_dir);
+        try dir.createDir(std.testing.io, sub_path, .default_dir);
     } else {
         try dir.makeDir(sub_path);
     }
@@ -30,7 +30,7 @@ pub fn tmpMakeDir(dir: anytype, sub_path: []const u8) !void {
 
 pub fn tmpMakePath(dir: anytype, sub_path: []const u8) !void {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        try dir.createDirPath(std.Io.Threaded.global_single_threaded.io(), sub_path);
+        try dir.createDirPath(std.testing.io, sub_path);
     } else {
         try dir.makePath(sub_path);
     }
@@ -38,14 +38,14 @@ pub fn tmpMakePath(dir: anytype, sub_path: []const u8) !void {
 
 pub fn tmpRealpathAlloc(dir: anytype, allocator: std.mem.Allocator, sub_path: []const u8) ![]u8 {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        return try ownNoSentinel(allocator, try dir.realPathFileAlloc(std.Io.Threaded.global_single_threaded.io(), sub_path, allocator));
+        return try ownNoSentinel(allocator, try dir.realPathFileAlloc(std.testing.io, sub_path, allocator));
     }
     return try dir.realpathAlloc(allocator, sub_path);
 }
 
 pub fn tmpRealpath(dir: anytype, sub_path: []const u8, out_buffer: []u8) ![]const u8 {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        const len = try dir.realPathFile(std.Io.Threaded.global_single_threaded.io(), sub_path, out_buffer);
+        const len = try dir.realPathFile(std.testing.io, sub_path, out_buffer);
         return out_buffer[0..len];
     }
     return try dir.realpath(sub_path, out_buffer);
@@ -53,7 +53,7 @@ pub fn tmpRealpath(dir: anytype, sub_path: []const u8, out_buffer: []u8) ![]cons
 
 pub fn tmpDeleteFile(dir: anytype, sub_path: []const u8) !void {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        try dir.deleteFile(std.Io.Threaded.global_single_threaded.io(), sub_path);
+        try dir.deleteFile(std.testing.io, sub_path);
     } else {
         try dir.deleteFile(sub_path);
     }
@@ -61,7 +61,7 @@ pub fn tmpDeleteFile(dir: anytype, sub_path: []const u8) !void {
 
 pub fn tmpDeleteDir(dir: anytype, sub_path: []const u8) !void {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        try dir.deleteDir(std.Io.Threaded.global_single_threaded.io(), sub_path);
+        try dir.deleteDir(std.testing.io, sub_path);
     } else {
         try dir.deleteDir(sub_path);
     }
@@ -69,7 +69,7 @@ pub fn tmpDeleteDir(dir: anytype, sub_path: []const u8) !void {
 
 pub fn tmpSymLink(dir: anytype, target_path: []const u8, sym_link_path: []const u8) !void {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        try dir.symLink(std.Io.Threaded.global_single_threaded.io(), target_path, sym_link_path, .{});
+        try dir.symLink(std.testing.io, target_path, sym_link_path, .{});
     } else {
         try dir.symLink(target_path, sym_link_path, .{});
     }
@@ -77,7 +77,7 @@ pub fn tmpSymLink(dir: anytype, target_path: []const u8, sym_link_path: []const 
 
 pub fn readAbsoluteFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        const io = std.Io.Threaded.global_single_threaded.io();
+        const io = std.testing.io;
         const file = try std.Io.Dir.openFileAbsolute(io, path, .{});
         defer file.close(io);
         var buf: [1024]u8 = undefined;

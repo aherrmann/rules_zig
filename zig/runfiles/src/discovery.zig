@@ -281,7 +281,7 @@ fn discoverTestOptions_016(
 ) DiscoverOptions {
     return .{
         .allocator = std.testing.allocator,
-        .io = std.Io.Threaded.global_single_threaded.io(),
+        .io = std.testing.io,
         .manifest = manifest,
         .directory = directory,
         .argv0 = argv0,

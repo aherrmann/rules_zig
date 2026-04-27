@@ -183,7 +183,7 @@ test "RunfilesManifest init unmapped lookup" {
     defer std.testing.allocator.free(runfiles_path);
 
     var manifest = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
-        try Manifest.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), runfiles_path)
+        try Manifest.init(std.testing.allocator, std.testing.io, runfiles_path)
     else
         try Manifest.init(std.testing.allocator, runfiles_path);
     defer manifest.deinit(std.testing.allocator);
@@ -228,7 +228,7 @@ test "RunfilesManifest init missing file" {
     defer std.testing.allocator.free(missing_path);
 
     const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
-        Manifest.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), missing_path)
+        Manifest.init(std.testing.allocator, std.testing.io, missing_path)
     else
         Manifest.init(std.testing.allocator, missing_path);
     try std.testing.expectError(error.FileNotFound, result);

@@ -76,7 +76,7 @@ test "Directory init and unmapped lookup" {
     try testutil.tmpWriteFile(tmp.dir, "test.runfiles/my_workspace/some/package/some_file", "some_file");
 
     const cwd_path_absolute = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
-        try std.process.currentPathAlloc(std.Io.Threaded.global_single_threaded.io(), std.testing.allocator)
+        try std.process.currentPathAlloc(std.testing.io, std.testing.allocator)
     else
         try std.fs.cwd().realpathAlloc(std.testing.allocator, ".");
     defer std.testing.allocator.free(cwd_path_absolute);
@@ -89,7 +89,7 @@ test "Directory init and unmapped lookup" {
     defer std.testing.allocator.free(runfiles_path);
 
     var directory = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
-        try Directory.init(std.testing.allocator, std.Io.Threaded.global_single_threaded.io(), runfiles_path)
+        try Directory.init(std.testing.allocator, std.testing.io, runfiles_path)
     else
         try Directory.init(std.testing.allocator, runfiles_path);
     defer directory.deinit(std.testing.allocator);
