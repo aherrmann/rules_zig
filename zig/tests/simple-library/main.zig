@@ -8,5 +8,7 @@ export fn sayHello() void {
             std.Io.Threaded.global_single_threaded.io(),
             "Hello World!\n",
         ) catch unreachable;
+    } else {
+        std.fs.File.stdout().writeAll("Hello World!\n") catch unreachable;
     }
 }

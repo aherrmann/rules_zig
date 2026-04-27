@@ -25,14 +25,14 @@ pub const init = if (is_zig_0_16_or_later)
 else
     init_pre_016;
 
-pub fn init_pre_016(allocator: std.mem.Allocator, path: []const u8) InitError!Directory {
+fn init_pre_016(allocator: std.mem.Allocator, path: []const u8) InitError!Directory {
     const absolute = try std.fs.cwd().realpathAlloc(allocator, path);
     errdefer allocator.free(absolute);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     return .{ .path = absolute };
 }
 
-pub fn init_016(allocator: std.mem.Allocator, io: std.Io, path: []const u8) InitError!Directory {
+fn init_016(allocator: std.mem.Allocator, io: std.Io, path: []const u8) InitError!Directory {
     const absolute = try testutil.ownNoSentinel(allocator, try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator));
     errdefer allocator.free(absolute);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
