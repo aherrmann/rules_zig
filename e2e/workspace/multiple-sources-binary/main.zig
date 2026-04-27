@@ -12,5 +12,5 @@ fn main_pre_016() void {
 }
 
 fn main_016(init: std.process.Init) void {
-    io.printWithIo(init.io, data.hello_world);
+    std.Io.File.writeStreamingAll(.stdout(), init.io, data.hello_world) catch unreachable;
 }

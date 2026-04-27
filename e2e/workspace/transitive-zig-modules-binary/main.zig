@@ -11,5 +11,5 @@ fn main_pre_016() void {
 }
 
 fn main_016(init: std.process.Init) void {
-    hello_world.sayHelloWithIo(init.io);
+    hello_world.sayHello_016(init);
 }
