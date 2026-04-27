@@ -10,6 +10,9 @@ else
 const ProcessInit = if (is_zig_0_16_or_later) std.process.Init else void;
 
 pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
+const createTestingRunfiles = if (is_zig_0_16_or_later) createTestingRunfiles_016 else createTestingRunfiles_pre_016;
+const getTestingEnvVar = if (is_zig_0_16_or_later) getTestingEnvVar_016 else getEnvVar;
+const readTestingFileAlloc = if (is_zig_0_16_or_later) readTestingFileAlloc_016 else readFileAlloc;
 
 fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     return std.process.getEnvVarOwned(allocator, key) catch |e| switch (e) {
@@ -18,14 +21,11 @@ fn getEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
     };
 }
 
-fn getTestingEnvVar(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
-    if (is_zig_0_16_or_later) {
-        return std.testing.environ.getAlloc(allocator, key) catch |e| switch (e) {
-            error.EnvironmentVariableMissing => null,
-            else => |e_| return e_,
-        };
-    }
-    return try getEnvVar(allocator, key);
+fn getTestingEnvVar_016(allocator: std.mem.Allocator, key: []const u8) !?[]const u8 {
+    return std.testing.environ.getAlloc(allocator, key) catch |e| switch (e) {
+        error.EnvironmentVariableMissing => null,
+        else => |e_| return e_,
+    };
 }
 
 fn getEnvVarFromInit(allocator: std.mem.Allocator, init: ProcessInit, key: []const u8) !?[]const u8 {
@@ -33,17 +33,18 @@ fn getEnvVarFromInit(allocator: std.mem.Allocator, init: ProcessInit, key: []con
     return try allocator.dupe(u8, value);
 }
 
-fn createTestingRunfiles(allocator: std.mem.Allocator) !?runfiles.Runfiles {
-    if (is_zig_0_16_or_later) {
-        var env_map = try std.process.Environ.createMap(std.testing.environ, allocator);
-        defer env_map.deinit();
-        return try runfiles.Runfiles.create(.{
-            .allocator = allocator,
-            .io = std.testing.io,
-            .environ_map = &env_map,
-        });
-    }
+fn createTestingRunfiles_pre_016(allocator: std.mem.Allocator) !?runfiles.Runfiles {
     return try runfiles.Runfiles.create(.{ .allocator = allocator });
+}
+
+fn createTestingRunfiles_016(allocator: std.mem.Allocator) !?runfiles.Runfiles {
+    var env_map = try std.process.Environ.createMap(std.testing.environ, allocator);
+    defer env_map.deinit();
+    return try runfiles.Runfiles.create(.{
+        .allocator = allocator,
+        .io = std.testing.io,
+        .environ_map = &env_map,
+    });
 }
 
 fn createRunfilesFromInit(allocator: std.mem.Allocator, init: ProcessInit) !?runfiles.Runfiles {
@@ -67,6 +68,10 @@ fn readFileAlloc_016(io: anytype, allocator: std.mem.Allocator, path: []const u8
     var buffer: [1024]u8 = undefined;
     var reader = file.reader(io, &buffer);
     return try reader.interface.allocRemaining(allocator, .limited(limit));
+}
+
+fn readTestingFileAlloc_016(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    return try readFileAlloc_016(std.testing.io, allocator, path, limit);
 }
 
 fn printData(content: []const u8) !void {
@@ -149,10 +154,7 @@ test "read data file" {
         return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
-    const content = if (is_zig_0_16_or_later)
-        try readFileAlloc_016(std.testing.io, std.testing.allocator, file_path, 4096)
-    else
-        try readFileAlloc(std.testing.allocator, file_path, 4096);
+    const content = try readTestingFileAlloc(std.testing.allocator, file_path, 4096);
     defer std.testing.allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello World!\n", content);
@@ -172,10 +174,7 @@ test "resolve external dependency rpath" {
         return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
-    const content = if (is_zig_0_16_or_later)
-        try readFileAlloc_016(std.testing.io, std.testing.allocator, file_path, 4096)
-    else
-        try readFileAlloc(std.testing.allocator, file_path, 4096);
+    const content = try readTestingFileAlloc(std.testing.allocator, file_path, 4096);
     defer std.testing.allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello from dependency!\n", content);

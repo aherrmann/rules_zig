@@ -30,42 +30,50 @@ pub fn exitedTerm(code: u8) Term {
     return .{ .Exited = code };
 }
 
-fn termSucceeded(term: Term) bool {
-    if (is_zig_0_16_or_later) {
-        return switch (term) {
-            .exited => |code| code == 0,
-            else => false,
-        };
-    }
+const termSucceeded = if (is_zig_0_16_or_later) termSucceeded_016 else termSucceeded_pre_016;
+pub const currentEnvMap = if (is_zig_0_16_or_later) currentEnvMap_016 else currentEnvMap_pre_016;
+pub const removeEnv = if (is_zig_0_16_or_later) removeEnv_016 else removeEnv_pre_016;
+const getEnvOwned = if (is_zig_0_16_or_later) getEnvOwned_016 else getEnvOwned_pre_016;
+
+fn termSucceeded_pre_016(term: Term) bool {
     return switch (term) {
         .Exited => |code| code == 0,
         else => false,
     };
 }
 
-pub fn currentEnvMap(allocator: std.mem.Allocator) !EnvMap {
-    if (is_zig_0_16_or_later) {
-        return try std.process.Environ.createMap(std.testing.environ, allocator);
-    }
+fn termSucceeded_016(term: Term) bool {
+    return switch (term) {
+        .exited => |code| code == 0,
+        else => false,
+    };
+}
+
+fn currentEnvMap_pre_016(allocator: std.mem.Allocator) !EnvMap {
     return try std.process.getEnvMap(allocator);
 }
 
-pub fn removeEnv(env_map: *EnvMap, key: []const u8) void {
-    if (is_zig_0_16_or_later) {
-        _ = env_map.swapRemove(key);
-    } else {
-        env_map.remove(key);
-    }
+fn currentEnvMap_016(allocator: std.mem.Allocator) !EnvMap {
+    return try std.process.Environ.createMap(std.testing.environ, allocator);
 }
 
-fn getEnvOwned(allocator: std.mem.Allocator, key: []const u8) ![]u8 {
-    if (is_zig_0_16_or_later) {
-        var env_map = try currentEnvMap(allocator);
-        defer env_map.deinit();
-        const value = env_map.get(key) orelse return error.EnvironmentVariableNotFound;
-        return try allocator.dupe(u8, value);
-    }
+fn removeEnv_pre_016(env_map: *EnvMap, key: []const u8) void {
+    env_map.remove(key);
+}
+
+fn removeEnv_016(env_map: *EnvMap, key: []const u8) void {
+    _ = env_map.swapRemove(key);
+}
+
+fn getEnvOwned_pre_016(allocator: std.mem.Allocator, key: []const u8) ![]u8 {
     return try std.process.getEnvVarOwned(allocator, key);
+}
+
+fn getEnvOwned_016(allocator: std.mem.Allocator, key: []const u8) ![]u8 {
+    var env_map = try currentEnvMap(allocator);
+    defer env_map.deinit();
+    const value = env_map.get(key) orelse return error.EnvironmentVariableNotFound;
+    return try allocator.dupe(u8, value);
 }
 
 /// Bazel integration testing context.
@@ -103,47 +111,60 @@ pub const BitContext = struct {
         std.testing.allocator.free(self.bazel_path);
     }
 
-    pub fn openWorkspace(self: BitContext) !WorkspaceDir {
-        if (is_zig_0_16_or_later) {
-            return try std.Io.Dir.openDirAbsolute(std.testing.io, self.workspace_path, .{});
-        }
+    pub const openWorkspace = if (is_zig_0_16_or_later) openWorkspace_016 else openWorkspace_pre_016;
+    pub const closeWorkspaceDir = if (is_zig_0_16_or_later) closeWorkspaceDir_016 else closeWorkspaceDir_pre_016;
+    pub const openWorkspaceFile = if (is_zig_0_16_or_later) openWorkspaceFile_016 else openWorkspaceFile_pre_016;
+    pub const closeWorkspaceFile = if (is_zig_0_16_or_later) closeWorkspaceFile_016 else closeWorkspaceFile_pre_016;
+    pub const readWorkspaceFileAlloc = if (is_zig_0_16_or_later) readWorkspaceFileAlloc_016 else readWorkspaceFileAlloc_pre_016;
+    pub const workspaceDirExists = if (is_zig_0_16_or_later) workspaceDirExists_016 else workspaceDirExists_pre_016;
+    const runBazel = if (is_zig_0_16_or_later) runBazel_016 else runBazel_pre_016;
+
+    fn openWorkspace_pre_016(self: BitContext) !WorkspaceDir {
         return try std.fs.cwd().openDir(self.workspace_path, .{});
     }
 
-    pub fn closeWorkspaceDir(dir: *WorkspaceDir) void {
-        if (is_zig_0_16_or_later) {
-            dir.close(std.testing.io);
-        } else {
-            dir.close();
-        }
+    fn openWorkspace_016(self: BitContext) !WorkspaceDir {
+        return try std.Io.Dir.openDirAbsolute(std.testing.io, self.workspace_path, .{});
     }
 
-    pub fn openWorkspaceFile(self: BitContext, sub_path: []const u8) !WorkspaceFile {
+    fn closeWorkspaceDir_pre_016(dir: *WorkspaceDir) void {
+        dir.close();
+    }
+
+    fn closeWorkspaceDir_016(dir: *WorkspaceDir) void {
+        dir.close(std.testing.io);
+    }
+
+    fn openWorkspaceFile_pre_016(self: BitContext, sub_path: []const u8) !WorkspaceFile {
         var workspace = try self.openWorkspace();
         defer closeWorkspaceDir(&workspace);
-
-        if (is_zig_0_16_or_later) {
-            return try workspace.openFile(std.testing.io, sub_path, .{});
-        }
         return try workspace.openFile(sub_path, .{});
     }
 
-    pub fn closeWorkspaceFile(file: *WorkspaceFile) void {
-        if (is_zig_0_16_or_later) {
-            file.close(std.testing.io);
-        } else {
-            file.close();
-        }
-    }
-
-    pub fn readWorkspaceFileAlloc(self: BitContext, sub_path: []const u8, max_bytes: usize) ![]u8 {
+    fn openWorkspaceFile_016(self: BitContext, sub_path: []const u8) !WorkspaceFile {
         var workspace = try self.openWorkspace();
         defer closeWorkspaceDir(&workspace);
+        return try workspace.openFile(std.testing.io, sub_path, .{});
+    }
 
-        if (is_zig_0_16_or_later) {
-            return try workspace.readFileAlloc(std.testing.io, sub_path, std.testing.allocator, .limited(max_bytes));
-        }
+    fn closeWorkspaceFile_pre_016(file: *WorkspaceFile) void {
+        file.close();
+    }
+
+    fn closeWorkspaceFile_016(file: *WorkspaceFile) void {
+        file.close(std.testing.io);
+    }
+
+    fn readWorkspaceFileAlloc_pre_016(self: BitContext, sub_path: []const u8, max_bytes: usize) ![]u8 {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
         return try workspace.readFileAlloc(std.testing.allocator, sub_path, max_bytes);
+    }
+
+    fn readWorkspaceFileAlloc_016(self: BitContext, sub_path: []const u8, max_bytes: usize) ![]u8 {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+        return try workspace.readFileAlloc(std.testing.io, sub_path, std.testing.allocator, .limited(max_bytes));
     }
 
     pub fn workspaceFileExists(self: BitContext, sub_path: []const u8) !bool {
@@ -155,20 +176,26 @@ pub const BitContext = struct {
         return true;
     }
 
-    pub fn workspaceDirExists(self: BitContext, sub_path: []const u8) !bool {
+    fn workspaceDirExists_pre_016(self: BitContext, sub_path: []const u8) !bool {
         var workspace = try self.openWorkspace();
         defer closeWorkspaceDir(&workspace);
 
-        var dir = if (is_zig_0_16_or_later)
-            workspace.openDir(std.testing.io, sub_path, .{}) catch |err| switch (err) {
-                error.FileNotFound => return false,
-                else => |e| return e,
-            }
-        else
-            workspace.openDir(sub_path, .{}) catch |err| switch (err) {
-                error.FileNotFound => return false,
-                else => |e| return e,
-            };
+        var dir = workspace.openDir(sub_path, .{}) catch |err| switch (err) {
+            error.FileNotFound => return false,
+            else => |e| return e,
+        };
+        closeWorkspaceDir(&dir);
+        return true;
+    }
+
+    fn workspaceDirExists_016(self: BitContext, sub_path: []const u8) !bool {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+
+        var dir = workspace.openDir(std.testing.io, sub_path, .{}) catch |err| switch (err) {
+            error.FileNotFound => return false,
+            else => |e| return e,
+        };
         closeWorkspaceDir(&dir);
         return true;
     }
@@ -208,25 +235,36 @@ pub const BitContext = struct {
             while (iter.next()) |item|
                 try env_map.?.put(item.key_ptr.*, item.value_ptr.*);
         }
-        const result = if (is_zig_0_16_or_later)
-            try std.process.run(std.testing.allocator, std.testing.io, .{
-                .argv = argv,
-                .cwd = .{ .path = self.workspace_path },
-                .environ_map = if (env_map) |*env| env else null,
-            })
-        else
-            try std.process.Child.run(.{
-                .allocator = std.testing.allocator,
-                .argv = argv,
-                .cwd = self.workspace_path,
-                .env_map = if (env_map) |*env| env else null,
-            });
-        const success = termSucceeded(result.term);
-        if (args.print_on_error and !success) {
+        const result = try runBazel(self, argv, if (env_map) |*env| env else null);
+        if (args.print_on_error and !result.success) {
             std.debug.print("\n{s}\n{s}\n", .{ result.stdout, result.stderr });
         }
-        return BazelResult{
-            .success = success,
+        return result;
+    }
+
+    fn runBazel_pre_016(self: BitContext, argv: []const []const u8, env_map: ?*EnvMap) !BazelResult {
+        const result = try std.process.Child.run(.{
+            .allocator = std.testing.allocator,
+            .argv = argv,
+            .cwd = self.workspace_path,
+            .env_map = env_map,
+        });
+        return .{
+            .success = termSucceeded(result.term),
+            .term = result.term,
+            .stdout = result.stdout,
+            .stderr = result.stderr,
+        };
+    }
+
+    fn runBazel_016(self: BitContext, argv: []const []const u8, env_map: ?*EnvMap) !BazelResult {
+        const result = try std.process.run(std.testing.allocator, std.testing.io, .{
+            .argv = argv,
+            .cwd = .{ .path = self.workspace_path },
+            .environ_map = env_map,
+        });
+        return .{
+            .success = termSucceeded(result.term),
             .term = result.term,
             .stdout = result.stdout,
             .stderr = result.stderr,

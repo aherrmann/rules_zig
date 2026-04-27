@@ -6,6 +6,8 @@ const EnvMap = integration_testing.EnvMap;
 const exitedTerm = integration_testing.exitedTerm;
 const removeEnv = integration_testing.removeEnv;
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 test "zig_binary prints Hello World!" {
     const ctx = try BitContext.init();
     defer ctx.deinit();
@@ -137,7 +139,7 @@ test "can compile to target platform aarch64-linux" {
     defer BitContext.closeWorkspaceFile(&file);
 
     const elf_header = header: {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+        if (is_zig_0_16_or_later) {
             var buffer: [1024]u8 = undefined;
             var reader = file.reader(std.testing.io, &buffer);
             break :header try std.elf.Header.read(&reader.interface);
@@ -244,7 +246,7 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
     var file = try ctx.openWorkspaceFile("bazel-bin/custom_interpreter/binary-custom_interpreter");
     defer BitContext.closeWorkspaceFile(&file);
 
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
+    if (is_zig_0_16_or_later) {
         var buffer: [1024]u8 = undefined;
         var reader = file.reader(std.testing.io, &buffer);
         const elf_header = try std.elf.Header.read(&reader.interface);
@@ -374,7 +376,7 @@ test "runfiles library supports manifest mode" {
     removeEnv(&env_map, "RUNFILES_MANIFEST_FILE");
 
     // Execute the binary.
-    const result = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16)
+    const result = if (is_zig_0_16_or_later)
         try std.process.run(std.testing.allocator, std.testing.io, .{
             .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
             .cwd = .{ .path = ctx.workspace_path },
