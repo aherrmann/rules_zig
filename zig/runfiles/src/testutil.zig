@@ -3,7 +3,7 @@ const std = @import("std");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
-pub fn ownNoSentinel(allocator: std.mem.Allocator, path_z: [:0]u8) ![]u8 {
+fn ownNoSentinel(allocator: std.mem.Allocator, path_z: [:0]u8) ![]u8 {
     defer allocator.free(path_z);
     return try allocator.dupe(u8, path_z);
 }

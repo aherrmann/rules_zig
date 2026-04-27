@@ -5,7 +5,6 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const testutil = @import("testutil.zig");
 // TODO[AH] factor out common utility code.
 const log = if (builtin.is_test)
     // Downgrade `err` to `warn` for tests.
@@ -30,9 +29,11 @@ const Manifest = @This();
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
+const OwnedPath = if (is_zig_0_16_or_later) [:0]const u8 else []const u8;
+
 mapping: HashMapUnmanaged,
 content: []const u8,
-path: []const u8,
+path: OwnedPath,
 
 pub const InitError = ParseError || std.mem.Allocator.Error || (if (is_zig_0_16_or_later)
     std.Io.File.OpenError || std.Io.Reader.LimitedAllocError || std.Io.Dir.RealPathFileAllocError
@@ -78,7 +79,7 @@ pub fn init_io(allocator: std.mem.Allocator, io: std.Io, path: []const u8) InitE
     return .{
         .mapping = mapping,
         .content = content,
-        .path = try testutil.ownNoSentinel(allocator, try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator)),
+        .path = try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator),
     };
 }
 
@@ -174,6 +175,7 @@ const HashMapUnmanaged = std.HashMapUnmanaged(
 );
 
 test "RunfilesManifest init unmapped lookup" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
     try testutil.tmpWriteFile(tmp.dir, "test.runfiles_manifest",
@@ -218,6 +220,7 @@ test "RunfilesManifest init unmapped lookup" {
 }
 
 test "RunfilesManifest init missing file" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
     const tmp_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, ".");

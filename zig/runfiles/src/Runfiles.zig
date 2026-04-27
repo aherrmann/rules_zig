@@ -9,7 +9,6 @@ const Directory = @import("Directory.zig");
 const Manifest = @import("Manifest.zig");
 const RepoMapping = @import("RepoMapping.zig");
 const RPath = @import("RPath.zig");
-const testutil = @import("testutil.zig");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
@@ -321,6 +320,7 @@ const Implementation = union(discovery.Strategy) {
 };
 
 test "Runfiles from manifest" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
     try testutil.tmpMakePath(tmp.dir, "some/package");
@@ -423,6 +423,7 @@ test "Runfiles from manifest" {
 }
 
 test "Runfiles from manifest with compact repo mapping" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
@@ -534,6 +535,7 @@ test "Runfiles from manifest with compact repo mapping" {
 }
 
 test "Runfiles from directory" {
+    const testutil = @import("testutil.zig");
     if (builtin.os.tag == .windows)
         // Windows does not support symlinks out of the box.
         return error.SkipZigTest;
@@ -642,6 +644,7 @@ test "Runfiles from directory" {
 }
 
 test "Runfiles from directory with compact repo mapping" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 

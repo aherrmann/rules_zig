@@ -5,7 +5,6 @@
 
 const std = @import("std");
 const builtin = @import("builtin");
-const testutil = @import("testutil.zig");
 
 const RPath = @import("RPath.zig");
 
@@ -13,7 +12,9 @@ const Directory = @This();
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
-path: []const u8,
+const OwnedPath = if (is_zig_0_16_or_later) [:0]const u8 else []const u8;
+
+path: OwnedPath,
 
 pub const InitError = std.mem.Allocator.Error || (if (is_zig_0_16_or_later)
     std.Io.Dir.OpenError || std.Io.Dir.RealPathFileAllocError
@@ -33,7 +34,7 @@ fn init_pre_016(allocator: std.mem.Allocator, path: []const u8) InitError!Direct
 }
 
 fn init_016(allocator: std.mem.Allocator, io: std.Io, path: []const u8) InitError!Directory {
-    const absolute = try testutil.ownNoSentinel(allocator, try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator));
+    const absolute = try std.Io.Dir.cwd().realPathFileAlloc(io, path, allocator);
     errdefer allocator.free(absolute);
     // TODO[AH] Implement OS specific normalization, e.g. Windows lower-case.
     return .{ .path = absolute };
@@ -71,6 +72,7 @@ pub fn rlocationUnmappedAlloc(
 }
 
 test "Directory init and unmapped lookup" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
     try testutil.tmpMakePath(tmp.dir, "test.runfiles/my_workspace/some/package");

@@ -13,7 +13,6 @@ const builtin = @import("builtin");
 const std = @import("std");
 
 pub const Runfiles = @import("src/Runfiles.zig");
-const testutil = @import("src/testutil.zig");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 const createTestRunfiles = if (is_zig_0_16_or_later) createTestRunfiles_016 else createTestRunfiles_pre_016;
@@ -43,6 +42,7 @@ test {
 }
 
 test Runfiles {
+    const testutil = @import("src/testutil.zig");
     var allocator = std.testing.allocator;
     var r_ = try createTestRunfiles(allocator) orelse return error.RunfilesNotFound;
     defer r_.deinit(allocator);
