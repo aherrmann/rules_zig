@@ -13,8 +13,9 @@ the current target name or current repository name.
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_binary")
 
-zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-compiler_runtime">compiler_runtime</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-env">env</a>, <a href="#zig_binary-extra_docs">extra_docs</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>,
-           <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-linkopts">linkopts</a>, <a href="#zig_binary-main">main</a>, <a href="#zig_binary-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_binary-zigopts">zigopts</a>)
+zig_binary(<a href="#zig_binary-name">name</a>, <a href="#zig_binary-deps">deps</a>, <a href="#zig_binary-srcs">srcs</a>, <a href="#zig_binary-data">data</a>, <a href="#zig_binary-compiler_runtime">compiler_runtime</a>, <a href="#zig_binary-copts">copts</a>, <a href="#zig_binary-csrcs">csrcs</a>, <a href="#zig_binary-emit_asm">emit_asm</a>, <a href="#zig_binary-emit_llvm_bc">emit_llvm_bc</a>,
+           <a href="#zig_binary-emit_llvm_ir">emit_llvm_ir</a>, <a href="#zig_binary-env">env</a>, <a href="#zig_binary-extra_docs">extra_docs</a>, <a href="#zig_binary-extra_srcs">extra_srcs</a>, <a href="#zig_binary-linker_script">linker_script</a>, <a href="#zig_binary-linkopts">linkopts</a>, <a href="#zig_binary-main">main</a>,
+           <a href="#zig_binary-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_binary-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig binary.
@@ -54,6 +55,9 @@ zig_binary(
 | <a id="zig_binary-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_binary-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_binary-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_binary-emit_asm"></a>emit_asm |  Emit the assembly in the `asm` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_binary-emit_llvm_bc"></a>emit_llvm_bc |  Emit the LLVM bytecode in the `llvm_bc` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_binary-emit_llvm_ir"></a>emit_llvm_ir |  Emit the LLVM IR in the `llvm_ir` output group.   | Boolean | optional |  `False`  |
 | <a id="zig_binary-env"></a>env |  Additional environment variables to set when executed by `bazel run`. Subject to location expansion. NOTE: The environment variables are not set when you run the target outside of Bazel (for example, by manually executing the binary in bazel-bin/).   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="zig_binary-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_binary-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
@@ -382,8 +386,9 @@ zig_library(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_shared_library")
 
-zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>, <a href="#zig_shared_library-extra_srcs">extra_srcs</a>,
-                   <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-linkopts">linkopts</a>, <a href="#zig_shared_library-main">main</a>, <a href="#zig_shared_library-shared_lib_name">shared_lib_name</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_shared_library-zigopts">zigopts</a>)
+zig_shared_library(<a href="#zig_shared_library-name">name</a>, <a href="#zig_shared_library-deps">deps</a>, <a href="#zig_shared_library-srcs">srcs</a>, <a href="#zig_shared_library-data">data</a>, <a href="#zig_shared_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_shared_library-copts">copts</a>, <a href="#zig_shared_library-csrcs">csrcs</a>, <a href="#zig_shared_library-emit_asm">emit_asm</a>, <a href="#zig_shared_library-emit_llvm_bc">emit_llvm_bc</a>,
+                   <a href="#zig_shared_library-emit_llvm_ir">emit_llvm_ir</a>, <a href="#zig_shared_library-extra_docs">extra_docs</a>, <a href="#zig_shared_library-extra_srcs">extra_srcs</a>, <a href="#zig_shared_library-linker_script">linker_script</a>, <a href="#zig_shared_library-linkopts">linkopts</a>, <a href="#zig_shared_library-main">main</a>,
+                   <a href="#zig_shared_library-shared_lib_name">shared_lib_name</a>, <a href="#zig_shared_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_shared_library-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig shared library, produces a shared or dynamic library.
@@ -424,6 +429,9 @@ zig_shared_library(
 | <a id="zig_shared_library-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_shared_library-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_shared_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_shared_library-emit_asm"></a>emit_asm |  Emit the assembly in the `asm` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_shared_library-emit_llvm_bc"></a>emit_llvm_bc |  Emit the LLVM bytecode in the `llvm_bc` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_shared_library-emit_llvm_ir"></a>emit_llvm_ir |  Emit the LLVM IR in the `llvm_ir` output group.   | Boolean | optional |  `False`  |
 | <a id="zig_shared_library-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_shared_library-linker_script"></a>linker_script |  Custom linker script for the target.<br><br>Note, as of Zig version 0.15.1 linker-scripts require the LLVM/LLD backend to be enabled, see https://github.com/ziglang/zig/issues/25069. Set `zigopts=["-fllvm", "-flld"]` to that end.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
@@ -441,8 +449,9 @@ zig_shared_library(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_static_library")
 
-zig_static_library(<a href="#zig_static_library-name">name</a>, <a href="#zig_static_library-deps">deps</a>, <a href="#zig_static_library-srcs">srcs</a>, <a href="#zig_static_library-data">data</a>, <a href="#zig_static_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_static_library-copts">copts</a>, <a href="#zig_static_library-csrcs">csrcs</a>, <a href="#zig_static_library-extra_docs">extra_docs</a>, <a href="#zig_static_library-extra_srcs">extra_srcs</a>,
-                   <a href="#zig_static_library-linker_script">linker_script</a>, <a href="#zig_static_library-linkopts">linkopts</a>, <a href="#zig_static_library-main">main</a>, <a href="#zig_static_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_static_library-zigopts">zigopts</a>)
+zig_static_library(<a href="#zig_static_library-name">name</a>, <a href="#zig_static_library-deps">deps</a>, <a href="#zig_static_library-srcs">srcs</a>, <a href="#zig_static_library-data">data</a>, <a href="#zig_static_library-compiler_runtime">compiler_runtime</a>, <a href="#zig_static_library-copts">copts</a>, <a href="#zig_static_library-csrcs">csrcs</a>, <a href="#zig_static_library-emit_asm">emit_asm</a>, <a href="#zig_static_library-emit_bin">emit_bin</a>,
+                   <a href="#zig_static_library-emit_llvm_bc">emit_llvm_bc</a>, <a href="#zig_static_library-emit_llvm_ir">emit_llvm_ir</a>, <a href="#zig_static_library-extra_docs">extra_docs</a>, <a href="#zig_static_library-extra_srcs">extra_srcs</a>, <a href="#zig_static_library-linker_script">linker_script</a>, <a href="#zig_static_library-linkopts">linkopts</a>, <a href="#zig_static_library-main">main</a>,
+                   <a href="#zig_static_library-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_static_library-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig library, produces a static archive.
@@ -483,6 +492,10 @@ zig_static_library(
 | <a id="zig_static_library-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_static_library-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_static_library-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_static_library-emit_asm"></a>emit_asm |  Emit the assembly in the `asm` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_static_library-emit_bin"></a>emit_bin |  Emit the binary.   | Boolean | optional |  `True`  |
+| <a id="zig_static_library-emit_llvm_bc"></a>emit_llvm_bc |  Emit the LLVM bytecode in the `llvm_bc` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_static_library-emit_llvm_ir"></a>emit_llvm_ir |  Emit the LLVM IR in the `llvm_ir` output group.   | Boolean | optional |  `False`  |
 | <a id="zig_static_library-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-extra_srcs"></a>extra_srcs |  Other files required to build the target, e.g. files embedded using `@embedFile`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
 | <a id="zig_static_library-linker_script"></a>linker_script |  Custom linker script for the target.<br><br>Note, as of Zig version 0.15.1 linker-scripts require the LLVM/LLD backend to be enabled, see https://github.com/ziglang/zig/issues/25069. Set `zigopts=["-fllvm", "-flld"]` to that end.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
@@ -499,8 +512,9 @@ zig_static_library(
 <pre>
 load("@rules_zig//zig:defs.bzl", "zig_test")
 
-zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-compiler_runtime">compiler_runtime</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>, <a href="#zig_test-extra_docs">extra_docs</a>,
-         <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-linkopts">linkopts</a>, <a href="#zig_test-main">main</a>, <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_test-test_runner">test_runner</a>, <a href="#zig_test-zigopts">zigopts</a>)
+zig_test(<a href="#zig_test-name">name</a>, <a href="#zig_test-deps">deps</a>, <a href="#zig_test-srcs">srcs</a>, <a href="#zig_test-data">data</a>, <a href="#zig_test-compiler_runtime">compiler_runtime</a>, <a href="#zig_test-copts">copts</a>, <a href="#zig_test-csrcs">csrcs</a>, <a href="#zig_test-emit_asm">emit_asm</a>, <a href="#zig_test-emit_llvm_bc">emit_llvm_bc</a>,
+         <a href="#zig_test-emit_llvm_ir">emit_llvm_ir</a>, <a href="#zig_test-env">env</a>, <a href="#zig_test-env_inherit">env_inherit</a>, <a href="#zig_test-extra_docs">extra_docs</a>, <a href="#zig_test-extra_srcs">extra_srcs</a>, <a href="#zig_test-linker_script">linker_script</a>, <a href="#zig_test-linkopts">linkopts</a>, <a href="#zig_test-main">main</a>,
+         <a href="#zig_test-strip_debug_symbols">strip_debug_symbols</a>, <a href="#zig_test-test_runner">test_runner</a>, <a href="#zig_test-zigopts">zigopts</a>)
 </pre>
 
 Builds a Zig test.
@@ -539,6 +553,9 @@ zig_test(
 | <a id="zig_test-compiler_runtime"></a>compiler_runtime |  Whether to include Zig compiler runtime symbols in the generated output. The default behavior is to include them in executables and shared libraries.   | String | optional |  `"default"`  |
 | <a id="zig_test-copts"></a>copts |  C compiler flags required to build the C sources of the target. Subject to location expansion.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-csrcs"></a>csrcs |  C source files required to build the target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
+| <a id="zig_test-emit_asm"></a>emit_asm |  Emit the assembly in the `asm` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_test-emit_llvm_bc"></a>emit_llvm_bc |  Emit the LLVM bytecode in the `llvm_bc` output group.   | Boolean | optional |  `False`  |
+| <a id="zig_test-emit_llvm_ir"></a>emit_llvm_ir |  Emit the LLVM IR in the `llvm_ir` output group.   | Boolean | optional |  `False`  |
 | <a id="zig_test-env"></a>env |  Additional environment variables to set when executed by `bazel run` or `bazel test`. Subject to location expansion.   | <a href="https://bazel.build/rules/lib/core/dict">Dictionary: String -> String</a> | optional |  `{}`  |
 | <a id="zig_test-env_inherit"></a>env_inherit |  Environment variables to inherit from external environment when executed by `bazel test`.   | List of strings | optional |  `[]`  |
 | <a id="zig_test-extra_docs"></a>extra_docs |  Other files required to generate documentation, e.g. guides referenced using `//!zig-autodoc-guide:`.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
