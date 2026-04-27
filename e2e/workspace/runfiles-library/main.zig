@@ -39,7 +39,7 @@ fn createTestingRunfiles(allocator: std.mem.Allocator) !?runfiles.Runfiles {
         defer env_map.deinit();
         return try runfiles.Runfiles.create(.{
             .allocator = allocator,
-            .io = std.Io.Threaded.global_single_threaded.io(),
+            .io = std.testing.io,
             .environ_map = &env_map,
         });
     }
@@ -56,37 +56,33 @@ fn createRunfilesFromInit(allocator: std.mem.Allocator, init: ProcessInit) !?run
 }
 
 fn readFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
-    if (is_zig_0_16_or_later) {
-        const io = std.Io.Threaded.global_single_threaded.io();
-        const file = try std.Io.Dir.cwd().openFile(io, path, .{});
-        defer file.close(io);
-        var buffer: [1024]u8 = undefined;
-        var reader = file.reader(io, &buffer);
-        return try reader.interface.allocRemaining(allocator, .limited(limit));
-    }
-
     var file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
     return try file.readToEndAlloc(allocator, limit);
 }
 
+fn readFileAlloc_016(io: anytype, allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    const file = try std.Io.Dir.cwd().openFile(io, path, .{});
+    defer file.close(io);
+    var buffer: [1024]u8 = undefined;
+    var reader = file.reader(io, &buffer);
+    return try reader.interface.allocRemaining(allocator, .limited(limit));
+}
+
 fn printData(content: []const u8) !void {
-    if (is_zig_0_16_or_later) {
-        var buffer: [512]u8 = undefined;
-        var writer = std.Io.File.stdout().writer(
-            std.Io.Threaded.global_single_threaded.io(),
-            &buffer,
-        );
-        const stdout = &writer.interface;
-        try stdout.print("data: {s}", .{content});
-        try stdout.flush();
-    } else {
-        var buffer: [512]u8 = undefined;
-        var writer = std.fs.File.stdout().writer(&buffer);
-        const stdout = &writer.interface;
-        try stdout.print("data: {s}", .{content});
-        try stdout.flush();
-    }
+    var buffer: [512]u8 = undefined;
+    var writer = std.fs.File.stdout().writer(&buffer);
+    const stdout = &writer.interface;
+    try stdout.print("data: {s}", .{content});
+    try stdout.flush();
+}
+
+fn printData_016(io: anytype, content: []const u8) !void {
+    var buffer: [512]u8 = undefined;
+    var writer = std.Io.File.stdout().writer(io, &buffer);
+    const stdout = &writer.interface;
+    try stdout.print("data: {s}", .{content});
+    try stdout.flush();
 }
 
 fn main_pre_016() !void {
@@ -133,10 +129,10 @@ fn main_016(init: ProcessInit) !void {
         return error.RLocationNotFound;
     defer allocator.free(file_path);
 
-    const content = try readFileAlloc(allocator, file_path, 4096);
+    const content = try readFileAlloc_016(init.io, allocator, file_path, 4096);
     defer allocator.free(content);
 
-    try printData(content);
+    try printData_016(init.io, content);
 }
 
 test "read data file" {
@@ -153,7 +149,10 @@ test "read data file" {
         return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
-    const content = try readFileAlloc(std.testing.allocator, file_path, 4096);
+    const content = if (is_zig_0_16_or_later)
+        try readFileAlloc_016(std.testing.io, std.testing.allocator, file_path, 4096)
+    else
+        try readFileAlloc(std.testing.allocator, file_path, 4096);
     defer std.testing.allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello World!\n", content);
@@ -173,7 +172,10 @@ test "resolve external dependency rpath" {
         return error.RLocationNotFound;
     defer std.testing.allocator.free(file_path);
 
-    const content = try readFileAlloc(std.testing.allocator, file_path, 4096);
+    const content = if (is_zig_0_16_or_later)
+        try readFileAlloc_016(std.testing.io, std.testing.allocator, file_path, 4096)
+    else
+        try readFileAlloc(std.testing.allocator, file_path, 4096);
     defer std.testing.allocator.free(content);
 
     try std.testing.expectEqualStrings("Hello from dependency!\n", content);

@@ -19,22 +19,19 @@ fn getEnvVarOwnedFromInit(allocator: std.mem.Allocator, init: ProcessInit, key: 
 }
 
 fn printEnv(name: []const u8, value: []const u8) !void {
-    if (is_zig_0_16_or_later) {
-        var buffer: [512]u8 = undefined;
-        var writer = std.Io.File.stdout().writer(
-            std.Io.Threaded.global_single_threaded.io(),
-            &buffer,
-        );
-        const stdout = &writer.interface;
-        try stdout.print("{s}: '{s}'\n", .{ name, value });
-        try stdout.flush();
-    } else {
-        var buffer: [512]u8 = undefined;
-        var writer = std.fs.File.stdout().writer(&buffer);
-        const stdout = &writer.interface;
-        try stdout.print("{s}: '{s}'\n", .{ name, value });
-        try stdout.flush();
-    }
+    var buffer: [512]u8 = undefined;
+    var writer = std.fs.File.stdout().writer(&buffer);
+    const stdout = &writer.interface;
+    try stdout.print("{s}: '{s}'\n", .{ name, value });
+    try stdout.flush();
+}
+
+fn printEnv_016(io: anytype, name: []const u8, value: []const u8) !void {
+    var buffer: [512]u8 = undefined;
+    var writer = std.Io.File.stdout().writer(io, &buffer);
+    const stdout = &writer.interface;
+    try stdout.print("{s}: '{s}'\n", .{ name, value });
+    try stdout.flush();
 }
 
 fn main_pre_016() !void {
@@ -65,8 +62,8 @@ fn main_016(init: ProcessInit) !void {
     const env_genrule = try getEnvVarOwnedFromInit(allocator, init, "ENV_GENRULE");
     defer if (env_genrule) |value| allocator.free(value);
 
-    if (env_attr) |value| try printEnv("ENV_ATTR", value);
-    if (env_genrule) |value| try printEnv("ENV_GENRULE", value);
+    if (env_attr) |value| try printEnv_016(init.io, "ENV_ATTR", value);
+    if (env_genrule) |value| try printEnv_016(init.io, "ENV_GENRULE", value);
 }
 
 test "bazel controlled env var" {
