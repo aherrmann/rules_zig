@@ -1,12 +1,14 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 fn getEnvVarOwned(allocator: std.mem.Allocator, key: []const u8) ![]u8 {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16) {
-        const key_z = try allocator.dupeZ(u8, key);
-        defer allocator.free(key_z);
-        const value = std.c.getenv(key_z.ptr) orelse return error.NotSet;
-        return try allocator.dupe(u8, std.mem.span(value));
+    if (is_zig_0_16_or_later) {
+        return std.testing.environ.getAlloc(allocator, key) catch |e| switch (e) {
+            error.EnvironmentVariableMissing => error.NotSet,
+            else => |e_| return e_,
+        };
     }
     return try std.process.getEnvVarOwned(allocator, key);
 }
