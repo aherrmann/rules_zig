@@ -2,7 +2,6 @@
 
 load(
     "//zig/private/common:zig_build.bzl",
-    "COMMON_LIBRARY_ATTRS",
     "SHARED_LIBRARY_ATTRS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
@@ -43,7 +42,7 @@ zig_shared_library(
 ```
 """
 
-ATTRS = COMMON_ATTRS | COMMON_LIBRARY_ATTRS | SHARED_LIBRARY_ATTRS | DOCS_ATTRS
+ATTRS = COMMON_ATTRS | SHARED_LIBRARY_ATTRS | DOCS_ATTRS
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
