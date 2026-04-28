@@ -53,7 +53,9 @@ bazel_integration_tests(
     workspace_path = "workspace",
 )
 
-TEST_VERSIONS = TOOL_VERSIONS.keys()
+TEST_VERSIONS = TOOL_VERSIONS.keys() + [
+    "0.17.0-dev.135+9df02121d",
+]
 
 [
     expand_template(
