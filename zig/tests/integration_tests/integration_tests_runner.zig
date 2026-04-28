@@ -224,8 +224,7 @@ test "zig_binary result should not contain the output base path in release_fast 
 }
 
 test "zig_target_toolchain attribute dynamic_linker configures the interpreter" {
-    if (true) {
-        // Zig 0.16 rejects custom dynamic linkers for some compiler sub-steps.
+    if (is_zig_0_16_or_later) {
         return error.SkipZigTest;
     }
 
