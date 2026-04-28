@@ -15,13 +15,7 @@ export fn sayHello() void {
     }
 }
 
-pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
-
-fn main_pre_016() void {
-    sayHello();
-}
-
-fn main_016(init: std.process.Init) void {
+pub fn main() void {
     sayHello();
 }
 
