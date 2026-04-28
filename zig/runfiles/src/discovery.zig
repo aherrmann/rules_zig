@@ -43,7 +43,7 @@ pub const DiscoverOptions = if (is_zig_0_16_or_later)
         io: std.Io,
         /// Command-line arguments, used for runfiles discovery.
         argv: ?std.process.Args = null,
-        /// EnvironMap
+        /// Environment variables, used for runfiles discovery.
         environ_map: ?*std.process.Environ.Map = null,
         /// User override for the `RUNFILES_MANIFEST_FILE` variable.
         manifest: ?[]const u8 = null,
