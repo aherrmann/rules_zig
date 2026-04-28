@@ -41,7 +41,7 @@ pub const DiscoverOptions = if (is_zig_0_16_or_later)
         allocator: std.mem.Allocator,
         /// Used for IO operations during discovery.
         io: std.Io,
-        /// EnvironMap
+        /// Command-line arguments, used for runfiles discovery.
         argv: ?std.process.Args = null,
         /// EnvironMap
         environ_map: ?*std.process.Environ.Map = null,
