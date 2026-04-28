@@ -102,6 +102,7 @@ pub const WithSourceRepo = struct {
     source_repo: []const u8,
 
     pub const RLocationError = error{
+        NoSpaceLeft,
         WriteFailed,
         NameTooLong,
     } || ValidationError;

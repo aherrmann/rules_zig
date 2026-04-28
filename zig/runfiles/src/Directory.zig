@@ -48,7 +48,7 @@ pub fn rlocationUnmapped(
     self: *const Directory,
     rpath: RPath,
     out_buffer: []u8,
-) error{WriteFailed}![]const u8 {
+) error{ WriteFailed, NoSpaceLeft }![]const u8 {
     var writer = std.Io.Writer.fixed(out_buffer);
     try writer.print("{s}", .{self.path});
     if (rpath.repo.len > 0)
