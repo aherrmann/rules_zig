@@ -1,10 +1,10 @@
 """Generate the `bazel_builtin` module."""
 
+load("//zig/private/common:escape_label.bzl", "escape_label")
 load(
     "//zig/private/providers:zig_module_info.bzl",
     "zig_module_info",
 )
-load("//zig/private/common:escape_label.bzl", "escape_label")
 
 ATTRS = {
     "_bazel_builtin_template": attr.label(
