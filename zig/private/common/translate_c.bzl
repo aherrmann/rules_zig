@@ -6,7 +6,7 @@ load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private/common:escape_label.bzl", "escape_label", "escape_label_str")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
 
-def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, output_prefix = ""):
+def zig_translate_c(*, ctx, name, canonical_name = None, zigtoolchaininfo, global_args, cc_infos, output_prefix = ""):
     """Handle translate-c build action.
 
     Sets the appropriate command-line flags for the Zig compiler to expose
@@ -15,6 +15,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
     Args:
       ctx: Context object.
       name: String, the name of the resulting Zig module.
+      canonical_name: String or None, optional canonical name override for the resulting Zig module.
       zigtoolchaininfo: ZigToolchainInfo.
       global_args: Args; mutable, Append the global Zig command-line flags to this object.
       cc_infos: List of CcInfo, The CcInfo providers for the C dependencies.
@@ -93,7 +94,7 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
         # To avoid collisions, we need to escape both label and name,
         # joined using a separator that cannot appear in escapted text.
         # (here "__" is used as separator, since "_" is escaped as "_U").
-        canonical_name = "{}__{}".format(escape_label(label = ctx.label), escape_label_str(name)),
+        canonical_name = canonical_name if canonical_name else "{}__{}".format(escape_label(label = ctx.label), escape_label_str(name)),
         main = zig_out,
         cdeps = [cc_info],
     )

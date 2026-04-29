@@ -97,5 +97,5 @@ def zig_module_specifications(*, root_module, args, c_module = None):
     args.add_all(root_module.transitive_module_contexts, map_each = _render_per_module_args)
 
     if c_module:
-        # Global C module has a predefined canonical name.
-        args.add(c_module.module_context.main, format = "-Mc=%s")
+        args.add_all(_render_per_module_args(c_module.module_context))
+        args.add_all(c_module.transitive_module_contexts, map_each = _render_per_module_args)
