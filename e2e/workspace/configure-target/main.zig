@@ -1,12 +1,14 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
-pub fn main() !void {
-    const stdout = if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15)
-        std.fs.File.stdout()
-    else
-        std.io.getStdOut();
-    try stdout.writeAll(
-        "Hello World!\n",
-    );
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
+pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
+
+fn main_pre_016() !void {
+    try std.fs.File.stdout().writeAll("Hello World!\n");
+}
+
+fn main_016(init: std.process.Init) !void {
+    try std.Io.File.writeStreamingAll(.stdout(), init.io, "Hello World!\n");
 }

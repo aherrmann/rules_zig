@@ -12,12 +12,12 @@ local_path_override(
 
 zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
 zig.index(file = "extra-versions.json")
-zig.toolchain(zig_version = "0.16.0-dev.381+bc512648d")
+zig.toolchain(zig_version = "0.17.0-dev.135+9df02121d")
 zig.toolchain(
     default = True,
-    zig_version = "0.15.2",
+    zig_version = "0.16.0",
 )
-zig.toolchain(zig_version = "0.14.1")
+zig.toolchain(zig_version = "0.15.2")
 use_repo(zig, "zig_toolchains")
 
 bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4", dev_dependency = True)

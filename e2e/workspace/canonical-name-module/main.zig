@@ -3,14 +3,14 @@ const std = @import("std");
 const data = @import("data");
 const other_data = @import("other/data");
 
-pub fn main() void {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-        std.fs.File.stdout().writeAll(
-            data.hello_world,
-        ) catch unreachable;
-    } else {
-        std.io.getStdOut().writeAll(
-            data.hello_world,
-        ) catch unreachable;
-    }
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
+pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
+
+fn main_pre_016() void {
+    std.fs.File.stdout().writeAll(data.hello_world) catch unreachable;
+}
+
+fn main_016(init: std.process.Init) void {
+    std.Io.File.writeStreamingAll(.stdout(), init.io, data.hello_world) catch unreachable;
 }

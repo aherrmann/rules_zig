@@ -1,10 +1,16 @@
 const builtin = @import("builtin");
 const std = @import("std");
 
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
 pub fn print(msg: []const u8) void {
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-        std.fs.File.stdout().writeAll(msg) catch unreachable;
+    if (is_zig_0_16_or_later) {
+        std.Io.File.writeStreamingAll(
+            .stdout(),
+            std.Io.Threaded.global_single_threaded.io(),
+            msg,
+        ) catch unreachable;
     } else {
-        std.io.getStdOut().writeAll(msg) catch unreachable;
+        std.fs.File.stdout().writeAll(msg) catch unreachable;
     }
 }

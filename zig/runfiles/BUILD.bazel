@@ -12,6 +12,7 @@ _SRCS = [
     "src/RepoMapping.zig",
     "src/RPath.zig",
     "src/Runfiles.zig",
+    "src/testutil.zig",
 ]
 
 zig_library(
@@ -60,6 +61,7 @@ filegroup(
         ":src/RepoMapping.zig",
         ":src/Runfiles.zig",
         ":src/discovery.zig",
+        ":src/testutil.zig",
         ":test-data.txt",
     ],
     visibility = ["//zig:__pkg__"],

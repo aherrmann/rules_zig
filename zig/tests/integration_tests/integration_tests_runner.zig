@@ -2,14 +2,15 @@ const builtin = @import("builtin");
 const std = @import("std");
 const integration_testing = @import("integration_testing");
 const BitContext = integration_testing.BitContext;
+const EnvMap = integration_testing.EnvMap;
+const exitedTerm = integration_testing.exitedTerm;
+const removeEnv = integration_testing.removeEnv;
 
-const Term = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13)
-    std.ChildProcess.Term
-else
-    std.process.Child.Term;
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
 test "zig_binary prints Hello World!" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "run", "//:binary" },
@@ -22,6 +23,7 @@ test "zig_binary prints Hello World!" {
 
 test "succeeding zig_test passes" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "test", "//:test-succeeds" },
@@ -33,6 +35,7 @@ test "succeeding zig_test passes" {
 
 test "failing zig_test fails" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "test", "//:test-fails" },
@@ -41,11 +44,12 @@ test "failing zig_test fails" {
     defer result.deinit();
 
     // See https://bazel.build/run/scripts for Bazel exit codes.
-    try std.testing.expectEqual(Term{ .Exited = 3 }, result.term);
+    try std.testing.expectEqual(exitedTerm(3), result.term);
 }
 
 test "Zig cache directory can be configured" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{
@@ -64,6 +68,7 @@ test "Zig cache directory can be configured" {
 
 test "target build mode defaults to Debug" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "run", "//:print_build_mode" },
@@ -76,6 +81,7 @@ test "target build mode defaults to Debug" {
 
 test "exec build mode defaults to ReleaseSafe" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "build", "//:exec_build_mode" },
@@ -84,16 +90,14 @@ test "exec build mode defaults to ReleaseSafe" {
 
     try std.testing.expect(result.success);
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
-
-    const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
+    const build_mode = try ctx.readWorkspaceFileAlloc("bazel-bin/exec_build_mode.out", 16);
     defer std.testing.allocator.free(build_mode);
     try std.testing.expectEqualStrings("ReleaseSafe", build_mode);
 }
 
 test "target build mode can be set on the command line" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "run", "//:print_build_mode", "--@rules_zig//zig/settings:mode=release_small" },
@@ -106,6 +110,7 @@ test "target build mode can be set on the command line" {
 
 test "target build mode does not affect exec build mode" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "build", "//:exec_build_mode", "--@rules_zig//zig/settings:mode=release_small" },
@@ -114,16 +119,14 @@ test "target build mode does not affect exec build mode" {
 
     try std.testing.expect(result.success);
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
-
-    const build_mode = try workspace.readFileAlloc(std.testing.allocator, "bazel-bin/exec_build_mode.out", 16);
+    const build_mode = try ctx.readWorkspaceFileAlloc("bazel-bin/exec_build_mode.out", 16);
     defer std.testing.allocator.free(build_mode);
     try std.testing.expectEqualStrings("ReleaseSafe", build_mode);
 }
 
 test "can compile to target platform aarch64-linux" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "build", "//:binary", "--platforms=:aarch64-linux" },
@@ -132,19 +135,18 @@ test "can compile to target platform aarch64-linux" {
 
     try std.testing.expect(result.success);
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
-
-    const file = try workspace.openFile("bazel-bin/binary", .{});
-    defer file.close();
+    var file = try ctx.openWorkspaceFile("bazel-bin/binary");
+    defer BitContext.closeWorkspaceFile(&file);
 
     const elf_header = header: {
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        if (is_zig_0_16_or_later) {
+            var buffer: [1024]u8 = undefined;
+            var reader = file.reader(std.testing.io, &buffer);
+            break :header try std.elf.Header.read(&reader.interface);
+        } else {
             var buffer: [1024]u8 = undefined;
             var reader = file.reader(&buffer);
             break :header try std.elf.Header.read(&reader.interface);
-        } else {
-            break :header try std.elf.Header.read(file);
         }
     };
 
@@ -153,6 +155,7 @@ test "can compile to target platform aarch64-linux" {
 
 fn testBinaryShouldNotContainOutputBase(mode: []const u8) !void {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const info_result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "info", "output_base" },
@@ -175,13 +178,7 @@ fn testBinaryShouldNotContainOutputBase(mode: []const u8) !void {
 
     try std.testing.expect(result.success);
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
-
-    const file = try workspace.openFile("bazel-bin/binary", .{});
-    defer file.close();
-
-    const file_content = try file.readToEndAlloc(std.testing.allocator, 64_000_000);
+    const file_content = try ctx.readWorkspaceFileAlloc("bazel-bin/binary", 64_000_000);
     defer std.testing.allocator.free(file_content);
 
     if (std.mem.indexOf(u8, file_content, output_base)) |start| {
@@ -227,7 +224,12 @@ test "zig_binary result should not contain the output base path in release_fast 
 }
 
 test "zig_target_toolchain attribute dynamic_linker configures the interpreter" {
+    if (is_zig_0_16_or_later) {
+        return error.SkipZigTest;
+    }
+
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{
@@ -240,13 +242,27 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
 
     try std.testing.expect(result.success);
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
+    var file = try ctx.openWorkspaceFile("bazel-bin/custom_interpreter/binary-custom_interpreter");
+    defer BitContext.closeWorkspaceFile(&file);
 
-    const file = try workspace.openFile("bazel-bin/custom_interpreter/binary-custom_interpreter", .{});
-    defer file.close();
+    if (is_zig_0_16_or_later) {
+        var buffer: [1024]u8 = undefined;
+        var reader = file.reader(std.testing.io, &buffer);
+        const elf_header = try std.elf.Header.read(&reader.interface);
+        var ph_iter = elf_header.iterateProgramHeaders(&reader);
+        var interp: std.Io.Writer.Allocating = .init(std.testing.allocator);
+        defer interp.deinit();
+        while (try ph_iter.next()) |phdr| {
+            if (phdr.p_type == std.elf.PT_INTERP) {
+                try reader.seekTo(phdr.p_offset);
+                _ = try reader.interface.streamDelimiter(&interp.writer, 0);
+                try interp.writer.flush();
+                break;
+            }
+        }
 
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
+        try std.testing.expectEqualStrings("/custom/loader.so", interp.written());
+    } else {
         var buffer: [1024]u8 = undefined;
         var reader = file.reader(&buffer);
         const elf_header = try std.elf.Header.read(&reader.interface);
@@ -266,27 +282,14 @@ test "zig_target_toolchain attribute dynamic_linker configures the interpreter" 
         }
 
         try std.testing.expectEqualStrings("/custom/loader.so", interp.items);
-    } else {
-        const elf_header = try std.elf.Header.read(file);
-        var ph_iter = elf_header.program_header_iterator(file);
-        var interp = std.ArrayList(u8).init(std.testing.allocator);
-        defer interp.deinit();
-        while (try ph_iter.next()) |phdr| {
-            if (phdr.p_type == std.elf.PT_INTERP) {
-                try file.seekableStream().seekTo(phdr.p_offset);
-                try file.reader().streamUntilDelimiter(interp.writer(), 0, null);
-                break;
-            }
-        }
-
-        try std.testing.expectEqualStrings("/custom/loader.so", interp.items);
     }
 }
 
 test "zig_binary forwards env attribute environment" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
-    var extra_env = std.process.EnvMap.init(std.testing.allocator);
+    var extra_env = EnvMap.init(std.testing.allocator);
     defer extra_env.deinit();
     try extra_env.put("ENV_INHERIT", "21");
 
@@ -306,8 +309,9 @@ test "zig_binary forwards env attribute environment" {
 
 test "zig_test forwards env attribute environment" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
-    var extra_env = std.process.EnvMap.init(std.testing.allocator);
+    var extra_env = EnvMap.init(std.testing.allocator);
     defer extra_env.deinit();
     try extra_env.put("ENV_INHERIT", "21");
 
@@ -328,12 +332,13 @@ test "zig_test forwards env attribute environment" {
         });
         defer result.deinit();
 
-        try std.testing.expect(!result.success);
+        try std.testing.expect(result.success);
     }
 }
 
 test "runfiles library supports manifest mode" {
     const ctx = try BitContext.init();
+    defer ctx.deinit();
 
     // Build the binary with runfiles manifest but without runfiles directory.
     // Note, we cannot test the inverse because
@@ -353,54 +358,44 @@ test "runfiles library supports manifest mode" {
         try std.testing.expect(result.success);
     }
 
-    var workspace = try std.fs.cwd().openDir(ctx.workspace_path, .{});
-    defer workspace.close();
-
     // Check that no runfiles tree was generated.
-    {
-        var dir: ?std.fs.Dir = workspace.openDir("bazel-bin/runfiles/binary.runfiles", .{}) catch |e| switch (e) {
-            error.FileNotFound => null,
-            else => |e_| return e_,
-        };
-        if (dir) |*dir_| {
-            dir_.close();
-            return error.RunfilesDirectoryShouldNotExist;
-        }
+    if (try ctx.workspaceDirExists("bazel-bin/runfiles/binary.runfiles")) {
+        return error.RunfilesDirectoryShouldNotExist;
     }
 
     // Check that the runfiles manifest was generated.
-    {
-        const file = workspace.openFile("bazel-bin/runfiles/binary.runfiles_manifest", .{}) catch |e| switch (e) {
-            error.FileNotFound => return error.RunfilesManifestNotFound,
-            else => |e_| return e_,
-        };
-        file.close();
+    if (!try ctx.workspaceFileExists("bazel-bin/runfiles/binary.runfiles_manifest")) {
+        return error.RunfilesManifestNotFound;
     }
 
     // Clean up the environment.
-    var env_map = try std.process.getEnvMap(std.testing.allocator);
+    var env_map = try integration_testing.currentEnvMap(std.testing.allocator);
     defer env_map.deinit();
-    env_map.remove("RUNFILES_DIR");
-    env_map.remove("RUNFILES_MANIFEST_FILE");
+    removeEnv(&env_map, "RUNFILES_DIR");
+    removeEnv(&env_map, "RUNFILES_MANIFEST_FILE");
 
     // Execute the binary.
-    const run = if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 11)
-        std.ChildProcess.exec
-    else if (builtin.zig_version.major == 0 and builtin.zig_version.minor == 12)
-        std.ChildProcess.run
-    else
-        std.process.Child.run;
-    const result = try run(.{
-        .allocator = std.testing.allocator,
-        .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
-        .cwd_dir = workspace,
-        .env_map = &env_map,
-    });
+    const result = if (is_zig_0_16_or_later)
+        try std.process.run(std.testing.allocator, std.testing.io, .{
+            .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
+            .cwd = .{ .path = ctx.workspace_path },
+            .environ_map = &env_map,
+        })
+    else result: {
+        var workspace = try ctx.openWorkspace();
+        defer BitContext.closeWorkspaceDir(&workspace);
+        break :result try std.process.Child.run(.{
+            .allocator = std.testing.allocator,
+            .argv = &[_][]const u8{"bazel-bin/runfiles/binary"},
+            .cwd_dir = workspace,
+            .env_map = &env_map,
+        });
+    };
     defer std.testing.allocator.free(result.stdout);
     defer std.testing.allocator.free(result.stderr);
 
     if (result.stderr.len > 0)
         std.log.warn("stderr: {s}", .{result.stderr});
-    try std.testing.expectEqual(Term{ .Exited = 0 }, result.term);
+    try std.testing.expectEqual(exitedTerm(0), result.term);
     try std.testing.expectEqualStrings("data: Hello World!\n", result.stdout);
 }

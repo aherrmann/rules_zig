@@ -2,13 +2,20 @@ const std = @import("std");
 const builtin = @import("builtin");
 const log = std.log.scoped(.runfiles);
 
-const max_path_bytes = if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 14) std.fs.MAX_PATH_BYTES else std.fs.max_path_bytes;
+const max_path_bytes = std.fs.max_path_bytes;
 
 const discovery = @import("discovery.zig");
 const Directory = @import("Directory.zig");
 const Manifest = @import("Manifest.zig");
 const RepoMapping = @import("RepoMapping.zig");
 const RPath = @import("RPath.zig");
+
+const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
+
+const EnvMap = if (is_zig_0_16_or_later)
+    std.process.Environ.Map
+else
+    std.process.EnvMap;
 
 const Runfiles = @This();
 
@@ -55,19 +62,28 @@ pub fn create(options: CreateOptions) CreateError!?Runfiles {
         switch (result) {
             .manifest => |path| {
                 defer options.allocator.free(path);
-                const manifest = try Manifest.init(options.allocator, path);
+                const manifest = if (is_zig_0_16_or_later)
+                    try Manifest.init(options.allocator, options.io, path)
+                else
+                    try Manifest.init(options.allocator, path);
                 break :discover Implementation{ .manifest = manifest };
             },
             .directory => |path| {
                 defer options.allocator.free(path);
-                const directory = try Directory.init(options.allocator, path);
+                const directory = if (is_zig_0_16_or_later)
+                    try Directory.init(options.allocator, options.io, path)
+                else
+                    try Directory.init(options.allocator, path);
                 break :discover Implementation{ .directory = directory };
             },
         }
     };
     errdefer implementation.deinit(options.allocator);
 
-    const repo_mapping = try implementation.loadRepoMapping(options.allocator);
+    const repo_mapping = try if (is_zig_0_16_or_later)
+        implementation.loadRepoMapping(options.allocator, options.io)
+    else
+        implementation.loadRepoMapping(options.allocator);
 
     return Runfiles{
         .implementation = implementation,
@@ -87,6 +103,7 @@ pub const WithSourceRepo = struct {
 
     pub const RLocationError = error{
         NoSpaceLeft,
+        WriteFailed,
         NameTooLong,
     } || ValidationError;
 
@@ -141,7 +158,10 @@ pub const WithSourceRepo = struct {
     };
 
     fn validateRPath(rpath: []const u8) !void {
-        var iter = try std.fs.path.componentIterator(rpath);
+        var iter = if (is_zig_0_16_or_later)
+            std.fs.path.componentIterator(rpath)
+        else
+            try std.fs.path.componentIterator(rpath);
 
         if (iter.root() != null)
             return error.RPathIsAbsolute;
@@ -173,7 +193,7 @@ pub fn withSourceRepo(self: *const Runfiles, source_repo: []const u8) WithSource
 /// Set the required environment variables to discover the same runfiles. Use
 /// this if you invoke another process that needs to resolve runfiles location
 /// paths.
-pub fn environment(self: *const Runfiles, output_env: *std.process.EnvMap) error{OutOfMemory}!void {
+pub fn environment(self: *const Runfiles, output_env: *EnvMap) error{OutOfMemory}!void {
     try self.implementation.environment(output_env);
 }
 
@@ -241,14 +261,19 @@ const Implementation = union(discovery.Strategy) {
         }
     }
 
-    pub fn environment(self: *const Implementation, output_env: *std.process.EnvMap) !void {
+    pub fn environment(self: *const Implementation, output_env: *EnvMap) !void {
         switch (self.*) {
             .manifest => |*manifest| try output_env.put(discovery.runfiles_manifest_var_name, manifest.path),
             .directory => |*directory| try output_env.put(discovery.runfiles_directory_var_name, directory.path),
         }
     }
 
-    pub fn loadRepoMapping(self: *const Implementation, allocator: std.mem.Allocator) !?RepoMapping {
+    pub const loadRepoMapping = if (is_zig_0_16_or_later)
+        loadRepoMapping_io
+    else
+        loadRepoMapping_non_io;
+
+    pub fn loadRepoMapping_non_io(self: *const Implementation, allocator: std.mem.Allocator) !?RepoMapping {
         // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
         const msg_not_found = "No repository mapping found. " ++
             "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
@@ -270,62 +295,77 @@ const Implementation = union(discovery.Strategy) {
             else => |e_| return e_,
         };
     }
+
+    pub fn loadRepoMapping_io(self: *const Implementation, allocator: std.mem.Allocator, io: std.Io) !?RepoMapping {
+        // Bazel <7 with bzlmod disabled does not generate a repo-mapping.
+        const msg_not_found = "No repository mapping found. " ++
+            "This is likely an error if you are using Bazel version >=7 with bzlmod enabled.";
+
+        const path = try self.rlocationUnmappedAlloc(allocator, .{
+            .repo = "",
+            .path = discovery.repo_mapping_file_name,
+        }) orelse {
+            log.warn(msg_not_found, .{});
+            return null;
+        };
+        defer allocator.free(path);
+
+        return RepoMapping.init(allocator, io, path) catch |e| switch (e) {
+            error.FileNotFound => {
+                log.warn(msg_not_found, .{});
+                return null;
+            },
+            else => |e_| return e_,
+        };
+    }
 };
 
 test "Runfiles from manifest" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.makePath("some/package");
-    try tmp.dir.makePath("other/package");
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.repo_mapping",
-            \\,my_module,my_workspace
-            \\,other_module,other~3.4.5
-            \\their_module~1.2.3,another_module,other~3.4.5
-        );
-        try tmp.dir.writeFile("some/package/some_file", "some_content");
-        try tmp.dir.writeFile("other/package/other_file", "other_content");
-    } else {
-        try tmp.dir.writeFile(.{ .sub_path = "test.repo_mapping", .data = 
-            \\,my_module,my_workspace
-            \\,other_module,other~3.4.5
-            \\their_module~1.2.3,another_module,other~3.4.5
-        });
-        try tmp.dir.writeFile(.{
-            .sub_path = "some/package/some_file",
-            .data = "some_content",
-        });
-        try tmp.dir.writeFile(.{
-            .sub_path = "other/package/other_file",
-            .data = "other_content",
-        });
-    }
+    try testutil.tmpMakePath(tmp.dir, "some/package");
+    try testutil.tmpMakePath(tmp.dir, "other/package");
+    try testutil.tmpWriteFile(tmp.dir, "test.repo_mapping",
+        \\,my_module,my_workspace
+        \\,other_module,other~3.4.5
+        \\their_module~1.2.3,another_module,other~3.4.5
+    );
+    try testutil.tmpWriteFile(tmp.dir, "some/package/some_file", "some_content");
+    try testutil.tmpWriteFile(tmp.dir, "other/package/other_file", "other_content");
     {
-        var manifest_file = try tmp.dir.createFile("test.runfiles_manifest", .{});
-        defer manifest_file.close();
-        var buf: [max_path_bytes]u8 = undefined;
-
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-            var buffer: [1024]u8 = undefined;
-            var writer = manifest_file.writer(&buffer);
-            const file_writer = &writer.interface;
-            try file_writer.print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
-            try file_writer.print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
-            try file_writer.print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
-            try file_writer.flush();
-        } else {
-            try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("test.repo_mapping", &buf)});
-            try manifest_file.writer().print("my_workspace/some/package/some_file {s}\n", .{try tmp.dir.realpath("some/package/some_file", &buf)});
-            try manifest_file.writer().print("other~3.4.5/other/package/other_file {s}\n", .{try tmp.dir.realpath("other/package/other_file", &buf)});
-        }
+        const repo_mapping_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.repo_mapping");
+        defer std.testing.allocator.free(repo_mapping_path);
+        const some_file_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "some/package/some_file");
+        defer std.testing.allocator.free(some_file_path);
+        const other_file_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "other/package/other_file");
+        defer std.testing.allocator.free(other_file_path);
+        const manifest_content = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "_repo_mapping {s}\nmy_workspace/some/package/some_file {s}\nother~3.4.5/other/package/other_file {s}\n",
+            .{
+                repo_mapping_path,
+                some_file_path,
+                other_file_path,
+            },
+        );
+        defer std.testing.allocator.free(manifest_content);
+        try testutil.tmpWriteFile(tmp.dir, "test.runfiles_manifest", manifest_content);
     }
-    const manifest_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles_manifest");
+    const manifest_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles_manifest");
     defer std.testing.allocator.free(manifest_path);
 
-    var runfiles = try Runfiles.create(.{
-        .allocator = std.testing.allocator,
-        .manifest = manifest_path,
-    }) orelse
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
+        .{
+            .allocator = std.testing.allocator,
+            .io = std.testing.io,
+            .manifest = manifest_path,
+        }
+    else
+        .{
+            .allocator = std.testing.allocator,
+            .manifest = manifest_path,
+        }) orelse
         return error.RunfilesNotFound;
     defer runfiles.deinit(std.testing.allocator);
 
@@ -339,7 +379,7 @@ test "Runfiles from manifest" {
         ) orelse
             return error.TestRLocationNotFound;
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("some_content", content);
     }
@@ -354,7 +394,7 @@ test "Runfiles from manifest" {
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("other_content", content);
     }
@@ -369,13 +409,13 @@ test "Runfiles from manifest" {
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("other_content", content);
     }
 
     {
-        var env = std.process.EnvMap.init(std.testing.allocator);
+        var env = EnvMap.init(std.testing.allocator);
         defer env.deinit();
         try runfiles.environment(&env);
         try std.testing.expectEqual(@as(usize, 1), env.count());
@@ -384,6 +424,7 @@ test "Runfiles from manifest" {
 }
 
 test "Runfiles from manifest with compact repo mapping" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
@@ -396,59 +437,59 @@ test "Runfiles from manifest with compact repo mapping" {
         \\my_module++ext+*,repo1,my_module++ext+repo1
     ;
 
-    try tmp.dir.makePath("my_module+");
-    try tmp.dir.makePath("my_module++ext+repo1");
-    try tmp.dir.makePath("repo2+");
-
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("foo.repo_mapping", repo_mapping_contents);
-        try tmp.dir.writeFile("config.json", "config");
-        try tmp.dir.writeFile("my_module+/foo", "my_module+");
-        try tmp.dir.writeFile("my_module++ext+repo1/foo", "ext_repo1");
-        try tmp.dir.writeFile("repo2+/foo", "repo2+");
-    } else {
-        try tmp.dir.writeFile(.{ .sub_path = "foo.repo_mapping", .data = repo_mapping_contents });
-        try tmp.dir.writeFile(.{ .sub_path = "config.json", .data = "config" });
-        try tmp.dir.writeFile(.{ .sub_path = "my_module+/foo", .data = "my_module+" });
-        try tmp.dir.writeFile(.{ .sub_path = "my_module++ext+repo1/foo", .data = "ext_repo1" });
-        try tmp.dir.writeFile(.{ .sub_path = "repo2+/foo", .data = "repo2+" });
-    }
+    try testutil.tmpMakePath(tmp.dir, "my_module+");
+    try testutil.tmpMakePath(tmp.dir, "my_module++ext+repo1");
+    try testutil.tmpMakePath(tmp.dir, "repo2+");
+    try testutil.tmpWriteFile(tmp.dir, "foo.repo_mapping", repo_mapping_contents);
+    try testutil.tmpWriteFile(tmp.dir, "config.json", "config");
+    try testutil.tmpWriteFile(tmp.dir, "my_module+/foo", "my_module+");
+    try testutil.tmpWriteFile(tmp.dir, "my_module++ext+repo1/foo", "ext_repo1");
+    try testutil.tmpWriteFile(tmp.dir, "repo2+/foo", "repo2+");
 
     {
-        var manifest_file = try tmp.dir.createFile("foo.runfiles_manifest", .{});
-        defer manifest_file.close();
-        var buf: [max_path_bytes]u8 = undefined;
-
-        if (builtin.zig_version.major == 0 and builtin.zig_version.minor >= 15) {
-            var buffer: [1024]u8 = undefined;
-            var writer = manifest_file.writer(&buffer);
-            const file_writer = &writer.interface;
-
-            try file_writer.print("_repo_mapping {s}\n", .{try tmp.dir.realpath("foo.repo_mapping", &buf)});
-            try file_writer.print("config.json {s}\n", .{try tmp.dir.realpath("config.json", &buf)});
-            try file_writer.print("my_module+/foo {s}\n", .{try tmp.dir.realpath("my_module+/foo", &buf)});
-            try file_writer.print("my_module++ext+repo1/foo {s}\n", .{try tmp.dir.realpath("my_module++ext+repo1/foo", &buf)});
-            try file_writer.print("repo2+/foo {s}\n", .{try tmp.dir.realpath("repo2+/foo", &buf)});
-            try file_writer.flush();
-        } else {
-            try manifest_file.writer().print("_repo_mapping {s}\n", .{try tmp.dir.realpath("foo.repo_mapping", &buf)});
-            try manifest_file.writer().print("config.json {s}\n", .{try tmp.dir.realpath("config.json", &buf)});
-            try manifest_file.writer().print("my_module+/foo {s}\n", .{try tmp.dir.realpath("my_module+/foo", &buf)});
-            try manifest_file.writer().print("my_module++ext+repo1/foo {s}\n", .{try tmp.dir.realpath("my_module++ext+repo1/foo", &buf)});
-            try manifest_file.writer().print("repo2+/foo {s}\n", .{try tmp.dir.realpath("repo2+/foo", &buf)});
-        }
+        const repo_mapping_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "foo.repo_mapping");
+        defer std.testing.allocator.free(repo_mapping_path);
+        const config_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "config.json");
+        defer std.testing.allocator.free(config_path);
+        const my_module_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "my_module+/foo");
+        defer std.testing.allocator.free(my_module_path);
+        const ext_repo1_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "my_module++ext+repo1/foo");
+        defer std.testing.allocator.free(ext_repo1_path);
+        const repo2_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "repo2+/foo");
+        defer std.testing.allocator.free(repo2_path);
+        const manifest_content = try std.fmt.allocPrint(
+            std.testing.allocator,
+            "_repo_mapping {s}\nconfig.json {s}\nmy_module+/foo {s}\nmy_module++ext+repo1/foo {s}\nrepo2+/foo {s}\n",
+            .{
+                repo_mapping_path,
+                config_path,
+                my_module_path,
+                ext_repo1_path,
+                repo2_path,
+            },
+        );
+        defer std.testing.allocator.free(manifest_content);
+        try testutil.tmpWriteFile(tmp.dir, "foo.runfiles_manifest", manifest_content);
     }
 
-    const manifest_path = try tmp.dir.realpathAlloc(
+    const manifest_path = try testutil.tmpRealpathAlloc(
+        tmp.dir,
         std.testing.allocator,
         "foo.runfiles_manifest",
     );
     defer std.testing.allocator.free(manifest_path);
 
-    var runfiles = try Runfiles.create(.{
-        .allocator = std.testing.allocator,
-        .manifest = manifest_path,
-    }) orelse return error.RunfilesNotFound;
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
+        .{
+            .allocator = std.testing.allocator,
+            .io = std.testing.io,
+            .manifest = manifest_path,
+        }
+    else
+        .{
+            .allocator = std.testing.allocator,
+            .manifest = manifest_path,
+        }) orelse return error.RunfilesNotFound;
     defer runfiles.deinit(std.testing.allocator);
 
     {
@@ -460,7 +501,7 @@ test "Runfiles from manifest with compact repo mapping" {
         ) orelse return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("my_module+", content);
     }
@@ -474,7 +515,7 @@ test "Runfiles from manifest with compact repo mapping" {
         ) orelse return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("ext_repo1", content);
     }
@@ -488,72 +529,64 @@ test "Runfiles from manifest with compact repo mapping" {
         ) orelse return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("repo2+", content);
     }
 }
 
 test "Runfiles from directory" {
+    const testutil = @import("testutil.zig");
     if (builtin.os.tag == .windows)
         // Windows does not support symlinks out of the box.
         return error.SkipZigTest;
 
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
-    try tmp.dir.makePath("some/package");
-    try tmp.dir.makePath("other/package");
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("test.repo_mapping",
-            \\,my_module,my_workspace
-            \\,other_module,other~3.4.5
-            \\their_module~1.2.3,another_module,other~3.4.5
-        );
-        try tmp.dir.writeFile("some/package/some_file", "some_content");
-        try tmp.dir.writeFile("other/package/other_file", "other_content");
-    } else {
-        try tmp.dir.writeFile(.{ .sub_path = "test.repo_mapping", .data = 
-            \\,my_module,my_workspace
-            \\,other_module,other~3.4.5
-            \\their_module~1.2.3,another_module,other~3.4.5
-        });
-        try tmp.dir.writeFile(.{
-            .sub_path = "some/package/some_file",
-            .data = "some_content",
-        });
-        try tmp.dir.writeFile(.{
-            .sub_path = "other/package/other_file",
-            .data = "other_content",
-        });
-    }
+    try testutil.tmpMakePath(tmp.dir, "some/package");
+    try testutil.tmpMakePath(tmp.dir, "other/package");
+    try testutil.tmpWriteFile(tmp.dir, "test.repo_mapping",
+        \\,my_module,my_workspace
+        \\,other_module,other~3.4.5
+        \\their_module~1.2.3,another_module,other~3.4.5
+    );
+    try testutil.tmpWriteFile(tmp.dir, "some/package/some_file", "some_content");
+    try testutil.tmpWriteFile(tmp.dir, "other/package/other_file", "other_content");
     {
         var buf: [max_path_bytes]u8 = undefined;
-        try tmp.dir.makeDir("test.runfiles");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("test.repo_mapping", &buf),
+        try testutil.tmpMakeDir(tmp.dir, "test.runfiles");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "test.repo_mapping", &buf),
             "test.runfiles/_repo_mapping",
-            .{},
         );
-        try tmp.dir.makePath("test.runfiles/my_workspace/some/package");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("some/package/some_file", &buf),
+        try testutil.tmpMakePath(tmp.dir, "test.runfiles/my_workspace/some/package");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "some/package/some_file", &buf),
             "test.runfiles/my_workspace/some/package/some_file",
-            .{},
         );
-        try tmp.dir.makePath("test.runfiles/other~3.4.5/other/package");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("other/package/other_file", &buf),
+        try testutil.tmpMakePath(tmp.dir, "test.runfiles/other~3.4.5/other/package");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "other/package/other_file", &buf),
             "test.runfiles/other~3.4.5/other/package/other_file",
-            .{},
         );
     }
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "test.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "test.runfiles");
     defer std.testing.allocator.free(directory_path);
 
-    var runfiles = try Runfiles.create(.{
-        .allocator = std.testing.allocator,
-        .directory = directory_path,
-    }) orelse
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
+        .{
+            .allocator = std.testing.allocator,
+            .io = std.testing.io,
+            .directory = directory_path,
+        }
+    else
+        .{
+            .allocator = std.testing.allocator,
+            .directory = directory_path,
+        }) orelse
         return error.RunfilesNotFound;
     defer runfiles.deinit(std.testing.allocator);
 
@@ -567,7 +600,7 @@ test "Runfiles from directory" {
         ) orelse
             return error.TestRLocationNotFound;
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("some_content", content);
     }
@@ -582,7 +615,7 @@ test "Runfiles from directory" {
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("other_content", content);
     }
@@ -597,13 +630,13 @@ test "Runfiles from directory" {
             return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("other_content", content);
     }
 
     {
-        var env = std.process.EnvMap.init(std.testing.allocator);
+        var env = EnvMap.init(std.testing.allocator);
         defer env.deinit();
         try runfiles.environment(&env);
         try std.testing.expectEqual(@as(usize, 1), env.count());
@@ -612,6 +645,7 @@ test "Runfiles from directory" {
 }
 
 test "Runfiles from directory with compact repo mapping" {
+    const testutil = @import("testutil.zig");
     var tmp = std.testing.tmpDir(.{});
     defer tmp.cleanup();
 
@@ -624,63 +658,61 @@ test "Runfiles from directory with compact repo mapping" {
         \\my_module++ext+*,repo1,my_module++ext+repo1
     ;
 
-    try tmp.dir.makePath("my_module+");
-    try tmp.dir.makePath("my_module++ext+repo1");
-    try tmp.dir.makePath("repo2+");
-
-    if (builtin.zig_version.major == 0 and builtin.zig_version.minor < 13) {
-        try tmp.dir.writeFile("foo.repo_mapping", repo_mapping_contents);
-        try tmp.dir.writeFile("config.json", "config");
-        try tmp.dir.writeFile("my_module+/foo", "my_module+");
-        try tmp.dir.writeFile("my_module++ext+repo1/foo", "ext_repo1");
-        try tmp.dir.writeFile("repo2+/foo", "repo2+");
-    } else {
-        try tmp.dir.writeFile(.{ .sub_path = "foo.repo_mapping", .data = repo_mapping_contents });
-        try tmp.dir.writeFile(.{ .sub_path = "config.json", .data = "config" });
-        try tmp.dir.writeFile(.{ .sub_path = "my_module+/foo", .data = "my_module+" });
-        try tmp.dir.writeFile(.{ .sub_path = "my_module++ext+repo1/foo", .data = "ext_repo1" });
-        try tmp.dir.writeFile(.{ .sub_path = "repo2+/foo", .data = "repo2+" });
-    }
+    try testutil.tmpMakePath(tmp.dir, "my_module+");
+    try testutil.tmpMakePath(tmp.dir, "my_module++ext+repo1");
+    try testutil.tmpMakePath(tmp.dir, "repo2+");
+    try testutil.tmpWriteFile(tmp.dir, "foo.repo_mapping", repo_mapping_contents);
+    try testutil.tmpWriteFile(tmp.dir, "config.json", "config");
+    try testutil.tmpWriteFile(tmp.dir, "my_module+/foo", "my_module+");
+    try testutil.tmpWriteFile(tmp.dir, "my_module++ext+repo1/foo", "ext_repo1");
+    try testutil.tmpWriteFile(tmp.dir, "repo2+/foo", "repo2+");
 
     {
         var buf: [max_path_bytes]u8 = undefined;
-        try tmp.dir.makeDir("foo.runfiles");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("foo.repo_mapping", &buf),
+        try testutil.tmpMakeDir(tmp.dir, "foo.runfiles");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "foo.repo_mapping", &buf),
             "foo.runfiles/_repo_mapping",
-            .{},
         );
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("config.json", &buf),
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "config.json", &buf),
             "foo.runfiles/config.json",
-            .{},
         );
-        try tmp.dir.makePath("foo.runfiles/my_module+");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("my_module+/foo", &buf),
+        try testutil.tmpMakePath(tmp.dir, "foo.runfiles/my_module+");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "my_module+/foo", &buf),
             "foo.runfiles/my_module+/foo",
-            .{},
         );
-        try tmp.dir.makePath("foo.runfiles/my_module++ext+repo1");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("my_module++ext+repo1/foo", &buf),
+        try testutil.tmpMakePath(tmp.dir, "foo.runfiles/my_module++ext+repo1");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "my_module++ext+repo1/foo", &buf),
             "foo.runfiles/my_module++ext+repo1/foo",
-            .{},
         );
-        try tmp.dir.makePath("foo.runfiles/repo2+");
-        try tmp.dir.symLink(
-            try tmp.dir.realpath("repo2+/foo", &buf),
+        try testutil.tmpMakePath(tmp.dir, "foo.runfiles/repo2+");
+        try testutil.tmpSymLink(
+            tmp.dir,
+            try testutil.tmpRealpath(tmp.dir, "repo2+/foo", &buf),
             "foo.runfiles/repo2+/foo",
-            .{},
         );
     }
-    const directory_path = try tmp.dir.realpathAlloc(std.testing.allocator, "foo.runfiles");
+    const directory_path = try testutil.tmpRealpathAlloc(tmp.dir, std.testing.allocator, "foo.runfiles");
     defer std.testing.allocator.free(directory_path);
 
-    var runfiles = try Runfiles.create(.{
-        .allocator = std.testing.allocator,
-        .directory = directory_path,
-    }) orelse
+    var runfiles = try Runfiles.create(if (is_zig_0_16_or_later)
+        .{
+            .allocator = std.testing.allocator,
+            .io = std.testing.io,
+            .directory = directory_path,
+        }
+    else
+        .{
+            .allocator = std.testing.allocator,
+            .directory = directory_path,
+        }) orelse
         return error.RunfilesNotFound;
     defer runfiles.deinit(std.testing.allocator);
 
@@ -693,7 +725,7 @@ test "Runfiles from directory with compact repo mapping" {
         ) orelse return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("my_module+", content);
     }
@@ -707,7 +739,7 @@ test "Runfiles from directory with compact repo mapping" {
         ) orelse return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("ext_repo1", content);
     }
@@ -721,7 +753,7 @@ test "Runfiles from directory with compact repo mapping" {
         ) orelse return error.TestRLocationNotFound;
         defer std.testing.allocator.free(file_path);
         try std.testing.expect(std.fs.path.isAbsolute(file_path));
-        const content = try std.fs.cwd().readFileAlloc(std.testing.allocator, file_path, 4096);
+        const content = try testutil.readAbsoluteFileAlloc(std.testing.allocator, file_path, 4096);
         defer std.testing.allocator.free(content);
         try std.testing.expectEqualStrings("repo2+", content);
     }
