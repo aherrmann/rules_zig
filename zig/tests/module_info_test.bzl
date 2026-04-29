@@ -3,35 +3,32 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("//zig/private/common:escape_label.bzl", "escape_label")
 load(
     "//zig/private/providers:zig_module_info.bzl",
     "ZigModuleInfo",
     "zig_module_specifications",
 )
 
-def _bazel_builtin_name(label):
-    return "bazel_builtin_A{repo}_S_S{package}_C{target}".format(
-        repo = label.repo_name if hasattr(label, "repo_name") else label.workspace_name,
-        package = label.package.replace("/", "_S"),
-        target = label.name,
-    )
+def _bazel_builtin_canonical_name(label):
+    return "bazel_builtin_" + escape_label(label = label)
 
 def _bazel_builtin_file_name(ctx, label):
     return paths.join(
         ctx.bin_dir.path,
         label.workspace_root,
         label.package,
-        _bazel_builtin_name(label) + ".zig",
+        _bazel_builtin_canonical_name(label) + ".zig",
     )
 
 def _bazel_builtin_mod_flags(ctx, label):
     return ["'-M{}={}'".format(
-        _bazel_builtin_name(label),
+        _bazel_builtin_canonical_name(label),
         _bazel_builtin_file_name(ctx, label),
     )]
 
 def _bazel_builtin_dep(label):
-    return "'bazel_builtin={}'".format(_bazel_builtin_name(label))
+    return "'bazel_builtin={}'".format(_bazel_builtin_canonical_name(label))
 
 def _write_simple_module_expected_specs_args_impl(ctx):
     mod = ctx.attr.mod[ZigModuleInfo]

@@ -4,6 +4,7 @@ load(
     "//zig/private/providers:zig_module_info.bzl",
     "zig_module_info",
 )
+load("//zig/private/common:escape_label.bzl", "escape_label")
 
 ATTRS = {
     "_bazel_builtin_template": attr.label(
@@ -25,11 +26,7 @@ def bazel_builtin_module(ctx):
     package_name = ctx.label.package
     target_name = ctx.label.name
 
-    name = "bazel_builtin_A{repo}_S_S{package}_C{target}".format(
-        repo = repo_name.replace("~", "_T"),
-        package = package_name.replace("/", "_S"),
-        target = target_name,
-    )
+    name = "bazel_builtin_" + escape_label(label = ctx.label)
     main = ctx.actions.declare_file(name + ".zig")
 
     substitutions = ctx.actions.template_dict()
