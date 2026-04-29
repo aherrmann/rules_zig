@@ -80,7 +80,10 @@ bzl_library(
     name = "bazel_builtin",
     srcs = ["bazel_builtin.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["//zig/private/providers:zig_module_info"],
+    deps = [
+        ":escape_label",
+        "//zig/private/providers:zig_module_info",
+    ],
 )
 
 bzl_library(
