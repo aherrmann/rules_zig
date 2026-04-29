@@ -305,7 +305,10 @@ def _write_simple_module_with_global_c_expected_specs_args_impl(ctx):
         src = mods["data_global_c"].module_context.main,
     )])
     expected.extend(bazel_builtins["data_global_c"].mod_flags)
-    expected.extend(["'-Mc={}'".format(mods["data_c_zig"].module_context.main)])
+    expected.extend(["'-M{name}={src}'".format(
+        name = mods["data_c_zig"].canonical_name,
+        src = mods["data_c_zig"].module_context.main,
+    )])
 
     ctx.actions.write(
         output = ctx.outputs.out,
