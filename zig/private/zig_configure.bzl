@@ -222,9 +222,9 @@ def _make_attrs(*, executable):
             doc = "The threaded setting for the host configuration, corresponds to the `-fsingle-threaded` Zig compiler flag.",
             mandatory = False,
             values = THREADED_VALUES,
-	),
-	"translate_c": attr.int(
-            doc = "If true, disables translation of C headers for C dependencies.",
+        ),
+        "translate_c": attr.int(
+            doc = "If true, enables the external translate-c toolchain when one is registered.",
             mandatory = False,
             values = [-1, 0, 1],
             default = -1,

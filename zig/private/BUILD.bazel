@@ -30,7 +30,9 @@ bzl_library(
         "//zig/private/common:bazel_builtin",
         "//zig/private/common:data",
         "//zig/private/common:filetypes",
+        "//zig/private/common:translate_c",
         "//zig/private/providers:zig_module_info",
+        "@apple_support//lib:apple_support",
     ],
 )
 

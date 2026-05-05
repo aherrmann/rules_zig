@@ -2,14 +2,6 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 exports_files(["bazel_builtin.zig.tpl"])
 
-genrule(
-    name = "dummy",
-    outs = ["dummy.sh"],
-    cmd = "echo '#!/bin/sh\necho Dummy' > $@",
-    executable = True,
-    visibility = ["//zig:__subpackages__"],
-)
-
 bzl_library(
     name = "zig_cache",
     srcs = ["zig_cache.bzl"],
@@ -61,8 +53,10 @@ bzl_library(
         ":csrcs",
         ":escape_label",
         ":location_expansion",
+        ":translate_c",
         ":zig_cache",
         ":zig_lib_dir",
+        "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",

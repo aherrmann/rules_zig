@@ -1,0 +1,31 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//zig:defs.bzl", "zig_c_library")
+load("//zig/translate-c:toolchain.bzl", "translate_c_toolchain")
+load(":fake_translate_c.bzl", "fake_translate_c")
+
+cc_library(
+    name = "c",
+    hdrs = ["data.h"],
+)
+
+zig_c_library(
+    name = "c_module",
+    cdeps = [":c"],
+    visibility = ["//zig/tests:__pkg__"],
+)
+
+fake_translate_c(
+    name = "fake_translate_c",
+)
+
+translate_c_toolchain(
+    name = "fake_translate_c_toolchain_impl",
+    translate_c = ":fake_translate_c",
+)
+
+toolchain(
+    name = "fake_translate_c_toolchain",
+    target_settings = ["//zig/settings:translate_c_enabled"],
+    toolchain = ":fake_translate_c_toolchain_impl",
+    toolchain_type = "//zig/translate-c:toolchain_type",
+)

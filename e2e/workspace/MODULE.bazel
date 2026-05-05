@@ -19,6 +19,24 @@ zig.toolchain(zig_version = "0.16.0")
 zig.toolchain(zig_version = "0.15.2")
 use_repo(zig, "zig_toolchains")
 
+new_git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+
+new_git_repository(
+    name = "arocc",
+    build_file = "//third_party/arocc:arocc.bazel",
+    commit = "5f5a050569a95ecc40a426f0c3666ae7ef987ede",
+    remote = "https://github.com/Vexu/arocc.git",
+)
+
+new_git_repository(
+    name = "translate-c",
+    build_file = "//third_party/translate-c:translate-c.bazel",
+    commit = "46b5609b5ac4c0a896217d1d984f3ae50e4810b5",
+    remote = "https://codeberg.org/ziglang/translate-c",
+)
+
+register_toolchains("//third_party/translate-c:toolchain")
+
 bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4", dev_dependency = True)
 
 buildbuddy = use_extension(

@@ -169,23 +169,9 @@ selects.config_setting_group(
 # Declare a toolchain Bazel will select for running the tool in an action
 # on the execution platform.
 toolchain(
-    name = "{prefix}_{name}_toolchain_no_translate_c",
-    exec_compatible_with = {compatible_with},
-    target_settings = [
-        ":{version}",
-        "@rules_zig//zig/settings:translate_c_disabled",
-    ],
-    toolchain = "{label}_no_translate_c",
-    toolchain_type = "@rules_zig//zig:toolchain_type",
-)
-
-toolchain(
     name = "{prefix}_{name}_toolchain",
     exec_compatible_with = {compatible_with},
-    target_settings = [
-        ":{version}",
-        "@rules_zig//zig/settings:translate_c_enabled",
-    ],
+    target_settings = [":{version}"],
     toolchain = "{label}",
     toolchain_type = "@rules_zig//zig:toolchain_type",
 )

@@ -90,6 +90,7 @@ filegroup(
         "//zig/runfiles:all_files",
         "//zig/settings:all_files",
         "//zig/target:all_files",
+        "//zig/translate-c:all_files",
     ],
     visibility = ["//:__pkg__"],
 )
