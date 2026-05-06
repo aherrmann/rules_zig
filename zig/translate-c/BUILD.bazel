@@ -19,5 +19,5 @@ filegroup(
         ":BUILD.bazel",
         ":toolchain.bzl",
     ],
-    visibility = ["//:__pkg__"],
+    visibility = ["//zig:__pkg__"],
 )

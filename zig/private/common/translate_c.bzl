@@ -28,11 +28,7 @@ _FILTERED_ARGS = [
 
 def _sanitize_commandline(args):
     ret = []
-    skip_next = False
     for arg in args:
-        if skip_next:
-            skip_next = False
-            continue
         if arg in _TRANSLATED_ARGS:
             ret.append(_TRANSLATED_ARGS[arg])
             continue
