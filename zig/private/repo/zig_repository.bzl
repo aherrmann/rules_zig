@@ -9,7 +9,6 @@ load(
     "VAR_CACHE_PREFIX_WINDOWS",
     "env_zig_cache_prefix",
 )
-load("//zig/private/repo:toolchain_build_file.bzl", "render_toolchain_build")
 
 DOC = "Fetch and install a Zig toolchain."
 
