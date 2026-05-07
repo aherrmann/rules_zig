@@ -563,7 +563,7 @@ def zig_build_impl(ctx, *, kind):
                 ctx.actions.run(
                     outputs = [test_obj] + auxiliary_outputs,
                     inputs = inputs,
-                    executable = zigtoolchaininfo.zig_exe,
+                    executable = zigtoolchaininfo.zig_exe_path,
                     arguments = ["test-obj", "--test-no-exec", global_args, args, test_args],
                     mnemonic = "ZigBuildTest",
                     progress_message = "zig test-obj %{label}",
