@@ -77,3 +77,21 @@ filegroup(
     srcs = [":BUILD.bazel"],
     visibility = ["//zig:__pkg__"],
 )
+
+bool_flag(
+    name = "built_from_source",
+    build_setting_default = False,
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "built_from_source_enabled",
+    flag_values = {":built_from_source": "true"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "built_from_source_disabled",
+    flag_values = {":built_from_source": "false"},
+    visibility = ["//visibility:public"],
+)

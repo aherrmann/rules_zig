@@ -70,7 +70,7 @@ def zig_translate_c(*, ctx, name, canonical_name = None, zigtoolchaininfo, globa
             transitive = transitive_inputs,
         ),
         outputs = [zig_out],
-        arguments = [zigtoolchaininfo.zig_exe, "translate-c", global_args, args],
+        arguments = [zigtoolchaininfo.zig_exe.path, "translate-c", global_args, args],
         mnemonic = "ZigTranslateC",
         progress_message = "zig translate-c %{label}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
@@ -79,7 +79,7 @@ def zig_translate_c(*, ctx, name, canonical_name = None, zigtoolchaininfo, globa
             "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib.path,
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
-        tools = zigtoolchaininfo.zig_files,
+        tools = [zigtoolchaininfo.zig_exe, zigtoolchaininfo.zig_lib],
         toolchain = "//zig:toolchain_type",
     )
 

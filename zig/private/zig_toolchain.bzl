@@ -2,6 +2,19 @@
 
 load("//zig/private/providers:zig_toolchain_info.bzl", "ZigToolchainInfo")
 
+def _zig_built_from_source_transition_impl(_, __):
+    return {
+        "//zig/settings:built_from_source": False,
+    }
+
+_zig_built_from_source_transition = transition(
+    implementation = _zig_built_from_source_transition_impl,
+    inputs = [],
+    outputs = [
+        "//zig/settings:built_from_source",
+    ],
+)
+
 DOC = """\
 Defines a Zig compiler toolchain.
 
@@ -131,6 +144,7 @@ def _zig_toolchain_impl(ctx):
 
 zig_toolchain = rule(
     implementation = _zig_toolchain_impl,
+    cfg = _zig_built_from_source_transition,
     attrs = ATTRS,
     doc = DOC,
 )
