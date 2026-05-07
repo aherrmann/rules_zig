@@ -218,6 +218,13 @@ def _shared_lib_extension(os):
 def _executable_extension(os):
     return ".exe" if os == "windows" else ""
 
+def _object_extension(os):
+    return ".obj" if os == "windows" else ".o"
+
+def _supports_test_obj(zig_version):
+    components = zig_version.split(".")
+    return len(components) >= 2 and components[0] == "0" and components[1] == "16"
+
 def zig_build_impl(ctx, *, kind):
     """Common implementation for Zig build rules.
 
@@ -244,6 +251,7 @@ def zig_build_impl(ctx, *, kind):
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
 
     use_cc_common_link = ctx.attr._settings[ZigSettingsInfo].use_cc_common_link
+    use_test_obj = kind == "zig_test" and use_cc_common_link and _supports_test_obj(zigtoolchaininfo.zig_version)
 
     providers = []
     exported_library_to_link = None
@@ -434,6 +442,13 @@ def zig_build_impl(ctx, *, kind):
 
             transitive_inputs.append(depset(cdeps_inputs))
 
+    if use_test_obj:
+        # Zig 0.16's LLVM StackProtector pass crashes for test-obj when
+        # compiler-rt provides __stack_chk_fail as an alias.
+        # See: https://codeberg.org/ziglang/zig/issues/31702
+        # TODO[CK]: Remove once we bump to 0.17.0.
+        args.add("-fno-stack-protector")
+
     zig_module_specifications(
         root_module = root_module,
         args = args,
@@ -482,8 +497,7 @@ def zig_build_impl(ctx, *, kind):
         output_groups["llvm_ir"] = depset([llvm_ir_output])
         args.add(llvm_ir_output, format = "-femit-llvm-ir=%s")
 
-    # TODO[CK] remove extra kind check once we drop support for Zig 0.15 and use test-obj.
-    if ctx.attr.emit_llvm_bc and not (kind == "zig_test" and use_cc_common_link):
+    if ctx.attr.emit_llvm_bc and not (kind == "zig_test" and use_cc_common_link and not use_test_obj):
         llvm_bc_output = ctx.actions.declare_file(ctx.label.name + ".bc")
         auxiliary_outputs.append(llvm_bc_output)
         output_groups["llvm_bc"] = depset([llvm_bc_output])
@@ -541,23 +555,40 @@ def zig_build_impl(ctx, *, kind):
             )
     elif kind == "zig_test":
         if use_cc_common_link:
-            bc = ctx.actions.declare_file(ctx.label.name + ".bc")
-            test_args = ctx.actions.args()
-            test_args.add("-fno-emit-bin")
+            test_artifact = None
+            if use_test_obj:
+                test_obj = ctx.actions.declare_file(ctx.label.name + _object_extension(zigtargetinfo.triple.os))
+                test_args = ctx.actions.args()
+                test_args.add(test_obj, format = "-femit-bin=%s")
+                ctx.actions.run(
+                    outputs = [test_obj] + auxiliary_outputs,
+                    inputs = inputs,
+                    executable = zigtoolchaininfo.zig_exe,
+                    arguments = ["test-obj", "--test-no-exec", global_args, args, test_args],
+                    mnemonic = "ZigBuildTest",
+                    progress_message = "zig test-obj %{label}",
+                    **zig_build_kwargs
+                )
+                test_artifact = test_obj
+            else:
+                bc = ctx.actions.declare_file(ctx.label.name + ".bc")
+                test_args = ctx.actions.args()
+                test_args.add("-fno-emit-bin")
 
-            # TODO[CK] Remove once we drop support for Zig 0.15 and use test-obj.
-            if ctx.attr.emit_llvm_bc:
-                output_groups["llvm_bc"] = depset([bc])
-            test_args.add(bc, format = "-femit-llvm-bc=%s")
-            ctx.actions.run(
-                outputs = [bc] + auxiliary_outputs,
-                inputs = inputs,
-                executable = zigtoolchaininfo.zig_exe_path,
-                arguments = ["test", "--test-no-exec", global_args, args, test_args],
-                mnemonic = "ZigBuildTest",
-                progress_message = "zig test %{label}",
-                **zig_build_kwargs
-            )
+                # TODO[CK] Remove once we drop support for Zig 0.15 and use test-obj.
+                if ctx.attr.emit_llvm_bc:
+                    output_groups["llvm_bc"] = depset([bc])
+                test_args.add(bc, format = "-femit-llvm-bc=%s")
+                ctx.actions.run(
+                    outputs = [bc] + auxiliary_outputs,
+                    inputs = inputs,
+                    executable = zigtoolchaininfo.zig_exe_path,
+                    arguments = ["test", "--test-no-exec", global_args, args, test_args],
+                    mnemonic = "ZigBuildTest",
+                    progress_message = "zig test %{label}",
+                    **zig_build_kwargs
+                )
+                test_artifact = bc
 
             static_lib = ctx.actions.declare_file(ctx.label.name + _static_lib_extension(zigtargetinfo.triple.os))
             lib_args = ctx.actions.args()
@@ -566,10 +597,10 @@ def zig_build_impl(ctx, *, kind):
                 "-fcompiler-rt",
             ])
             lib_args.add(static_lib, format = "-femit-bin=%s")
-            lib_args.add(bc)
+            lib_args.add(test_artifact)
             ctx.actions.run(
                 outputs = [static_lib],
-                inputs = [bc],
+                inputs = [test_artifact],
                 executable = zigtoolchaininfo.zig_exe_path,
                 arguments = ["build-lib", global_args, lib_args],
                 mnemonic = "ZigBuildLib",
