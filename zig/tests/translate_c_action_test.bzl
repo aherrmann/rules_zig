@@ -4,7 +4,7 @@ load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load(":util.bzl", "assert_find_action", "canonical_label")
 
-_SETTINGS_TRANSLATE_C = canonical_label("@//zig/settings:translate_c")
+_SETTINGS_TRANSLATE_C = canonical_label("@//zig/settings:use_standalone_translate_c")
 _EXTRA_TOOLCHAINS = "//command_line_option:extra_toolchains"
 
 def _contains_exact(args, value):

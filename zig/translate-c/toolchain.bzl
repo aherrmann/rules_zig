@@ -16,14 +16,14 @@ TranslateCToolchainInfo = provider(
 
 def _disable_translate_c_transition_impl(_, __):
     return {
-        "//zig/settings:translate_c": False,
+        "//zig/settings:use_standalone_translate_c": False,
     }
 
 _disable_translate_c_transition = transition(
     implementation = _disable_translate_c_transition_impl,
     inputs = [],
     outputs = [
-        "//zig/settings:translate_c",
+        "//zig/settings:use_standalone_translate_c",
     ],
 )
 

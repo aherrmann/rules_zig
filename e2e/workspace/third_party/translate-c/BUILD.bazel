@@ -11,7 +11,7 @@ translate_c_toolchain(
 
 toolchain(
     name = "toolchain",
-    target_settings = ["@rules_zig//zig/settings:translate_c_enabled"],
+    target_settings = ["@rules_zig//zig/config/use_standalone_translate_c:enabled"],
     toolchain = ":toolchain_impl",
     toolchain_type = "@rules_zig//zig/translate-c:toolchain_type",
     visibility = ["//visibility:public"],

@@ -123,8 +123,8 @@ def _zig_transition_impl(settings, attr):
         result["//zig/settings:zigopt"] = attr.zigopt
     if attr.host_zigopt:
         result["//zig/settings:host_zigopt"] = attr.host_zigopt
-    if attr.translate_c != -1:
-        result["//zig/settings:translate_c"] = attr.translate_c == 1
+    if attr.use_standalone_translate_c != -1:
+        result["//zig/settings:use_standalone_translate_c"] = attr.use_standalone_translate_c == 1
     return result
 
 _zig_transition = transition(
@@ -141,7 +141,7 @@ _zig_transition = transition(
         "//zig/settings:host_threaded",
         "//zig/settings:zigopt",
         "//zig/settings:host_zigopt",
-        "//zig/settings:translate_c",
+        "//zig/settings:use_standalone_translate_c",
     ],
     outputs = [
         "//command_line_option:extra_toolchains",
@@ -155,7 +155,7 @@ _zig_transition = transition(
         "//zig/settings:host_threaded",
         "//zig/settings:zigopt",
         "//zig/settings:host_zigopt",
-        "//zig/settings:translate_c",
+        "//zig/settings:use_standalone_translate_c",
     ],
 )
 
@@ -223,8 +223,14 @@ def _make_attrs(*, executable):
             mandatory = False,
             values = THREADED_VALUES,
         ),
-        "translate_c": attr.int(
-            doc = "If true, enables the external translate-c toolchain when one is registered.",
+        "use_standalone_translate_c": attr.int(
+            doc = (
+                "Whether to use a registered standalone translate-c toolchain for C translation instead of the built-in zig translate-c tool. " +
+                "Possible values: [-1, 0, 1]. " +
+                "-1 means use current configuration value for //zig/settings:use_standalone_translate_c. " +
+                "0 means do not use the standalone translate-c toolchain. " +
+                "1 means use the standalone translate-c toolchain."
+            ),
             mandatory = False,
             values = [-1, 0, 1],
             default = -1,

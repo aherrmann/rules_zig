@@ -72,25 +72,9 @@ repeatable_string_flag(
 )
 
 bool_flag(
-    name = "translate_c",
+    name = "use_standalone_translate_c",
     build_setting_default = False,
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "translate_c_enabled",
-    flag_values = {
-        ":translate_c": "1",
-    },
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "translate_c_disabled",
-    flag_values = {
-        ":translate_c": "0",
-    },
-    visibility = ["//visibility:public"],
+    visibility = ["//zig/config/use_standalone_translate_c:__pkg__"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

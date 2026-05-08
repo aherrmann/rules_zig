@@ -82,5 +82,5 @@ zig_configure_test(
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
-    translate_c = 1,
+    use_standalone_translate_c = 1,
 )

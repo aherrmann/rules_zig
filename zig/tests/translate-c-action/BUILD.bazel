@@ -25,7 +25,7 @@ translate_c_toolchain(
 
 toolchain(
     name = "fake_translate_c_toolchain",
-    target_settings = ["//zig/settings:translate_c_enabled"],
+    target_settings = ["//zig/config/use_standalone_translate_c:enabled"],
     toolchain = ":fake_translate_c_toolchain_impl",
     toolchain_type = "//zig/translate-c:toolchain_type",
 )
