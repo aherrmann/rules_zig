@@ -307,10 +307,14 @@ def _make_zig_configure_rule(*, executable, test):
                 is_executable = True,
             )
 
+            # TODO[AH] Add a data attribute for executable rules.
+            runfiles = ctx.runfiles(files = [executable, actual_executable])
+            runfiles = runfiles.merge(actual[DefaultInfo].default_runfiles)
+
             providers.append(DefaultInfo(
                 executable = executable,
                 files = depset(direct = [executable]),
-                runfiles = actual[DefaultInfo].default_runfiles,
+                runfiles = runfiles,
             ))
         else:
             providers.append(actual[DefaultInfo])
