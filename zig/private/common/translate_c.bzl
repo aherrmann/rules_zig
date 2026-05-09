@@ -135,7 +135,7 @@ def _builtin_translate_c(*, ctx, zigtoolchaininfo, global_args, compilation_cont
 
     return zig_out, []
 
-def _external_translate_c(*, ctx, zigtoolchaininfo, translatectoolchaininfo, compilation_context, output_prefix):
+def _external_translate_c(*, ctx, translatectoolchaininfo, compilation_context, output_prefix):
     inputs = []
     transitive_inputs = [compilation_context.headers]
 
@@ -263,12 +263,7 @@ def _external_translate_c(*, ctx, zigtoolchaininfo, translatectoolchaininfo, com
         mnemonic = "ZigTranslateC",
         progress_message = "zig translate-c %{label}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
-        env = {
-            "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
-            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib_path,
-            "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
-        },
-        tools = [translatectoolchaininfo.files_to_run] + zigtoolchaininfo.zig_files,
+        tools = [translatectoolchaininfo.files_to_run],
         toolchain = "//zig:toolchain_type",
         **actions_run_extra_kwargs
     )
@@ -301,7 +296,6 @@ def zig_translate_c(*, ctx, name, zigtoolchaininfo, global_args, cc_infos, outpu
     if translatectoolchaininfo:
         zig_out, translate_c_deps = _external_translate_c(
             ctx = ctx,
-            zigtoolchaininfo = zigtoolchaininfo,
             translatectoolchaininfo = translatectoolchaininfo,
             compilation_context = compilation_context,
             output_prefix = output_prefix,
