@@ -111,7 +111,12 @@ def _sorted(versions, *, reverse = False):
 
     return sorted(versions, key = key, reverse = reverse)
 
+def _gte(version, minimum):
+    """Check whether a semantic version is greater than or equal to a minimum."""
+    return _sorted([minimum, version])[0] == minimum
+
 semver = struct(
+    gte = _gte,
     grouped = _grouped,
     sorted = _sorted,
     is_valid = _is_valid,

@@ -22,6 +22,7 @@ load(
 )
 load("//zig/private/common:linker_script.bzl", "zig_linker_script")
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
+load("//zig/private/common:semver.bzl", "semver")
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -222,10 +223,6 @@ def _executable_extension(os):
 def _object_extension(os):
     return ".obj" if os == "windows" else ".o"
 
-def _supports_test_obj(zig_version):
-    components = zig_version.split(".")
-    return len(components) >= 2 and components[0] == "0" and components[1] == "16"
-
 def zig_build_impl(ctx, *, kind):
     """Common implementation for Zig build rules.
 
@@ -254,7 +251,7 @@ def zig_build_impl(ctx, *, kind):
     translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     use_cc_common_link = ctx.attr._settings[ZigSettingsInfo].use_cc_common_link
-    use_test_obj = kind == "zig_test" and use_cc_common_link and _supports_test_obj(zigtoolchaininfo.zig_version)
+    use_test_obj = kind == "zig_test" and use_cc_common_link and semver.gte(zigtoolchaininfo.zig_version, "0.16.0")
 
     providers = []
     exported_library_to_link = None
