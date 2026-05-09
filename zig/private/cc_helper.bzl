@@ -6,12 +6,14 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 def need_translate_c(cc_info):
     return cc_info.compilation_context and (cc_info.compilation_context.headers or cc_info.compilation_context.defines)
 
-def find_cc_toolchain(ctx, *, mandatory):
+def find_cc_toolchain(ctx, *, mandatory, features = [], disabled_features = []):
     """Extracts a CcToolchain from the current target's context
 
     Args:
         ctx (ctx): The current target's rule context object
         mandatory (bool): Whether the toolchain is mandatory
+        features (list): A list of features to enable in the toolchain
+        disabled_features (list): A list of features to disable in the toolchain
 
     Returns:
         tuple: A tuple of (CcToolchain, FeatureConfiguration)
@@ -23,7 +25,7 @@ def find_cc_toolchain(ctx, *, mandatory):
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
+        requested_features = ctx.features + features,
+        unsupported_features = ctx.disabled_features + disabled_features,
     )
     return cc_toolchain, feature_configuration

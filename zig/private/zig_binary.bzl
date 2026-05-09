@@ -1,5 +1,6 @@
 """Implementation of the zig_binary rule."""
 
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "//zig/private/common:zig_build.bzl",
     "BINARY_ATTRS",
@@ -41,14 +42,15 @@ zig_binary(
 ```
 """
 
-ATTRS = COMMON_ATTRS | BINARY_ATTRS | DOCS_ATTRS
+ATTRS = COMMON_ATTRS | BINARY_ATTRS | DOCS_ATTRS | apple_support.action_required_attrs()
 
 TOOLCHAINS = COMMON_TOOLCHAINS
 
-FRAGMENTS = COMMON_FRAGMENTS
+FRAGMENTS = COMMON_FRAGMENTS + ["apple"]
 
 def _zig_binary_impl(ctx):
     build, build_groups = zig_build_impl(ctx, kind = "zig_binary")
+
     docs, docs_groups = zig_docs_impl(ctx, kind = "zig_binary")
     return build + docs + [OutputGroupInfo(**(build_groups | docs_groups))]
 
