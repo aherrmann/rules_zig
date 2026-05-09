@@ -198,6 +198,7 @@ Environment variables to inherit from external environment when executed by `baz
 TOOLCHAINS = [
     "//zig:toolchain_type",
     "//zig/target:toolchain_type",
+    config_common.toolchain_type("//zig/translate-c:toolchain_type", mandatory = False),
 ] + use_cc_toolchain(mandatory = False)
 
 FRAGMENTS = ["cpp"]
@@ -242,6 +243,8 @@ def zig_build_impl(ctx, *, kind):
 
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
+    translate_c_toolchain = ctx.toolchains["//zig/translate-c:toolchain_type"]
+    translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     use_cc_common_link = ctx.attr._settings[ZigSettingsInfo].use_cc_common_link
 
@@ -409,6 +412,7 @@ def zig_build_impl(ctx, *, kind):
             zigtoolchaininfo = zigtoolchaininfo,
             global_args = global_args,
             cc_infos = [root_module.cc_info],
+            translatectoolchaininfo = translatectoolchaininfo,
         )
         transitive_inputs.append(c_module.transitive_inputs)
 

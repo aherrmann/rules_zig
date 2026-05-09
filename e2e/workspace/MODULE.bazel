@@ -19,6 +19,26 @@ zig.toolchain(zig_version = "0.16.0")
 zig.toolchain(zig_version = "0.15.2")
 use_repo(zig, "zig_toolchains")
 
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "arocc",
+    build_file = "//third_party/arocc:arocc.bazel",
+    sha256 = "e20b49a13049e8ef5aa1d798a70d8fc02b691fe44c7c78928aae3d363a1deb7e",
+    strip_prefix = "arocc-5f5a050569a95ecc40a426f0c3666ae7ef987ede",
+    url = "https://github.com/Vexu/arocc/archive/5f5a050569a95ecc40a426f0c3666ae7ef987ede.tar.gz",
+)
+
+http_archive(
+    name = "translate-c",
+    build_file = "//third_party/translate-c:translate-c.bazel",
+    sha256 = "2f062a9e8baadf9e9e1a9460639175af727aa132237ca5ec7ea2435ea906f5a4",
+    strip_prefix = "translate-c",
+    url = "https://codeberg.org/ziglang/translate-c/archive/42f630117deffd5318b4a6ceffbd366dd0af8cee.tar.gz",
+)
+
+register_toolchains("//third_party/translate-c:toolchain")
+
 bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4", dev_dependency = True)
 
 buildbuddy = use_extension(

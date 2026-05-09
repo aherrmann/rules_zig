@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_c_library", "zig_library")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_c_library", "zig_configure_test", "zig_library")
 
 cc_library(
     name = "local_c",
@@ -40,6 +40,12 @@ zig_binary(
     ],
 )
 
+zig_binary(
+    name = "global_binary",
+    main = "main_global.zig",
+    deps = [":global_c"],
+)
+
 genrule(
     name = "output",
     outs = ["output.actual"],
@@ -47,9 +53,34 @@ genrule(
     tools = [":binary"],
 )
 
+genrule(
+    name = "global_output",
+    outs = ["output_global.actual"],
+    cmd = "$(execpath :global_binary) > $(OUTS)",
+    tools = [":global_binary"],
+)
+
 diff_test(
     name = "output_test",
     size = "small",
     file1 = ":output.expected",
     file2 = ":output.actual",
+)
+
+diff_test(
+    name = "global_output_test",
+    size = "small",
+    file1 = ":output_global.expected",
+    file2 = ":output_global.actual",
+)
+
+zig_configure_test(
+    name = "output_test_external_translate_c",
+    size = "small",
+    actual = ":global_output_test",
+    target_compatible_with = select({
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    use_standalone_translate_c = 1,
 )

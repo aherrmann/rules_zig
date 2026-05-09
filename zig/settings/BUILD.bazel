@@ -77,6 +77,12 @@ bool_flag(
     visibility = ["//zig/config/bootstrapped:__pkg__"],
 )
 
+bool_flag(
+    name = "use_standalone_translate_c",
+    build_setting_default = False,
+    visibility = ["//zig/config/use_standalone_translate_c:__pkg__"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",

@@ -1,5 +1,6 @@
 """Implementation of the zig_library rule."""
 
+load("@apple_support//lib:apple_support.bzl", "apple_support")
 load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load(
@@ -52,16 +53,19 @@ ATTRS = {
         doc = "Files required by the module during runtime.",
         mandatory = False,
     ),
-} | BAZEL_BUILTIN_ATTRS
+} | BAZEL_BUILTIN_ATTRS | apple_support.action_required_attrs()
 
 TOOLCHAINS = [
     "//zig:toolchain_type",
+    config_common.toolchain_type("//zig/translate-c:toolchain_type", mandatory = False),
 ] + use_cc_toolchain(mandatory = False)
 
-FRAGMENTS = ["cpp"]
+FRAGMENTS = ["apple", "cpp"]
 
 def _zig_c_library_impl(ctx):
     zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
+    translate_c_toolchain = ctx.toolchains["//zig/translate-c:toolchain_type"]
+    translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     transitive_data = []
     transitive_runfiles = []
@@ -102,6 +106,7 @@ def _zig_c_library_impl(ctx):
         zigtoolchaininfo = zigtoolchaininfo,
         global_args = global_args,
         cc_infos = cc_infos,
+        translatectoolchaininfo = translatectoolchaininfo,
     )
 
     return [default, module]
