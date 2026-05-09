@@ -2,6 +2,11 @@
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load(
+    "//zig/private/providers:zig_toolchain_info.bzl",
+    "zig_toolchain_lib_dir_path",
+    zig_toolchain_header_file = "zig_toolchain_header",
+)
 
 DOC = """\
 Expose the Zig header file `zig.h` required by generated C headers.
@@ -86,10 +91,12 @@ def _zig_toolchain_header_impl(ctx):
     if zigtargetinfo.triple.abi == "msvc":
         defines.append("ZIG_TARGET_ABI_MSVC")
 
+    zig_h = zig_toolchain_header_file(zigtoolchaininfo)
+
     cc_info = CcInfo(
         compilation_context = cc_common.create_compilation_context(
-            headers = depset(direct = [zigtoolchaininfo.zig_h]),
-            includes = depset(direct = [zigtoolchaininfo.zig_lib.path]),
+            headers = depset(direct = [zig_h] if zig_h else []),
+            includes = depset(direct = [zig_toolchain_lib_dir_path(zigtoolchaininfo)]),
             defines = depset(direct = defines),
         ),
     )

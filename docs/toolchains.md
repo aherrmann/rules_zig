@@ -2,6 +2,34 @@
 
 Rules to declare Zig toolchains.
 
+<a id="zig_path_toolchain"></a>
+
+## zig_path_toolchain
+
+<pre>
+load("@rules_zig//zig:toolchain.bzl", "zig_path_toolchain")
+
+zig_path_toolchain(<a href="#zig_path_toolchain-name">name</a>, <a href="#zig_path_toolchain-zig_cache">zig_cache</a>, <a href="#zig_path_toolchain-zig_exe_path">zig_exe_path</a>, <a href="#zig_path_toolchain-zig_lib_path">zig_lib_path</a>, <a href="#zig_path_toolchain-zig_version">zig_version</a>)
+</pre>
+
+Defines a non-hermetic Zig compiler toolchain from absolute paths.
+
+Use this rule when Zig is installed outside Bazel and cannot be exposed as
+Bazel files. The executable and library directory paths must be absolute and
+available on every execution machine that can run actions using this toolchain.
+
+**ATTRIBUTES**
+
+
+| Name  | Description | Type | Mandatory | Default |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| <a id="zig_path_toolchain-name"></a>name |  A unique name for this target.   | <a href="https://bazel.build/concepts/labels#target-names">Name</a> | required |  |
+| <a id="zig_path_toolchain-zig_cache"></a>zig_cache |  The Zig cache directory prefix. Used for both the global and local cache.   | String | required |  |
+| <a id="zig_path_toolchain-zig_exe_path"></a>zig_exe_path |  Absolute path to an existing Zig executable for the target platform.   | String | required |  |
+| <a id="zig_path_toolchain-zig_lib_path"></a>zig_lib_path |  Absolute path to an existing Zig library directory for the target platform.   | String | required |  |
+| <a id="zig_path_toolchain-zig_version"></a>zig_version |  The Zig toolchain's version.   | String | required |  |
+
+
 <a id="zig_target_toolchain"></a>
 
 ## zig_target_toolchain

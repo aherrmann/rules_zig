@@ -8,6 +8,11 @@ load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private:cc_helper.bzl", "find_cc_toolchain")
 load("//zig/private/common:escape_label.bzl", "escape_label", "escape_label_str")
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
+load(
+    "//zig/private/providers:zig_toolchain_info.bzl",
+    "zig_toolchain_executable_path",
+    "zig_toolchain_lib_dir_path",
+)
 
 _DEFAULT_SYSROOT_INCLUDE_DIRS = [
     paths.join("usr", "include"),
@@ -113,6 +118,10 @@ def _builtin_translate_c(*, ctx, zigtoolchaininfo, global_args, compilation_cont
         args.add_all(cc_toolchain.built_in_include_directories, before_each = "-isystem")
 
     zig_out = ctx.actions.declare_file("{}{}_c.zig".format(output_prefix, ctx.label.name))
+    inputs.extend([zigtoolchaininfo.validation])
+    if zigtoolchaininfo.zig_lib.file != None:
+        inputs.append(zigtoolchaininfo.zig_lib.file)
+
     ctx.actions.run_shell(
         command = "${{@}} > {}".format(zig_out.path),
         inputs = depset(
@@ -120,16 +129,16 @@ def _builtin_translate_c(*, ctx, zigtoolchaininfo, global_args, compilation_cont
             transitive = transitive_inputs,
         ),
         outputs = [zig_out],
-        arguments = [zigtoolchaininfo.zig_exe.path, "translate-c", global_args, args],
+        arguments = [zig_toolchain_executable_path(zigtoolchaininfo), "translate-c", global_args, args],
         mnemonic = "ZigTranslateC",
         progress_message = "zig translate-c %{label}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
         env = {
             "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
-            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib.path,
+            "ZIG_LIB_DIR": zig_toolchain_lib_dir_path(zigtoolchaininfo),
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
-        tools = [zigtoolchaininfo.zig_exe, zigtoolchaininfo.zig_lib],
+        tools = [zigtoolchaininfo.zig_exe.file] if zigtoolchaininfo.zig_exe.file else [],
         toolchain = "//zig:toolchain_type",
     )
 

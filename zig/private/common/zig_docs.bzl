@@ -27,6 +27,10 @@ load(
     "//zig/private/providers:zig_target_info.bzl",
     "zig_target_platform",
 )
+load(
+    "//zig/private/providers:zig_toolchain_info.bzl",
+    "zig_toolchain_executable",
+)
 
 ATTRS = {
     "extra_docs": attr.label_list(
@@ -162,6 +166,9 @@ def zig_docs_impl(ctx, *, kind):
     )
 
     transitive_inputs.append(root_module.transitive_inputs)
+    transitive_inputs.append(depset([zigtoolchaininfo.validation]))
+    if zigtoolchaininfo.zig_lib.file != None:
+        transitive_inputs.append(depset([zigtoolchaininfo.zig_lib.file]))
 
     inputs = depset(
         direct = direct_inputs,
@@ -187,8 +194,7 @@ def zig_docs_impl(ctx, *, kind):
     ctx.actions.run(
         outputs = outputs,
         inputs = inputs,
-        executable = zigtoolchaininfo.zig_exe,
-        tools = [zigtoolchaininfo.zig_exe, zigtoolchaininfo.zig_lib],
+        executable = zig_toolchain_executable(zigtoolchaininfo),
         arguments = arguments,
         mnemonic = mnemonic,
         progress_message = progress_message,
