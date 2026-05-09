@@ -1,0 +1,22 @@
+config_setting(
+    name = "enabled",
+    flag_values = {
+        "//zig/settings:use_standalone_translate_c": "1",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "disabled",
+    flag_values = {
+        "//zig/settings:use_standalone_translate_c": "0",
+    },
+    visibility = ["//visibility:public"],
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig/config:__pkg__"],
+)

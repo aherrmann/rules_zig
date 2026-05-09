@@ -53,8 +53,10 @@ bzl_library(
         ":csrcs",
         ":escape_label",
         ":location_expansion",
+        ":translate_c",
         ":zig_cache",
         ":zig_lib_dir",
+        "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
@@ -94,7 +96,9 @@ bzl_library(
         ":escape_label",
         "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
+        "@apple_support//lib:apple_support",
         "@rules_cc//cc:action_names.bzl",
+        "@rules_cc//cc/common",
     ],
 )
 
