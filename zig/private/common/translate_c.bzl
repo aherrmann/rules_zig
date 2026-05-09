@@ -265,10 +265,10 @@ def _external_translate_c(*, ctx, zigtoolchaininfo, translatectoolchaininfo, com
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
         env = {
             "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
-            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib_path,
+            "ZIG_LIB_DIR": zigtoolchaininfo.zig_lib.path,
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
-        tools = [translatectoolchaininfo.files_to_run] + zigtoolchaininfo.zig_files,
+        tools = [translatectoolchaininfo.files_to_run],
         toolchain = "//zig:toolchain_type",
         **actions_run_extra_kwargs
     )
