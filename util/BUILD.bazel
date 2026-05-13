@@ -82,3 +82,13 @@ py_binary(
         "//zig/private:versions.json",
     ],
 )
+
+py_binary(
+    name = "update_zls_versions",
+    srcs = ["update_zls_versions.py"],
+    args = [
+        "--output",
+        "$(rootpath //zig/zls/private:versions.json)",
+    ],
+    data = ["//zig/zls/private:versions.json"],
+)

@@ -126,6 +126,26 @@ them through Bazel by using the `--repo_env` flag.
 Examples can be found among the end-to-end tests under
 [`./e2e/workspace`](./e2e/workspace).
 
+## ZLS
+
+ZLS toolchains are provided by a separate extension and selected by the active
+Zig SDK version.
+
+```starlark
+zls = use_extension("@rules_zig//zig/zls:extensions.bzl", "zls")
+zls.index(file = "@rules_zig//zig/zls/private:versions.json")
+zls.toolchain(
+    zig_version = "0.16.0",
+    zls_version = "0.16.0",
+)
+use_repo(zls, "zls_toolchains")
+register_toolchains("@zls_toolchains//:all")
+```
+
+Use `zig_version` as the selector and `zls_version` as the artifact version.
+They do not need to match, which allows a dev ZLS build to be tied to a stable
+Zig SDK.
+
 ## Reference Documentation
 
 Generated API documentation for the provided rules is available in

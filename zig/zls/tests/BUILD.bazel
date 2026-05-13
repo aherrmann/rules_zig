@@ -1,0 +1,25 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":bzlmod_zls_test.bzl", "bzlmod_zls_test_suite")
+
+bzlmod_zls_test_suite(name = "bzlmod_zls_test")
+
+bzl_library(
+    name = "bzlmod_zls_test_bzl",
+    srcs = ["bzlmod_zls_test.bzl"],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//zig/zls/private/bzlmod:zls",
+        "@bazel_skylib//lib:partial",
+        "@bazel_skylib//lib:unittest",
+    ],
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":bzlmod_zls_test.bzl",
+    ],
+    visibility = ["//zig/zls:__pkg__"],
+)

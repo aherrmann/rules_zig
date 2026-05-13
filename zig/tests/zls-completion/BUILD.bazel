@@ -1,0 +1,13 @@
+load("//zig:defs.bzl", "zig_library")
+load("//zig/zls:defs.bzl", "zls_completion")
+
+zig_library(
+    name = "lib",
+    main = "main.zig",
+)
+
+zls_completion(
+    name = "completion",
+    testonly = True,
+    deps = [":lib"],
+)
