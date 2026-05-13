@@ -5,6 +5,7 @@ load(":config_test.bzl", "config_test_suite")
 load(":emit_attr_test.bzl", "emit_attr_test_suite")
 load(":mode_test.bzl", "mode_test_suite")
 load(":module_info_test.bzl", "module_info_test_suite")
+load(":path_toolchain_test.bzl", "path_toolchain_test_suite")
 load(":rules_test.bzl", "rules_test_suite")
 load(":semver_test.bzl", "semver_test_suite")
 load(":target_platform_test.bzl", "target_platform_test_suite")
@@ -32,6 +33,8 @@ use_cc_common_link_test_suite(name = "use_cc_common_link_test")
 mode_test_suite(name = "mode_test")
 
 module_info_test_suite(name = "module_info_test")
+
+path_toolchain_test_suite(name = "path_toolchain_test")
 
 rules_test_suite(name = "rules_test")
 

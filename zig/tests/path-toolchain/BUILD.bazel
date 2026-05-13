@@ -1,0 +1,17 @@
+load("//zig:toolchain.bzl", "zig_path_toolchain")
+
+zig_path_toolchain(
+    name = "path_zig_toolchain_impl",
+    tags = ["manual"],
+    zig_cache = "/fake/cache",
+    zig_exe_path = "/fake/zig",
+    zig_lib_path = "/fake/lib",
+    zig_version = "path",
+)
+
+toolchain(
+    name = "path_zig_toolchain",
+    tags = ["manual"],
+    toolchain = ":path_zig_toolchain_impl",
+    toolchain_type = "//zig:toolchain_type",
+)
