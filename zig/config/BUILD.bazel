@@ -3,6 +3,7 @@ filegroup(
     name = "all_files",
     srcs = [
         ":BUILD.bazel",
+        "//zig/config/bootstrapped:all_files",
         "//zig/config/mode:all_files",
         "//zig/config/threaded:all_files",
         "//zig/config/use_standalone_translate_c:all_files",

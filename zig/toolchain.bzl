@@ -6,8 +6,10 @@ load(
 )
 load(
     "//zig/private:zig_toolchain.bzl",
+    _zig_path_toolchain = "zig_path_toolchain",
     _zig_toolchain = "zig_toolchain",
 )
 
+zig_path_toolchain = _zig_path_toolchain
 zig_toolchain = _zig_toolchain
 zig_target_toolchain = _zig_target_toolchain

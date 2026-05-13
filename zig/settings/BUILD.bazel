@@ -72,6 +72,12 @@ repeatable_string_flag(
 )
 
 bool_flag(
+    name = "bootstrapped",
+    build_setting_default = False,
+    visibility = ["//zig/config/bootstrapped:__pkg__"],
+)
+
+bool_flag(
     name = "use_standalone_translate_c",
     build_setting_default = False,
     visibility = ["//zig/config/use_standalone_translate_c:__pkg__"],

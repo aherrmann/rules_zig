@@ -1,0 +1,20 @@
+config_setting(
+    name = "bootstrap_enabled",
+    flag_values = {
+        "//zig/settings:bootstrapped": "true",
+    },
+)
+
+config_setting(
+    name = "bootstrap_disabled",
+    flag_values = {
+        "//zig/settings:bootstrapped": "false",
+    },
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig/config:__pkg__"],
+)

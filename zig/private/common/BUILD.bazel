@@ -13,7 +13,7 @@ bzl_library(
     name = "zig_lib_dir",
     srcs = ["zig_lib_dir.bzl"],
     visibility = ["//zig:__subpackages__"],
-    deps = ["@bazel_skylib//lib:paths"],
+    deps = ["//zig/private/providers:zig_toolchain_info"],
 )
 
 bzl_library(
@@ -38,6 +38,7 @@ bzl_library(
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
+        "//zig/private/providers:zig_toolchain_info",
         "@build_bazel_rules_android//:cc_common_link.bzl",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
@@ -61,6 +62,7 @@ bzl_library(
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_settings_info",
         "//zig/private/providers:zig_target_info",
+        "//zig/private/providers:zig_toolchain_info",
         "@bazel_skylib//lib:paths",
     ],
 )
@@ -97,6 +99,7 @@ bzl_library(
         ":escape_label",
         "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
+        "//zig/private/providers:zig_toolchain_info",
         "@apple_support//lib:apple_support",
         "@rules_cc//cc:action_names.bzl",
         "@rules_cc//cc/common",

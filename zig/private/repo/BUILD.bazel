@@ -6,7 +6,6 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "//zig/private/common:zig_cache",
-        "@bazel_skylib//lib:paths",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
     ],
 )
