@@ -125,6 +125,8 @@ def _zig_transition_impl(settings, attr):
         result["//zig/settings:host_zigopt"] = attr.host_zigopt
     if attr.use_standalone_translate_c != -1:
         result["//zig/settings:use_standalone_translate_c"] = attr.use_standalone_translate_c == 1
+    if attr.bootstrapped != -1:
+        result["//zig/settings:bootstrapped"] = attr.bootstrapped == 1
     return result
 
 _zig_transition = transition(
@@ -142,6 +144,7 @@ _zig_transition = transition(
         "//zig/settings:zigopt",
         "//zig/settings:host_zigopt",
         "//zig/settings:use_standalone_translate_c",
+        "//zig/settings:bootstrapped",
     ],
     outputs = [
         "//command_line_option:extra_toolchains",
@@ -156,6 +159,7 @@ _zig_transition = transition(
         "//zig/settings:zigopt",
         "//zig/settings:host_zigopt",
         "//zig/settings:use_standalone_translate_c",
+        "//zig/settings:bootstrapped",
     ],
 )
 
@@ -259,6 +263,18 @@ This is an advanced feature that can conflict with attributes, build settings, a
 Use this at your own risk of hitting undefined behaviors.
 """,
             mandatory = False,
+        ),
+        "bootstrapped": attr.int(
+            doc = (
+                "Whether to use a bootstrapped Zig compiler. " +
+                "Possible values: [-1, 0, 1]. " +
+                "-1 means use current configuration value for //zig/settings:bootstrapped. " +
+                "0 means do not use a bootstrapped Zig compiler. " +
+                "1 means use a bootstrapped Zig compiler."
+            ),
+            mandatory = False,
+            values = [-1, 0, 1],
+            default = -1,
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
