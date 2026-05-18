@@ -2,20 +2,35 @@
 
 load("@aspect_bazel_lib//lib:paths.bzl", "to_rlocation_path")
 
+def zig_toolchain_executable_rpath(ctx, zigtoolchaininfo):
+    if zigtoolchaininfo.zig_exe.file != None:
+        return to_rlocation_path(ctx, zigtoolchaininfo.zig_exe.file)
+    return zigtoolchaininfo.zig_exe.path
+
+def zig_toolchain_lib_rpath(ctx, zigtoolchaininfo):
+    if zigtoolchaininfo.zig_lib.file != None:
+        return to_rlocation_path(ctx, zigtoolchaininfo.zig_lib.file)
+    return zigtoolchaininfo.zig_lib.path
+
 def _zls_write_runner_zig_src_impl(ctx):
-    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
-    zlstoolchaininfo = ctx.toolchains["//zig/zls:toolchain_type"].zlstoolchaininfo
+    zigtoolchaininfo = ctx.toolchains["@rules_zig//zig:toolchain_type"].zigtoolchaininfo
+    zlstoolchaininfo = ctx.toolchains["@rules_zig//zig/zls:toolchain_type"].zlstoolchaininfo
+
+    zig_exe_rpath = zig_toolchain_executable_rpath(ctx, zigtoolchaininfo)
+    zig_lib_rpath = zig_toolchain_lib_rpath(ctx, zigtoolchaininfo)
+
+    prefix_suffix = "@" + "@"
 
     zls_runner = ctx.outputs.out
     ctx.actions.expand_template(
         output = zls_runner,
         template = ctx.file._runner_tpl,
         substitutions = {
-            "__GLOBAL_CACHE_PATH__": zigtoolchaininfo.zig_cache,
-            "__ZIG_EXE_RPATH__": zigtoolchaininfo.zig_exe_rpath,
-            "__ZIG_LIB_RPATH__": zigtoolchaininfo.zig_lib_rpath,
-            "__ZLS_BIN_RPATH__": to_rlocation_path(ctx, zlstoolchaininfo.bin),
-            "__ZLS_BUILD_RUNNER_RPATH__": to_rlocation_path(ctx, ctx.file.build_runner),
+            "{prefix_suffix}__ZIG_EXE_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): zig_exe_rpath,
+            "{prefix_suffix}__ZIG_LIB_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): zig_lib_rpath,
+            "{prefix_suffix}__ZLS_BIN_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): to_rlocation_path(ctx, zlstoolchaininfo.bin),
+            "{prefix_suffix}__ZLS_BUILD_RUNNER_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): to_rlocation_path(ctx, ctx.file.build_runner),
+            "{prefix_suffix}__GLOBAL_CACHE_PATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): zigtoolchaininfo.zig_cache,
         },
     )
 
