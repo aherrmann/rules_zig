@@ -58,6 +58,9 @@ def zls_completion(name, deps, testonly = False, **kwargs):
             ":{}".format(build_config_file),
             ":{}".format(build_config_printer),
         ],
+        zigopts = [
+            "-lc",
+        ],
         env = {
             "COMPLETION_BUILD_CONFIG_RLOCATION": "$(rlocationpath :{})".format(build_config_file),
             "COMPLETION_PACKAGE": native.package_name(),
