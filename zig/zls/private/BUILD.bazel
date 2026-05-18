@@ -8,7 +8,7 @@ exports_files(
 bzl_library(
     name = "resolved_toolchain",
     srcs = ["resolved_toolchain.bzl"],
-    visibility = ["//visibility:public"],
+    visibility = ["//zig/zls:__subpackages__"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

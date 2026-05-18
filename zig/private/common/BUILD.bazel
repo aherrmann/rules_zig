@@ -42,6 +42,7 @@ bzl_library(
         "@build_bazel_rules_android//:cc_common_link.bzl",
         "@rules_cc//cc:find_cc_toolchain_bzl",
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",  # keep
     ],
 )
 
@@ -103,6 +104,7 @@ bzl_library(
         "@apple_support//lib:apple_support",
         "@rules_cc//cc:action_names.bzl",
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",  # keep
     ],
 )
 

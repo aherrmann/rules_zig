@@ -121,6 +121,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",  # keep
     ],
 )
 
@@ -130,6 +131,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",  # keep
     ],
 )
 
@@ -140,6 +142,7 @@ bzl_library(
     deps = [
         "//zig/private/providers:zig_toolchain_info",
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",  # keep
     ],
 )
 

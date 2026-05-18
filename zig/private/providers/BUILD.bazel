@@ -7,6 +7,7 @@ bzl_library(
     deps = [
         "//zig/private:cc_helper",
         "@rules_cc//cc/common",
+        "@rules_cc//cc/private/rules_impl:objc_common",  # keep
     ],
 )
 

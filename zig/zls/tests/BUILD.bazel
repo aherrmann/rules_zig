@@ -5,7 +5,6 @@ bzlmod_zls_test_suite(name = "bzlmod_zls_test")
 
 bzl_library(
     name = "bzlmod_zls_test_bzl",
-    srcs = ["bzlmod_zls_test.bzl"],
     visibility = ["//visibility:private"],
     deps = [
         "//zig/zls/private/bzlmod:zls",
