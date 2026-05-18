@@ -1,0 +1,92 @@
+{
+  "available_options": {},
+  "compilations": [],
+  "dependencies": {},
+  "modules": {
+    "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Capp.zig": {
+      "c_macros": [],
+      "import_table": {},
+      "include_dirs": []
+    },
+    "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cgenerated.zig": {
+      "c_macros": [],
+      "import_table": {},
+      "include_dirs": []
+    },
+    "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cleaf.zig": {
+      "c_macros": [],
+      "import_table": {},
+      "include_dirs": []
+    },
+    "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cmid.zig": {
+      "c_macros": [],
+      "import_table": {},
+      "include_dirs": []
+    },
+    "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cnamed.zig": {
+      "c_macros": [],
+      "import_table": {},
+      "include_dirs": []
+    },
+    "__BAZEL_BIN__/zig/tests/zls-completion/generated.zig": {
+      "c_macros": [],
+      "import_table": {
+        "bazel_builtin": "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cgenerated.zig"
+      },
+      "include_dirs": []
+    },
+    "__BAZEL_BIN__/zig/tests/zls-completion/nested/bazel_builtin_zig_Stests_Szls-completion_Snested_Cnested.zig": {
+      "c_macros": [],
+      "import_table": {},
+      "include_dirs": []
+    },
+    "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/app.zig": {
+      "c_macros": [],
+      "import_table": {
+        "bazel_builtin": "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Capp.zig",
+        "custom/named": "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/named.zig",
+        "generated": "__BAZEL_BIN__/zig/tests/zls-completion/generated.zig",
+        "mid": "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/mid.zig",
+        "nested/module": "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/nested/nested.zig"
+      },
+      "include_dirs": []
+    },
+    "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/binary_with_main.zig": {
+      "c_macros": [],
+      "import_table": {
+        "app": "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/app.zig"
+      },
+      "include_dirs": []
+    },
+    "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/leaf.zig": {
+      "c_macros": [],
+      "import_table": {
+        "bazel_builtin": "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cleaf.zig"
+      },
+      "include_dirs": []
+    },
+    "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/mid.zig": {
+      "c_macros": [],
+      "import_table": {
+        "bazel_builtin": "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cmid.zig",
+        "custom/leaf": "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/leaf.zig"
+      },
+      "include_dirs": []
+    },
+    "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/named.zig": {
+      "c_macros": [],
+      "import_table": {
+        "bazel_builtin": "__BAZEL_BIN__/zig/tests/zls-completion/bazel_builtin_zig_Stests_Szls-completion_Cnamed.zig"
+      },
+      "include_dirs": []
+    },
+    "__BUILD_WORKSPACE_DIRECTORY__/zig/tests/zls-completion/nested/nested.zig": {
+      "c_macros": [],
+      "import_table": {
+        "bazel_builtin": "__BAZEL_BIN__/zig/tests/zls-completion/nested/bazel_builtin_zig_Stests_Szls-completion_Snested_Cnested.zig"
+      },
+      "include_dirs": []
+    }
+  },
+  "top_level_steps": []
+}

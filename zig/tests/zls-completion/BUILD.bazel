@@ -1,5 +1,9 @@
-load("//zig:defs.bzl", "zig_library")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//zig:defs.bzl", "zig_binary", "zig_library")
 load("//zig/zls:defs.bzl", "zls_completion")
+load("//zig/zls:zls_write_build_config.bzl", "zls_write_build_config")
 
 zig_library(
     name = "lib",
@@ -10,4 +14,87 @@ zls_completion(
     name = "completion",
     testonly = True,
     deps = [":lib"],
+)
+
+zig_library(
+    name = "leaf",
+    import_name = "custom/leaf",
+    main = "leaf.zig",
+)
+
+zig_library(
+    name = "named",
+    import_name = "custom/named",
+    main = "named.zig",
+)
+
+zig_library(
+    name = "mid",
+    main = "mid.zig",
+    deps = [":leaf"],
+)
+
+write_file(
+    name = "generated_src",
+    out = "generated.zig",
+    content = ["pub const generated_value = 7;"],
+)
+
+zig_library(
+    name = "generated",
+    main = ":generated_src",
+)
+
+zig_library(
+    name = "app",
+    main = "app.zig",
+    deps = [
+        ":generated",
+        ":mid",
+        ":named",
+        "//zig/tests/zls-completion/nested",
+    ],
+)
+
+zig_binary(
+    name = "binary_with_main",
+    main = "binary_with_main.zig",
+    deps = [":app"],
+)
+
+zig_binary(
+    name = "binary_from_root_module",
+    deps = [":app"],
+)
+
+zls_write_build_config(
+    name = "golden_build_config",
+    testonly = True,
+    out = "golden_build_config.json",
+    deps = [
+        ":app",
+        ":binary_from_root_module",
+        ":binary_with_main",
+    ],
+)
+
+py_binary(
+    name = "normalize_zls_build_config",
+    srcs = ["normalize_zls_build_config.py"],
+)
+
+genrule(
+    name = "golden_build_config_normalized",
+    testonly = True,
+    srcs = [":golden_build_config"],
+    outs = ["golden_build_config.normalized.json"],
+    cmd = "$(execpath :normalize_zls_build_config) $(location :golden_build_config) $@",
+    tools = [":normalize_zls_build_config"],
+)
+
+diff_test(
+    name = "golden_build_config_test",
+    size = "small",
+    file1 = "golden_build_config.expected.json",
+    file2 = ":golden_build_config_normalized",
 )
