@@ -19,18 +19,16 @@ def _zls_write_runner_zig_src_impl(ctx):
     zig_exe_rpath = zig_toolchain_executable_rpath(ctx, zigtoolchaininfo)
     zig_lib_rpath = zig_toolchain_lib_rpath(ctx, zigtoolchaininfo)
 
-    prefix_suffix = "@" + "@"
-
     zls_runner = ctx.outputs.out
     ctx.actions.expand_template(
         output = zls_runner,
         template = ctx.file._runner_tpl,
         substitutions = {
-            "{prefix_suffix}__ZIG_EXE_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): zig_exe_rpath,
-            "{prefix_suffix}__ZIG_LIB_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): zig_lib_rpath,
-            "{prefix_suffix}__ZLS_BIN_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): to_rlocation_path(ctx, zlstoolchaininfo.bin),
-            "{prefix_suffix}__ZLS_BUILD_RUNNER_RPATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): to_rlocation_path(ctx, ctx.file.build_runner),
-            "{prefix_suffix}__GLOBAL_CACHE_PATH__{prefix_suffix}".format(prefix_suffix = prefix_suffix): zigtoolchaininfo.zig_cache,
+            "__ZIG_EXE_RPATH__": zig_exe_rpath,
+            "__ZIG_LIB_RPATH__": zig_lib_rpath,
+            "__ZLS_BIN_RPATH__": to_rlocation_path(ctx, zlstoolchaininfo.bin),
+            "__ZLS_BUILD_RUNNER_RPATH__": to_rlocation_path(ctx, ctx.file.build_runner),
+            "__GLOBAL_CACHE_PATH__": zigtoolchaininfo.zig_cache,
         },
     )
 
