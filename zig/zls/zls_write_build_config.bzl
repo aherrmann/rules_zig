@@ -45,7 +45,7 @@ def _zls_construct_zig_module_info_impl(target, ctx):
             main = ctx.rule.file.main,
             srcs = ctx.rule.files.srcs,
             extra_srcs = ctx.rule.files.extra_srcs,
-            deps = zdeps,  # [bazel_builtin_module(ctx)],
+            deps = zdeps,
             cdeps = cdeps,
             zigopts = [],
         )

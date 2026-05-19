@@ -130,6 +130,8 @@ Examples can be found among the end-to-end tests under
 
 ZLS toolchains are provided by a separate extension and selected by the active
 Zig SDK version.
+Use the `zls_completion` rule from `@rules_zig//zig/zls:defs.bzl` to define a
+ZLS entry point for the Zig targets you want to expose to the language server.
 
 ```starlark
 zls = use_extension("@rules_zig//zig/zls:extensions.bzl", "zls")

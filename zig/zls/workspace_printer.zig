@@ -6,7 +6,7 @@ const runfiles = @import("runfiles");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
-/// https://github.com/zigtools/zls/blob/master/src/build_runner/shared.zig#L6 (2026-03-10)
+/// https://github.com/zigtools/zls/blob/606a86543362c0072248d8f1ef4a64a5e3f51682/src/build_runner/shared.zig#L6
 pub const BuildConfig = struct {
     /// The `dependencies` in `build.zig.zon`.
     dependencies: std.json.ArrayHashMap([]const u8),
