@@ -8,6 +8,12 @@ load(
 )
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:escape_label.bzl", "escape_label")
+load(
+    "//zig/private/common:exec_groups.bzl",
+    "translate_c_exec_group_toolchain",
+    "zig_exec_group_action_kwargs",
+    "zig_exec_group_toolchain",
+)
 load("//zig/private/common:location_expansion.bzl", "location_expansion")
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
@@ -59,9 +65,9 @@ def zig_docs_impl(ctx, *, kind):
         if len(ctx.attr.csrcs) > 0:
             fail("'csrcs' cannot be set without a 'main'. They are taken from the root module defined by the single zig dependency.")
 
-    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
+    zigtoolchaininfo = zig_exec_group_toolchain(ctx)
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
-    translate_c_toolchain = ctx.toolchains["//zig/translate-c:toolchain_type"]
+    translate_c_toolchain = translate_c_exec_group_toolchain(ctx)
     translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     files = None
@@ -199,6 +205,7 @@ def zig_docs_impl(ctx, *, kind):
         mnemonic = mnemonic,
         progress_message = progress_message,
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
+        **zig_exec_group_action_kwargs()
     )
 
     providers = []

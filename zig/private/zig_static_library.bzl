@@ -2,6 +2,7 @@
 
 load(
     "//zig/private/common:zig_build.bzl",
+    "EXEC_GROUPS",
     "STATIC_LIBRARY_ATTRS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
@@ -58,5 +59,6 @@ zig_static_library = rule(
     attrs = ATTRS,
     doc = DOC,
     toolchains = TOOLCHAINS,
+    exec_groups = EXEC_GROUPS,
     fragments = FRAGMENTS,
 )
