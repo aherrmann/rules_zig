@@ -594,6 +594,39 @@ def _zig_versions_test_impl(ctx):
         "root extras should be additive",
     )
 
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = ["//constraints:global"],
+                extra_target_compatible_with = ["//constraints:target-global"],
+                extra_target_settings = ["//settings:global"],
+            ),
+        ],
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target-global"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        )[2],
+        "fallback wrapper should inherit root extras",
+    )
+
     _assert_toolchain_versions(
         env,
         ["0.1.0", "0.4.0", "0.2.0", "0.0.1"],
