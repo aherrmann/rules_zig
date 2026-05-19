@@ -484,7 +484,7 @@ def zig_build_impl(ctx, *, kind):
             "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
-    ) | zig_exec_group_action_kwargs(ctx)
+    ) | zig_exec_group_action_kwargs()
 
     linkopts = location_expansion(
         ctx = ctx,

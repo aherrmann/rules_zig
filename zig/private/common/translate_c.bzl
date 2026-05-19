@@ -144,7 +144,7 @@ def _builtin_translate_c(*, ctx, zigtoolchaininfo, global_args, compilation_cont
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
         tools = [zigtoolchaininfo.zig_exe.file] if zigtoolchaininfo.zig_exe.file else [],
-        **zig_exec_group_action_kwargs(ctx)
+        **zig_exec_group_action_kwargs()
     )
 
     return zig_out, []
@@ -265,7 +265,7 @@ def _external_translate_c(*, ctx, translatectoolchaininfo, compilation_context, 
             xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
             xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
         )
-    actions_run_extra_kwargs.update(translate_c_exec_group_action_kwargs(ctx))
+    actions_run_extra_kwargs.update(translate_c_exec_group_action_kwargs())
 
     actions_run(
         inputs = depset(

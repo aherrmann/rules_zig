@@ -14,7 +14,7 @@ ZIG_EXEC_GROUPS = {
 def zig_exec_group_toolchain(ctx):
     return ctx.exec_groups[ZIG_EXEC_GROUP].toolchains[ZIG_TOOLCHAIN_TYPE].zigtoolchaininfo
 
-def zig_exec_group_action_kwargs(ctx):
+def zig_exec_group_action_kwargs():
     return {
         "exec_group": ZIG_EXEC_GROUP,
         "toolchain": ZIG_TOOLCHAIN_TYPE,
@@ -23,7 +23,7 @@ def zig_exec_group_action_kwargs(ctx):
 def translate_c_exec_group_toolchain(ctx):
     return ctx.exec_groups[ZIG_EXEC_GROUP].toolchains[TRANSLATE_C_TOOLCHAIN_TYPE]
 
-def translate_c_exec_group_action_kwargs(ctx):
+def translate_c_exec_group_action_kwargs():
     return {
         "exec_group": ZIG_EXEC_GROUP,
         "toolchain": TRANSLATE_C_TOOLCHAIN_TYPE,

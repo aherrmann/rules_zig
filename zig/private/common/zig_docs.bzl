@@ -205,7 +205,7 @@ def zig_docs_impl(ctx, *, kind):
         mnemonic = mnemonic,
         progress_message = progress_message,
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
-        **zig_exec_group_action_kwargs(ctx)
+        **zig_exec_group_action_kwargs()
     )
 
     providers = []
