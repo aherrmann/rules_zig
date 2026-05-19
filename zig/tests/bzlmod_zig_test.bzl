@@ -277,20 +277,32 @@ _merge_version_specs_test = unittest.make(
     _merge_version_specs_test_impl,
 )
 
-def _toolchain_tag(*, zig_version, default = False, name = "", extra_exec_compatible_with = [], extra_target_settings = []):
+def _toolchain_tag(*, zig_version, default = False, name = "", extra_exec_compatible_with = [], extra_target_compatible_with = [], extra_target_settings = []):
     return struct(
         name = name,
         zig_version = zig_version,
         default = default,
         extra_exec_compatible_with = extra_exec_compatible_with,
+        extra_target_compatible_with = extra_target_compatible_with,
         extra_target_settings = extra_target_settings,
     )
 
-def _toolchain_variant(*, zig_version, name = "", extra_exec_compatible_with = [], extra_target_settings = []):
+def _extra_compatible_with(*, constraints = []):
+    return struct(
+        constraints = constraints,
+    )
+
+def _extra_target_settings(*, settings = []):
+    return struct(
+        settings = settings,
+    )
+
+def _toolchain_variant(*, zig_version, name = "", extra_exec_compatible_with = [], extra_target_compatible_with = [], extra_target_settings = []):
     return struct(
         name = name,
         zig_version = zig_version,
         extra_exec_compatible_with = extra_exec_compatible_with,
+        extra_target_compatible_with = extra_target_compatible_with,
         extra_target_settings = extra_target_settings,
     )
 
@@ -427,6 +439,7 @@ def _zig_versions_test_impl(ctx):
                 name = "local",
                 zig_version = "0.1.0",
                 extra_exec_compatible_with = ["//constraints:local"],
+                extra_target_compatible_with = ["//constraints:target"],
                 extra_target_settings = ["//settings:enabled"],
             ),
         ],
@@ -440,6 +453,7 @@ def _zig_versions_test_impl(ctx):
                                 name = "local",
                                 zig_version = "0.1.0",
                                 extra_exec_compatible_with = ["//constraints:local"],
+                                extra_target_compatible_with = ["//constraints:target"],
                                 extra_target_settings = ["//settings:enabled"],
                             ),
                         ],
@@ -449,6 +463,135 @@ def _zig_versions_test_impl(ctx):
             known_versions = ["0.1.0"],
         )[2],
         "should preserve wrapper metadata",
+    )
+
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = ["//constraints:global"],
+                extra_target_compatible_with = ["//constraints:target"],
+                extra_target_settings = ["//settings:global"],
+            ),
+        ],
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [
+                            _toolchain_tag(zig_version = "0.1.0"),
+                        ],
+                    ),
+                ),
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        )[2],
+        "root extras should apply to transitive toolchain tags",
+    )
+
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(
+                name = "local",
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = [
+                    "//constraints:global",
+                    "//constraints:local",
+                ],
+                extra_target_compatible_with = [
+                    "//constraints:target-global",
+                    "//constraints:target-local",
+                ],
+                extra_target_settings = [
+                    "//settings:global",
+                    "//settings:local",
+                ],
+            ),
+        ],
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [
+                            _toolchain_tag(
+                                name = "local",
+                                zig_version = "0.1.0",
+                                extra_exec_compatible_with = ["//constraints:local"],
+                                extra_target_compatible_with = ["//constraints:target-local"],
+                                extra_target_settings = ["//settings:local"],
+                            ),
+                        ],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target-global"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        )[2],
+        "per-toolchain metadata should be appended after root extras",
+    )
+
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = [
+                    "//constraints:first",
+                    "//constraints:second",
+                ],
+                extra_target_settings = [
+                    "//settings:first",
+                    "//settings:second",
+                ],
+            ),
+        ],
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:first"]),
+                            _extra_compatible_with(constraints = ["//constraints:second"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:first"]),
+                            _extra_target_settings(settings = ["//settings:second"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        )[2],
+        "root extras should be additive",
     )
 
     _assert_toolchain_versions(
@@ -580,6 +723,72 @@ def _zig_versions_test_impl(ctx):
             known_versions = ["0.1.0"],
         ),
         "conflicting duplicate wrapper metadata should fail",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify extra Zig SDK execution constraints.", _extra_compatible_with(
+            constraints = ["//constraints:global"],
+        )], None, None),
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "only root may set extra execution constraints",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify extra Zig SDK target constraints.", _extra_compatible_with(
+            constraints = ["//constraints:target"],
+        )], None, None),
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "only root may set extra target constraints",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify extra Zig SDK target settings.", _extra_target_settings(
+            settings = ["//settings:global"],
+        )], None, None),
+        handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "only root may set extra target settings",
     )
 
     return unittest.end(env)

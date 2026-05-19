@@ -37,6 +37,11 @@ zig_toolchain = tag_class(
             mandatory = False,
             default = [],
         ),
+        "extra_target_compatible_with": attr.label_list(
+            doc = "Additional target platform constraints for generated Zig SDK toolchain targets.",
+            mandatory = False,
+            default = [],
+        ),
         "extra_target_settings": attr.label_list(
             doc = "Additional target settings for generated Zig SDK toolchain targets.",
             mandatory = False,
@@ -47,6 +52,45 @@ zig_toolchain = tag_class(
 Fetch and define toolchain targets for the given Zig SDK version.
 
 Defaults to the latest known version.
+""",
+)
+
+zig_extra_exec_compatible_with = tag_class(
+    attrs = {
+        "constraints": attr.label_list(
+            doc = "Additional execution platform constraints for generated Zig SDK toolchain targets.",
+            mandatory = False,
+            default = [],
+        ),
+    },
+    doc = """\
+Add execution platform constraints to all generated Zig SDK toolchain targets.
+""",
+)
+
+zig_extra_target_compatible_with = tag_class(
+    attrs = {
+        "constraints": attr.label_list(
+            doc = "Additional target platform constraints for generated Zig SDK toolchain targets.",
+            mandatory = False,
+            default = [],
+        ),
+    },
+    doc = """\
+Add target platform constraints to all generated Zig SDK toolchain targets.
+""",
+)
+
+zig_extra_target_settings = tag_class(
+    attrs = {
+        "settings": attr.label_list(
+            doc = "Additional target settings for generated Zig SDK toolchain targets.",
+            mandatory = False,
+            default = [],
+        ),
+    },
+    doc = """\
+Add target settings to all generated Zig SDK toolchain targets.
 """,
 )
 
@@ -71,6 +115,9 @@ zig_mirrors = tag_class(
 
 TAG_CLASSES = {
     "toolchain": zig_toolchain,
+    "extra_exec_compatible_with": zig_extra_exec_compatible_with,
+    "extra_target_compatible_with": zig_extra_target_compatible_with,
+    "extra_target_settings": zig_extra_target_settings,
     "index": zig_index,
     "mirrors": zig_mirrors,
 }
@@ -92,6 +139,28 @@ def handle_toolchain_tags(modules, *, known_versions):
     versions = sets.make()
     variants = []
     variant_keys = {}
+    global_extra_exec_compatible_with = []
+    global_extra_target_compatible_with = []
+    global_extra_target_settings = []
+
+    for mod in modules:
+        for extra in getattr(mod.tags, "extra_exec_compatible_with", []):
+            if not mod.is_root:
+                return (["Only the root module may specify extra Zig SDK execution constraints.", extra], None, None)
+
+            global_extra_exec_compatible_with.extend([str(label) for label in extra.constraints])
+
+        for extra in getattr(mod.tags, "extra_target_compatible_with", []):
+            if not mod.is_root:
+                return (["Only the root module may specify extra Zig SDK target constraints.", extra], None, None)
+
+            global_extra_target_compatible_with.extend([str(label) for label in extra.constraints])
+
+        for extra in getattr(mod.tags, "extra_target_settings", []):
+            if not mod.is_root:
+                return (["Only the root module may specify extra Zig SDK target settings.", extra], None, None)
+
+            global_extra_target_settings.extend([str(label) for label in extra.settings])
 
     for mod in modules:
         for toolchain in mod.tags.toolchain:
@@ -106,9 +175,10 @@ def handle_toolchain_tags(modules, *, known_versions):
 
             sets.insert(versions, toolchain.zig_version)
             key = "{}\n{}".format(toolchain.zig_version, toolchain.name)
-            extra_exec_compatible_with = [str(label) for label in toolchain.extra_exec_compatible_with]
-            extra_target_settings = [str(label) for label in toolchain.extra_target_settings]
-            variant_fingerprint = repr((extra_exec_compatible_with, extra_target_settings))
+            extra_exec_compatible_with = global_extra_exec_compatible_with + [str(label) for label in toolchain.extra_exec_compatible_with]
+            extra_target_compatible_with = global_extra_target_compatible_with + [str(label) for label in toolchain.extra_target_compatible_with]
+            extra_target_settings = global_extra_target_settings + [str(label) for label in toolchain.extra_target_settings]
+            variant_fingerprint = repr((extra_exec_compatible_with, extra_target_compatible_with, extra_target_settings))
             if key in variant_keys:
                 if variant_keys[key] == variant_fingerprint:
                     continue
@@ -120,6 +190,7 @@ def handle_toolchain_tags(modules, *, known_versions):
                 name = toolchain.name,
                 zig_version = toolchain.zig_version,
                 extra_exec_compatible_with = extra_exec_compatible_with,
+                extra_target_compatible_with = extra_target_compatible_with,
                 extra_target_settings = extra_target_settings,
             ))
 
@@ -136,8 +207,9 @@ def handle_toolchain_tags(modules, *, known_versions):
         variants.append(struct(
             name = "",
             zig_version = known_versions[0],
-            extra_exec_compatible_with = [],
-            extra_target_settings = [],
+            extra_exec_compatible_with = global_extra_exec_compatible_with,
+            extra_target_compatible_with = global_extra_target_compatible_with,
+            extra_target_settings = global_extra_target_settings,
         ))
 
     return None, versions, variants
@@ -232,6 +304,8 @@ def _toolchain_extension(module_ctx):
     toolchain_zig_versions = []
     toolchain_exec_lengths = []
     toolchain_exec_constraints = []
+    toolchain_target_compatible_lengths = []
+    toolchain_target_compatible_constraints = []
     toolchain_target_settings_lengths = []
     toolchain_target_settings = []
     for zig_version in versions:
@@ -260,6 +334,8 @@ def _toolchain_extension(module_ctx):
                 toolchain_zig_versions.append(zig_version)
                 toolchain_exec_lengths.append(len(compatible_with))
                 toolchain_exec_constraints.extend(compatible_with)
+                toolchain_target_compatible_lengths.append(len(variant.extra_target_compatible_with))
+                toolchain_target_compatible_constraints.extend(variant.extra_target_compatible_with)
                 toolchain_target_settings_lengths.append(len(variant.extra_target_settings))
                 toolchain_target_settings.extend(variant.extra_target_settings)
 
@@ -270,6 +346,8 @@ def _toolchain_extension(module_ctx):
         zig_versions = toolchain_zig_versions,
         exec_lengths = toolchain_exec_lengths,
         exec_constraints = toolchain_exec_constraints,
+        target_compatible_lengths = toolchain_target_compatible_lengths,
+        target_compatible_constraints = toolchain_target_compatible_constraints,
         target_settings_lengths = toolchain_target_settings_lengths,
         target_settings = toolchain_target_settings,
     )
