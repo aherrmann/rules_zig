@@ -12,6 +12,11 @@ const runfiles = @import("runfiles");
 
 const is_zig_0_16_or_later = builtin.zig_version.major == 0 and builtin.zig_version.minor >= 16;
 
+const EnvMap = if (is_zig_0_16_or_later)
+    std.process.Environ.Map
+else
+    std.process.EnvMap;
+
 fn getRandomFilename_pre_016(buf: []u8, extension: []const u8) ![]const u8 {
     const now = std.time.nanoTimestamp();
     return std.fmt.bufPrint(buf, "/tmp/{d}{s}", .{ now, extension }) catch @panic("OOM");
@@ -34,6 +39,9 @@ const Config = struct {
 
     /// Path to a directory that will be used as zig's cache. Will default to `${KnownFolders.Cache}/zls`.
     global_cache_path: ?[]const u8 = null,
+
+    /// Build-on-save expects a watch-capable Zig build runner protocol.
+    enable_build_on_save: ?bool = false,
 };
 
 pub const main = if (is_zig_0_16_or_later) main_016 else main_pre_016;
@@ -98,7 +106,13 @@ fn main_pre_016() !void {
         "--config-path",
         tmp_file_path,
     });
+    var child_env_map = try std.process.getEnvMap(allocator);
+    defer child_env_map.deinit();
+    try child_env_map.put("ZIG_GLOBAL_CACHE_DIR", global_cache_path);
+    try child_env_map.put("ZIG_LOCAL_CACHE_DIR", global_cache_path);
+
     var child = std.process.Child.init(exec_args, allocator);
+    child.env_map = &child_env_map;
     try child.spawn();
     _ = try child.wait();
 }
@@ -168,8 +182,17 @@ fn main_016(init: std.process.Init) !void {
         "--config-path",
         tmp_file_path,
     });
+    var child_env_map: EnvMap = .init(arena.allocator());
+    defer child_env_map.deinit();
+    for (init.environ_map.keys(), init.environ_map.values()) |key, value| {
+        try child_env_map.put(key, value);
+    }
+    try child_env_map.put("ZIG_GLOBAL_CACHE_DIR", global_cache_path);
+    try child_env_map.put("ZIG_LOCAL_CACHE_DIR", global_cache_path);
+
     var child = try std.process.spawn(io, .{
         .argv = exec_args,
+        .environ_map = &child_env_map,
     });
     _ = try child.wait(io);
 }
