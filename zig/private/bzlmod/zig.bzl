@@ -144,19 +144,19 @@ def handle_toolchain_tags(modules, *, known_versions):
     global_extra_target_settings = []
 
     for mod in modules:
-        for extra in getattr(mod.tags, "extra_exec_compatible_with", []):
+        for extra in mod.tags.extra_exec_compatible_with:
             if not mod.is_root:
                 return (["Only the root module may specify extra Zig SDK execution constraints.", extra], None, None)
 
             global_extra_exec_compatible_with.extend([str(label) for label in extra.constraints])
 
-        for extra in getattr(mod.tags, "extra_target_compatible_with", []):
+        for extra in mod.tags.extra_target_compatible_with:
             if not mod.is_root:
                 return (["Only the root module may specify extra Zig SDK target constraints.", extra], None, None)
 
             global_extra_target_compatible_with.extend([str(label) for label in extra.constraints])
 
-        for extra in getattr(mod.tags, "extra_target_settings", []):
+        for extra in mod.tags.extra_target_settings:
             if not mod.is_root:
                 return (["Only the root module may specify extra Zig SDK target settings.", extra], None, None)
 

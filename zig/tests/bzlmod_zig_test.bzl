@@ -306,8 +306,23 @@ def _toolchain_variant(*, zig_version, name = "", extra_exec_compatible_with = [
         extra_target_settings = extra_target_settings,
     )
 
+def _handle_toolchain_tags(modules, *, known_versions):
+    modules = [
+        struct(
+            is_root = mod.is_root,
+            tags = struct(
+                toolchain = mod.tags.toolchain,
+                extra_exec_compatible_with = getattr(mod.tags, "extra_exec_compatible_with", []),
+                extra_target_compatible_with = getattr(mod.tags, "extra_target_compatible_with", []),
+                extra_target_settings = getattr(mod.tags, "extra_target_settings", []),
+            ),
+        )
+        for mod in modules
+    ]
+    return handle_toolchain_tags(modules, known_versions = known_versions)
+
 def _assert_toolchain_versions(env, expected, modules, *, known_versions, msg):
-    result = handle_toolchain_tags(modules, known_versions = known_versions)
+    result = _handle_toolchain_tags(modules, known_versions = known_versions)
     asserts.equals(env, None, result[0], msg)
     asserts.equals(env, expected, result[1], msg)
 
@@ -325,7 +340,7 @@ def _zig_versions_test_impl(ctx):
     asserts.equals(
         env,
         [_toolchain_variant(zig_version = "0.1.0")],
-        handle_toolchain_tags([], known_versions = ["0.1.0"])[2],
+        _handle_toolchain_tags([], known_versions = ["0.1.0"])[2],
         "fallback should create one default wrapper",
     )
 
@@ -406,7 +421,7 @@ def _zig_versions_test_impl(ctx):
             _toolchain_variant(zig_version = "0.0.1"),
             _toolchain_variant(zig_version = "0.1.0"),
         ],
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
@@ -443,7 +458,7 @@ def _zig_versions_test_impl(ctx):
                 extra_target_settings = ["//settings:enabled"],
             ),
         ],
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
@@ -475,7 +490,7 @@ def _zig_versions_test_impl(ctx):
                 extra_target_settings = ["//settings:global"],
             ),
         ],
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
@@ -526,7 +541,7 @@ def _zig_versions_test_impl(ctx):
                 ],
             ),
         ],
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
@@ -572,7 +587,7 @@ def _zig_versions_test_impl(ctx):
                 ],
             ),
         ],
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
@@ -604,7 +619,7 @@ def _zig_versions_test_impl(ctx):
                 extra_target_settings = ["//settings:global"],
             ),
         ],
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
@@ -687,7 +702,7 @@ def _zig_versions_test_impl(ctx):
             default = True,
             zig_version = "0.1.0",
         )], None, None),
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
@@ -709,7 +724,7 @@ def _zig_versions_test_impl(ctx):
             default = True,
             zig_version = "0.2.0",
         )], None, None),
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
@@ -733,7 +748,7 @@ def _zig_versions_test_impl(ctx):
             zig_version = "0.1.0",
             extra_target_settings = ["//settings:disabled"],
         )], None, None),
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
@@ -763,7 +778,7 @@ def _zig_versions_test_impl(ctx):
         (["Only the root module may specify extra Zig SDK execution constraints.", _extra_compatible_with(
             constraints = ["//constraints:global"],
         )], None, None),
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
@@ -785,7 +800,7 @@ def _zig_versions_test_impl(ctx):
         (["Only the root module may specify extra Zig SDK target constraints.", _extra_compatible_with(
             constraints = ["//constraints:target"],
         )], None, None),
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
@@ -807,7 +822,7 @@ def _zig_versions_test_impl(ctx):
         (["Only the root module may specify extra Zig SDK target settings.", _extra_target_settings(
             settings = ["//settings:global"],
         )], None, None),
-        handle_toolchain_tags(
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
