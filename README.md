@@ -130,8 +130,6 @@ Examples can be found among the end-to-end tests under
 
 ZLS toolchains are provided by a separate extension and selected by the active
 Zig SDK version.
-Use the `zls_completion` rule from `@rules_zig//zig/zls:defs.bzl` to define a
-ZLS entry point for the Zig targets you want to expose to the language server.
 
 ```starlark
 zls = use_extension("@rules_zig//zig/zls:extensions.bzl", "zls")
@@ -147,6 +145,28 @@ register_toolchains("@zls_toolchains//:all")
 Use `zig_version` as the selector and `zls_version` as the artifact version.
 They do not need to match, which allows a dev ZLS build to be tied to a stable
 Zig SDK.
+
+Use the [`zls_completion`](./zig/zls/zls_completion.bzl) macro to define a ZLS
+entry point for the Zig targets you want to expose to the language server.
+For example, in `tools/BUILD.bazel`:
+
+```starlark
+load("@rules_zig//zig/zls:defs.bzl", "zls_completion")
+
+zls_completion(
+    name = "zls",
+    deps = ["//src:app"],
+)
+```
+
+Then point your editor's ZLS binary setting at a wrapper script that runs that
+target.
+
+```bash
+#!/usr/bin/env bash
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+exec bazel run -- //tools:zls "${@}"
+```
 
 ## Reference Documentation
 
