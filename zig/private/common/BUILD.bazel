@@ -3,6 +3,12 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 exports_files(["bazel_builtin.zig.tpl"])
 
 bzl_library(
+    name = "exec_groups",
+    srcs = ["exec_groups.bzl"],
+    visibility = ["//zig:__subpackages__"],
+)
+
+bzl_library(
     name = "zig_cache",
     srcs = ["zig_cache.bzl"],
     visibility = ["//zig:__subpackages__"],
@@ -26,6 +32,7 @@ bzl_library(
         ":csrcs",
         ":data",
         ":escape_label",
+        ":exec_groups",
         ":filetypes",
         ":linker_script",
         ":location_expansion",
@@ -54,6 +61,7 @@ bzl_library(
         ":cdeps",
         ":csrcs",
         ":escape_label",
+        ":exec_groups",
         ":location_expansion",
         ":translate_c",
         ":zig_cache",
@@ -97,6 +105,7 @@ bzl_library(
     visibility = ["//zig:__subpackages__"],
     deps = [
         ":escape_label",
+        ":exec_groups",
         "//zig/private:cc_helper",
         "//zig/private/providers:zig_module_info",
         "//zig/private/providers:zig_toolchain_info",
@@ -159,6 +168,7 @@ filegroup(
         ":csrcs.bzl",
         ":data.bzl",
         ":escape_label.bzl",
+        ":exec_groups.bzl",
         ":filetypes.bzl",
         ":linker_script.bzl",
         ":location_expansion.bzl",

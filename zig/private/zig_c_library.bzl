@@ -8,6 +8,12 @@ load(
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
+load(
+    "//zig/private/common:exec_groups.bzl",
+    "ZIG_EXEC_GROUPS",
+    "translate_c_exec_group_toolchain",
+    "zig_exec_group_toolchain",
+)
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -55,16 +61,15 @@ ATTRS = {
     ),
 } | BAZEL_BUILTIN_ATTRS | apple_support.action_required_attrs()
 
-TOOLCHAINS = [
-    "//zig:toolchain_type",
-    config_common.toolchain_type("//zig/translate-c:toolchain_type", mandatory = False),
-] + use_cc_toolchain(mandatory = False)
+TOOLCHAINS = use_cc_toolchain(mandatory = False)
+
+EXEC_GROUPS = ZIG_EXEC_GROUPS
 
 FRAGMENTS = ["apple", "cpp"]
 
 def _zig_c_library_impl(ctx):
-    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
-    translate_c_toolchain = ctx.toolchains["//zig/translate-c:toolchain_type"]
+    zigtoolchaininfo = zig_exec_group_toolchain(ctx)
+    translate_c_toolchain = translate_c_exec_group_toolchain(ctx)
     translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     transitive_data = []
@@ -116,5 +121,6 @@ zig_c_library = rule(
     attrs = ATTRS,
     doc = DOC,
     toolchains = TOOLCHAINS,
+    exec_groups = EXEC_GROUPS,
     fragments = FRAGMENTS,
 )

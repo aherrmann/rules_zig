@@ -7,6 +7,11 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private:cc_helper.bzl", "find_cc_toolchain")
 load("//zig/private/common:escape_label.bzl", "escape_label", "escape_label_str")
+load(
+    "//zig/private/common:exec_groups.bzl",
+    "translate_c_exec_group_action_kwargs",
+    "zig_exec_group_action_kwargs",
+)
 load("//zig/private/providers:zig_module_info.bzl", "zig_module_info")
 load(
     "//zig/private/providers:zig_toolchain_info.bzl",
@@ -139,7 +144,7 @@ def _builtin_translate_c(*, ctx, zigtoolchaininfo, global_args, compilation_cont
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
         tools = [zigtoolchaininfo.zig_exe.file] if zigtoolchaininfo.zig_exe.file else [],
-        toolchain = "//zig:toolchain_type",
+        **zig_exec_group_action_kwargs(ctx)
     )
 
     return zig_out, []
@@ -260,6 +265,7 @@ def _external_translate_c(*, ctx, translatectoolchaininfo, compilation_context, 
             xcode_config = ctx.attr._xcode_config[apple_common.XcodeVersionConfig],
             xcode_path_resolve_level = apple_support.xcode_path_resolve_level.args,
         )
+    actions_run_extra_kwargs.update(translate_c_exec_group_action_kwargs(ctx))
 
     actions_run(
         inputs = depset(
@@ -273,7 +279,6 @@ def _external_translate_c(*, ctx, translatectoolchaininfo, compilation_context, 
         progress_message = "zig translate-c %{label}",
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
         tools = [translatectoolchaininfo.files_to_run],
-        toolchain = "//zig:toolchain_type",
         **actions_run_extra_kwargs
     )
 

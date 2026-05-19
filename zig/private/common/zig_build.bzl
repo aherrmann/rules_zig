@@ -16,6 +16,13 @@ load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:escape_label.bzl", "escape_label")
 load(
+    "//zig/private/common:exec_groups.bzl",
+    "ZIG_EXEC_GROUPS",
+    "translate_c_exec_group_toolchain",
+    "zig_exec_group_action_kwargs",
+    "zig_exec_group_toolchain",
+)
+load(
     "//zig/private/common:filetypes.bzl",
     "ZIG_C_SOURCE_EXTENSIONS",
     "ZIG_SOURCE_EXTENSIONS",
@@ -201,10 +208,10 @@ Environment variables to inherit from external environment when executed by `baz
 } | COMMON_EMIT_ATTRS
 
 TOOLCHAINS = [
-    "//zig:toolchain_type",
     "//zig/target:toolchain_type",
-    config_common.toolchain_type("//zig/translate-c:toolchain_type", mandatory = False),
 ] + use_cc_toolchain(mandatory = False)
+
+EXEC_GROUPS = ZIG_EXEC_GROUPS
 
 FRAGMENTS = ["cpp"]
 
@@ -249,9 +256,9 @@ def zig_build_impl(ctx, *, kind):
         if not (ctx.attr.emit_bin or ctx.attr.emit_asm or ctx.attr.emit_llvm_ir or ctx.attr.emit_llvm_bc):
             fail("At least one emitted output must be enabled.")
 
-    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
+    zigtoolchaininfo = zig_exec_group_toolchain(ctx)
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
-    translate_c_toolchain = ctx.toolchains["//zig/translate-c:toolchain_type"]
+    translate_c_toolchain = translate_c_exec_group_toolchain(ctx)
     translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     use_cc_common_link = ctx.attr._settings[ZigSettingsInfo].use_cc_common_link
@@ -473,12 +480,11 @@ def zig_build_impl(ctx, *, kind):
 
     zig_build_kwargs = dict(
         execution_requirements = {tag: "" for tag in ctx.attr.tags},
-        toolchain = "//zig:toolchain_type",
         env = {
             "ZIG_GLOBAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
             "ZIG_LOCAL_CACHE_DIR": zigtoolchaininfo.zig_cache,
         },
-    )
+    ) | zig_exec_group_action_kwargs(ctx)
 
     linkopts = location_expansion(
         ctx = ctx,

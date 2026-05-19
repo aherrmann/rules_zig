@@ -4,6 +4,7 @@ load("@apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "//zig/private/common:zig_build.bzl",
     "BINARY_ATTRS",
+    "EXEC_GROUPS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
     COMMON_FRAGMENTS = "FRAGMENTS",
@@ -60,5 +61,6 @@ zig_binary = rule(
     doc = DOC,
     executable = True,
     toolchains = TOOLCHAINS,
+    exec_groups = EXEC_GROUPS,
     fragments = FRAGMENTS,
 )

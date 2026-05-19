@@ -3,6 +3,7 @@
 load("@apple_support//lib:apple_support.bzl", "apple_support")
 load(
     "//zig/private/common:zig_build.bzl",
+    "EXEC_GROUPS",
     "TEST_ATTRS",
     "zig_build_impl",
     COMMON_ATTRS = "ATTRS",
@@ -58,5 +59,6 @@ zig_test = rule(
     doc = DOC,
     test = True,
     toolchains = TOOLCHAINS,
+    exec_groups = EXEC_GROUPS,
     fragments = FRAGMENTS,
 )
