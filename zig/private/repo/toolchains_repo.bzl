@@ -34,6 +34,8 @@ ATTRS = {
     "zig_versions": attr.string_list(doc = "The Zig SDK versions of the corresponding toolchain targets."),
     "exec_lengths": attr.int_list(doc = "The length of the slice of the `exec_constraints` attribute that corresponds to each toolchain target."),
     "exec_constraints": attr.string_list(doc = "All toolchain execution platform constraints concatenated to a single list."),
+    "target_settings_lengths": attr.int_list(doc = "The length of the slice of the `target_settings` attribute that corresponds to each toolchain target."),
+    "target_settings": attr.string_list(doc = "All extra toolchain target settings concatenated to a single list."),
 }
 
 def sanitize_version(zig_version):
@@ -63,10 +65,10 @@ def _toolchains_repo_impl(repository_ctx):
     len_expected = len(repository_ctx.attr.names)
     len_equal = all([
         len_expected == len(getattr(repository_ctx.attr, attr))
-        for attr in ["labels", "zig_versions", "exec_lengths"]
+        for attr in ["labels", "zig_versions", "exec_lengths", "target_settings_lengths"]
     ])
     if not len_equal:
-        fail("Lengths of the attributes `names`, `labels`, `zig_versions`, `exec_lengths` must match.")
+        fail("Lengths of the attributes `names`, `labels`, `zig_versions`, `exec_lengths`, `target_settings_lengths` must match.")
 
     len_exec_constraints = 0
     for exec_len in repository_ctx.attr.exec_lengths:
@@ -74,6 +76,13 @@ def _toolchains_repo_impl(repository_ctx):
 
     if not len_exec_constraints == len(repository_ctx.attr.exec_constraints):
         fail("Length of the `exec_constraints` attribute must match the sum of `exec_lengths`.")
+
+    len_target_settings = 0
+    for target_settings_len in repository_ctx.attr.target_settings_lengths:
+        len_target_settings += target_settings_len
+
+    if not len_target_settings == len(repository_ctx.attr.target_settings):
+        fail("Length of the `target_settings` attribute must match the sum of `target_settings_lengths`.")
 
     if len(repository_ctx.attr.zig_versions) < 1:
         fail("Must specify at least one Zig SDK version in `zig_versions`.")
@@ -160,18 +169,22 @@ selects.config_setting_group(
         repository_ctx.attr.labels,
         repository_ctx.attr.zig_versions,
         repository_ctx.attr.exec_lengths,
+        repository_ctx.attr.target_settings_lengths,
     )
     exec_offset = 0
-    for counter, (name, label, zig_version, exec_len) in enumerate(zipped):
+    target_settings_offset = 0
+    for counter, (name, label, zig_version, exec_len, target_settings_len) in enumerate(zipped):
         compatible_with = repository_ctx.attr.exec_constraints[exec_offset:exec_offset + exec_len]
         exec_offset += exec_len
+        target_settings = [":{}".format(zig_version)] + repository_ctx.attr.target_settings[target_settings_offset:target_settings_offset + target_settings_len]
+        target_settings_offset += target_settings_len
         build_content += """
 # Declare a toolchain Bazel will select for running the tool in an action
 # on the execution platform.
 toolchain(
     name = "{prefix}_{name}_toolchain",
     exec_compatible_with = {compatible_with},
-    target_settings = [":{version}"],
+    target_settings = {target_settings},
     toolchain = "{label}",
     toolchain_type = "@rules_zig//zig:toolchain_type",
 )
@@ -179,7 +192,7 @@ toolchain(
             prefix = _counter_prefix(counter, width = counter_digits),
             name = name,
             compatible_with = compatible_with,
-            version = zig_version,
+            target_settings = target_settings,
             label = label,
         )
 
