@@ -156,9 +156,6 @@ def _toolchain_extension(module_ctx):
     if err != None:
         fail(*err)
 
-    if len(mappings) == 0:
-        fail("The zls extension requires at least one zls.toolchain tag.")
-
     toolchain_names = []
     toolchain_labels = []
     toolchain_zig_versions = []
@@ -194,9 +191,6 @@ def _toolchain_extension(module_ctx):
                     zls_version = mapping.zls_version,
                     platform = platform,
                 )
-
-    if len(toolchain_names) == 0:
-        fail("No ZLS toolchains were generated. Check that the requested ZLS versions have entries for supported platforms.")
 
     toolchains_repo(
         name = _DEFAULT_NAME + "_toolchains",
