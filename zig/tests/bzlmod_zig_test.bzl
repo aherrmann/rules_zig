@@ -277,218 +277,438 @@ _merge_version_specs_test = unittest.make(
     _merge_version_specs_test_impl,
 )
 
+def _toolchain_tag(*, zig_version, default = False, name = "", extra_exec_compatible_with = [], extra_target_compatible_with = [], extra_target_settings = []):
+    return struct(
+        name = name,
+        zig_version = zig_version,
+        default = default,
+        extra_exec_compatible_with = extra_exec_compatible_with,
+        extra_target_compatible_with = extra_target_compatible_with,
+        extra_target_settings = extra_target_settings,
+    )
+
+def _extra_compatible_with(*, constraints = []):
+    return struct(
+        constraints = constraints,
+    )
+
+def _extra_target_settings(*, settings = []):
+    return struct(
+        settings = settings,
+    )
+
+def _toolchain_variant(*, zig_version, name = "", extra_exec_compatible_with = [], extra_target_compatible_with = [], extra_target_settings = []):
+    return struct(
+        name = name,
+        zig_version = zig_version,
+        extra_exec_compatible_with = extra_exec_compatible_with,
+        extra_target_compatible_with = extra_target_compatible_with,
+        extra_target_settings = extra_target_settings,
+    )
+
+def _handle_toolchain_tags(modules, *, known_versions):
+    modules = [
+        struct(
+            is_root = mod.is_root,
+            tags = struct(
+                toolchain = mod.tags.toolchain,
+                extra_exec_compatible_with = getattr(mod.tags, "extra_exec_compatible_with", []),
+                extra_target_compatible_with = getattr(mod.tags, "extra_target_compatible_with", []),
+                extra_target_settings = getattr(mod.tags, "extra_target_settings", []),
+            ),
+        )
+        for mod in modules
+    ]
+    return handle_toolchain_tags(modules, known_versions = known_versions)
+
+def _assert_toolchain_versions(env, expected, modules, *, known_versions, msg):
+    result = _handle_toolchain_tags(modules, known_versions = known_versions)
+    asserts.equals(env, None, result[0], msg)
+    asserts.equals(env, expected, result[1], msg)
+
 def _zig_versions_test_impl(ctx):
     env = unittest.begin(ctx)
 
-    asserts.equals(
+    _assert_toolchain_versions(
         env,
-        (None, ["0.1.0"]),
-        handle_toolchain_tags([], known_versions = ["0.1.0"]),
-        "should fall back to the default Zig SDK version",
+        ["0.1.0"],
+        [],
+        known_versions = ["0.1.0"],
+        msg = "should fall back to the default Zig SDK version",
     )
 
     asserts.equals(
         env,
-        (None, ["0.1.0"]),
-        handle_toolchain_tags(
+        [_toolchain_variant(zig_version = "0.1.0")],
+        _handle_toolchain_tags([], known_versions = ["0.1.0"])[2],
+        "fallback should create one default wrapper",
+    )
+
+    _assert_toolchain_versions(
+        env,
+        ["0.1.0"],
+        [
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.1.0"),
+                    ],
+                ),
+            ),
+        ],
+        known_versions = ["0.1.0"],
+        msg = "should choose a single configured version",
+    )
+
+    _assert_toolchain_versions(
+        env,
+        ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
+        [
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.0.1"),
+                        _toolchain_tag(zig_version = "0.4.0"),
+                    ],
+                ),
+            ),
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.2.0"),
+                        _toolchain_tag(zig_version = "0.1.0"),
+                    ],
+                ),
+            ),
+        ],
+        known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
+        msg = "should order versions by semver",
+    )
+
+    _assert_toolchain_versions(
+        env,
+        ["0.1.0", "0.0.1"],
+        [
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.0.1"),
+                        _toolchain_tag(zig_version = "0.1.0"),
+                    ],
+                ),
+            ),
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.0.1"),
+                        _toolchain_tag(zig_version = "0.1.0"),
+                    ],
+                ),
+            ),
+        ],
+        known_versions = ["0.1.0", "0.0.1"],
+        msg = "should deduplicate versions",
+    )
+
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(zig_version = "0.0.1"),
+            _toolchain_variant(zig_version = "0.1.0"),
+        ],
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
                     tags = struct(
                         toolchain = [
-                            struct(
-                                default = False,
+                            _toolchain_tag(zig_version = "0.0.1"),
+                            _toolchain_tag(zig_version = "0.1.0"),
+                        ],
+                    ),
+                ),
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [
+                            _toolchain_tag(zig_version = "0.0.1"),
+                            _toolchain_tag(zig_version = "0.1.0"),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0", "0.0.1"],
+        )[2],
+        "should deduplicate identical wrappers",
+    )
+
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(
+                name = "local",
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = ["//constraints:local"],
+                extra_target_compatible_with = ["//constraints:target"],
+                extra_target_settings = ["//settings:enabled"],
+            ),
+        ],
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [
+                            _toolchain_tag(
+                                name = "local",
                                 zig_version = "0.1.0",
+                                extra_exec_compatible_with = ["//constraints:local"],
+                                extra_target_compatible_with = ["//constraints:target"],
+                                extra_target_settings = ["//settings:enabled"],
                             ),
                         ],
                     ),
                 ),
             ],
             known_versions = ["0.1.0"],
-        ),
-        "should choose a single configured version",
+        )[2],
+        "should preserve wrapper metadata",
     )
 
     asserts.equals(
         env,
-        (None, ["0.4.0", "0.2.0", "0.1.0", "0.0.1"]),
-        handle_toolchain_tags(
+        [
+            _toolchain_variant(
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = ["//constraints:global"],
+                extra_target_compatible_with = ["//constraints:target"],
+                extra_target_settings = ["//settings:global"],
+            ),
+        ],
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
                     tags = struct(
                         toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.0.1",
-                            ),
-                            struct(
-                                default = False,
-                                zig_version = "0.4.0",
-                            ),
-                        ],
-                    ),
-                ),
-                struct(
-                    is_root = False,
-                    tags = struct(
-                        toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.2.0",
-                            ),
-                            struct(
-                                default = False,
-                                zig_version = "0.1.0",
-                            ),
-                        ],
-                    ),
-                ),
-            ],
-            known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
-        ),
-        "should order versions by semver",
-    )
-
-    asserts.equals(
-        env,
-        (None, ["0.1.0", "0.0.1"]),
-        handle_toolchain_tags(
-            [
-                struct(
-                    is_root = False,
-                    tags = struct(
-                        toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.0.1",
-                            ),
-                            struct(
-                                default = False,
-                                zig_version = "0.1.0",
-                            ),
-                        ],
-                    ),
-                ),
-                struct(
-                    is_root = False,
-                    tags = struct(
-                        toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.0.1",
-                            ),
-                            struct(
-                                default = False,
-                                zig_version = "0.1.0",
-                            ),
-                        ],
-                    ),
-                ),
-            ],
-            known_versions = ["0.1.0", "0.0.1"],
-        ),
-        "should deduplicate versions",
-    )
-
-    asserts.equals(
-        env,
-        (None, ["0.1.0", "0.4.0", "0.2.0", "0.0.1"]),
-        handle_toolchain_tags(
-            [
-                struct(
-                    is_root = False,
-                    tags = struct(
-                        toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.0.1",
-                            ),
-                            struct(
-                                default = False,
-                                zig_version = "0.4.0",
-                            ),
+                            _toolchain_tag(zig_version = "0.1.0"),
                         ],
                     ),
                 ),
                 struct(
                     is_root = True,
                     tags = struct(
-                        toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.2.0",
-                            ),
-                            struct(
-                                default = True,
-                                zig_version = "0.1.0",
-                            ),
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
                         ],
                     ),
                 ),
             ],
-            known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
-        ),
-        "the default should take precedence",
+            known_versions = ["0.1.0"],
+        )[2],
+        "root extras should apply to transitive toolchain tags",
     )
 
     asserts.equals(
         env,
-        (None, ["0.1.0", "0.2.0", "0.0.1"]),
-        handle_toolchain_tags(
+        [
+            _toolchain_variant(
+                name = "local",
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = [
+                    "//constraints:global",
+                    "//constraints:local",
+                ],
+                extra_target_compatible_with = [
+                    "//constraints:target-global",
+                    "//constraints:target-local",
+                ],
+                extra_target_settings = [
+                    "//settings:global",
+                    "//settings:local",
+                ],
+            ),
+        ],
+        _handle_toolchain_tags(
             [
-                struct(
-                    is_root = False,
-                    tags = struct(
-                        toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.0.1",
-                            ),
-                            struct(
-                                default = False,
-                                zig_version = "0.1.0",
-                            ),
-                        ],
-                    ),
-                ),
                 struct(
                     is_root = True,
                     tags = struct(
                         toolchain = [
-                            struct(
-                                default = False,
-                                zig_version = "0.2.0",
-                            ),
-                            struct(
-                                default = True,
+                            _toolchain_tag(
+                                name = "local",
                                 zig_version = "0.1.0",
+                                extra_exec_compatible_with = ["//constraints:local"],
+                                extra_target_compatible_with = ["//constraints:target-local"],
+                                extra_target_settings = ["//settings:local"],
                             ),
+                        ],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target-global"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
                         ],
                     ),
                 ),
             ],
-            known_versions = ["0.2.0", "0.1.0", "0.0.1"],
-        ),
-        "should not duplicate default",
+            known_versions = ["0.1.0"],
+        )[2],
+        "per-toolchain metadata should be appended after root extras",
     )
 
     asserts.equals(
         env,
-        (["Only the root module may specify a default Zig SDK version.", struct(
+        [
+            _toolchain_variant(
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = [
+                    "//constraints:first",
+                    "//constraints:second",
+                ],
+                extra_target_settings = [
+                    "//settings:first",
+                    "//settings:second",
+                ],
+            ),
+        ],
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:first"]),
+                            _extra_compatible_with(constraints = ["//constraints:second"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:first"]),
+                            _extra_target_settings(settings = ["//settings:second"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        )[2],
+        "root extras should be additive",
+    )
+
+    asserts.equals(
+        env,
+        [
+            _toolchain_variant(
+                zig_version = "0.1.0",
+                extra_exec_compatible_with = ["//constraints:global"],
+                extra_target_compatible_with = ["//constraints:target-global"],
+                extra_target_settings = ["//settings:global"],
+            ),
+        ],
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target-global"]),
+                        ],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        )[2],
+        "fallback wrapper should inherit root extras",
+    )
+
+    _assert_toolchain_versions(
+        env,
+        ["0.1.0", "0.4.0", "0.2.0", "0.0.1"],
+        [
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.0.1"),
+                        _toolchain_tag(zig_version = "0.4.0"),
+                    ],
+                ),
+            ),
+            struct(
+                is_root = True,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.2.0"),
+                        _toolchain_tag(zig_version = "0.1.0", default = True),
+                    ],
+                ),
+            ),
+        ],
+        known_versions = ["0.4.0", "0.2.0", "0.1.0", "0.0.1"],
+        msg = "the default should take precedence",
+    )
+
+    _assert_toolchain_versions(
+        env,
+        ["0.1.0", "0.2.0", "0.0.1"],
+        [
+            struct(
+                is_root = False,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.0.1"),
+                        _toolchain_tag(zig_version = "0.1.0"),
+                    ],
+                ),
+            ),
+            struct(
+                is_root = True,
+                tags = struct(
+                    toolchain = [
+                        _toolchain_tag(zig_version = "0.2.0"),
+                        _toolchain_tag(zig_version = "0.1.0", default = True),
+                    ],
+                ),
+            ),
+        ],
+        known_versions = ["0.2.0", "0.1.0", "0.0.1"],
+        msg = "should not duplicate default",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify a default Zig SDK version.", _toolchain_tag(
             default = True,
             zig_version = "0.1.0",
-        )], None),
-        handle_toolchain_tags(
+        )], None, None),
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = False,
                     tags = struct(
                         toolchain = [
-                            struct(
-                                default = True,
-                                zig_version = "0.1.0",
-                            ),
+                            _toolchain_tag(zig_version = "0.1.0", default = True),
                         ],
                     ),
                 ),
@@ -500,24 +720,18 @@ def _zig_versions_test_impl(ctx):
 
     asserts.equals(
         env,
-        (["You may only specify one default Zig SDK version.", struct(
+        (["You may only specify one default Zig SDK version.", _toolchain_tag(
             default = True,
             zig_version = "0.2.0",
-        )], None),
-        handle_toolchain_tags(
+        )], None, None),
+        _handle_toolchain_tags(
             [
                 struct(
                     is_root = True,
                     tags = struct(
                         toolchain = [
-                            struct(
-                                default = True,
-                                zig_version = "0.1.0",
-                            ),
-                            struct(
-                                default = True,
-                                zig_version = "0.2.0",
-                            ),
+                            _toolchain_tag(zig_version = "0.1.0", default = True),
+                            _toolchain_tag(zig_version = "0.2.0", default = True),
                         ],
                     ),
                 ),
@@ -525,6 +739,104 @@ def _zig_versions_test_impl(ctx):
             known_versions = ["0.2.0", "0.1.0"],
         ),
         "only one default allowed",
+    )
+
+    asserts.equals(
+        env,
+        (["Conflicting Zig SDK toolchain variant name 'local' for version '0.1.0'.", _toolchain_tag(
+            name = "local",
+            zig_version = "0.1.0",
+            extra_target_settings = ["//settings:disabled"],
+        )], None, None),
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = True,
+                    tags = struct(
+                        toolchain = [
+                            _toolchain_tag(
+                                name = "local",
+                                zig_version = "0.1.0",
+                                extra_target_settings = ["//settings:enabled"],
+                            ),
+                            _toolchain_tag(
+                                name = "local",
+                                zig_version = "0.1.0",
+                                extra_target_settings = ["//settings:disabled"],
+                            ),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "conflicting duplicate wrapper metadata should fail",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify extra Zig SDK execution constraints.", _extra_compatible_with(
+            constraints = ["//constraints:global"],
+        )], None, None),
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [],
+                        extra_exec_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "only root may set extra execution constraints",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify extra Zig SDK target constraints.", _extra_compatible_with(
+            constraints = ["//constraints:target"],
+        )], None, None),
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [],
+                        extra_target_compatible_with = [
+                            _extra_compatible_with(constraints = ["//constraints:target"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "only root may set extra target constraints",
+    )
+
+    asserts.equals(
+        env,
+        (["Only the root module may specify extra Zig SDK target settings.", _extra_target_settings(
+            settings = ["//settings:global"],
+        )], None, None),
+        _handle_toolchain_tags(
+            [
+                struct(
+                    is_root = False,
+                    tags = struct(
+                        toolchain = [],
+                        extra_target_settings = [
+                            _extra_target_settings(settings = ["//settings:global"]),
+                        ],
+                    ),
+                ),
+            ],
+            known_versions = ["0.1.0"],
+        ),
+        "only root may set extra target settings",
     )
 
     return unittest.end(env)
