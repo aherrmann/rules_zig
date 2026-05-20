@@ -23,11 +23,20 @@ bazel_dep(name = "rules_zig", version = "$VERSION")
 Optionally add the following to your \`MODULE.bazel\` file to install a specific Zig toolchain version:
 
 \`\`\`starlark
-zig = use_extension("//zig:extensions.bzl", "zig")
+zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
 zig.toolchain(zig_version = "0.16.0")
 \`\`\`
 
 You can call \`zig.toolchain\` multiple times to install multiple Zig versions.
+
+Optionally add the following to your \`MODULE.bazel\` file to install a specific ZLS toolchain version and declare what Zig version it applies to:
+
+\`\`\`starlark
+zls = use_extension("@rules_zig//zig/zls:extensions.bzl", "zls")
+zls.toolchain(zig_version = "0.16.0", zls_version = "0.16.0")
+\`\`\`
+
+You can call \`zls.toolchain\` multiple times to install multiple ZLS versions.
 
 Note, rules_zig requires bzlmod, WORKSPACE mode is no longer supported.
 EOF
