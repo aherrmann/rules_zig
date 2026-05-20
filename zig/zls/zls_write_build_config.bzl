@@ -4,6 +4,12 @@ load("@rules_cc//cc:find_cc_toolchain.bzl", "use_cc_toolchain")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//zig/private:cc_helper.bzl", "need_translate_c")
+load(
+    "//zig/private/common:exec_groups.bzl",
+    "ZIG_EXEC_GROUPS",
+    "translate_c_exec_group_toolchain",
+    "zig_exec_group_toolchain",
+)
 load("//zig/private/common:translate_c.bzl", "zig_translate_c")
 load("//zig/private/common:zig_cache.bzl", "zig_cache_output")
 load("//zig/private/common:zig_lib_dir.bzl", "zig_lib_dir")
@@ -67,9 +73,9 @@ def format_main_file(main):
     return prefix + main
 
 def _zls_write_build_config_impl(ctx):
-    zigtoolchaininfo = ctx.toolchains["//zig:toolchain_type"].zigtoolchaininfo
+    zigtoolchaininfo = zig_exec_group_toolchain(ctx)
     zigtargetinfo = ctx.toolchains["//zig/target:toolchain_type"].zigtargetinfo
-    translate_c_toolchain = ctx.toolchains["//zig/translate-c:toolchain_type"]
+    translate_c_toolchain = translate_c_exec_group_toolchain(ctx)
     translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
     c_module_contexts = []
@@ -165,9 +171,8 @@ zls_write_build_config = rule(
         ),
     },
     toolchains = [
-        "//zig:toolchain_type",
         "//zig/target:toolchain_type",
-        config_common.toolchain_type("//zig/translate-c:toolchain_type", mandatory = False),
     ] + use_cc_toolchain(mandatory = False),
+    exec_groups = ZIG_EXEC_GROUPS,
     fragments = ["cpp", "apple"],
 )

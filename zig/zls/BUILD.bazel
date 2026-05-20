@@ -58,6 +58,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "//zig/private:cc_helper",
+        "//zig/private/common:exec_groups",
         "//zig/private/common:translate_c",
         "//zig/private/common:zig_cache",
         "//zig/private/common:zig_lib_dir",
