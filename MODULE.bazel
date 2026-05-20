@@ -35,6 +35,12 @@ register_toolchains("@rules_zig//zig/target:all")
 
 register_toolchains("@zig_toolchains//:all")
 
+zls = use_extension("//zig/zls:extensions.bzl", "zls")
+zls.index(file = "//zig/zls/private:versions.json")
+use_repo(zls, "zls_toolchains")
+
+register_toolchains("@zls_toolchains//:all")
+
 zig_dev = use_extension(
     "//zig:extensions.bzl",
     "zig",
@@ -48,7 +54,6 @@ zls_dev = use_extension(
     "zls",
     dev_dependency = True,
 )
-zls_dev.index(file = "//zig/zls/private:versions.json")
 zls_dev.toolchain(
     zig_version = "0.16.0",
     zls_version = "0.16.0",
@@ -56,12 +61,6 @@ zls_dev.toolchain(
 zls_dev.toolchain(
     zig_version = "0.15.2",
     zls_version = "0.15.1",
-)
-use_repo(zls_dev, "zls_toolchains")
-
-register_toolchains(
-    "@zls_toolchains//:all",
-    dev_dependency = True,
 )
 
 bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4", dev_dependency = True)
