@@ -1,0 +1,8 @@
+load("//zig:defs.bzl", "zig_library")
+
+zig_library(
+    name = "nested",
+    import_name = "nested/module",
+    main = "nested.zig",
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,25 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files(
+    ["versions.json"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "resolved_toolchain",
+    srcs = ["resolved_toolchain.bzl"],
+    visibility = ["//zig/zls:__subpackages__"],
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":resolved_toolchain.bzl",
+        ":versions.json",
+        "//zig/zls/private/bzlmod:all_files",
+        "//zig/zls/private/repo:all_files",
+    ],
+    visibility = ["//zig/zls:__pkg__"],
+)

@@ -1,0 +1,104 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//zig/zls/private:resolved_toolchain.bzl", "resolved_toolchain")
+
+exports_files(
+    [
+        "defs.bzl",
+        "extensions.bzl",
+        "toolchain.bzl",
+        "workspace_printer.zig",
+        "workspace_printer_test.zig",
+        "zls_build_runner.zig",
+        "zls_runner.zig",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+resolved_toolchain(
+    name = "resolved_toolchain",
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "defs",
+    srcs = ["defs.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":zls_completion"],
+)
+
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["//zig/zls/private/bzlmod:zls"],
+)
+
+bzl_library(
+    name = "zls_completion",
+    srcs = ["zls_completion.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":zls_write_build_config",
+        ":zls_write_runner_zig_src",
+        "//zig:defs",
+        "@aspect_bazel_lib//lib:utils",
+        "@bazel_skylib//rules:expand_template",
+    ],
+)
+
+bzl_library(
+    name = "zls_write_build_config",
+    srcs = ["zls_write_build_config.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//zig/private:cc_helper",
+        "//zig/private/common:translate_c",
+        "//zig/private/common:zig_cache",
+        "//zig/private/common:zig_lib_dir",
+        "//zig/private/providers:zig_module_info",
+        "//zig/private/providers:zig_target_info",
+        "//zig/translate-c:toolchain",
+        "@rules_cc//cc:find_cc_toolchain_bzl",
+        "@rules_cc//cc/common",
+    ],
+)
+
+bzl_library(
+    name = "zls_write_runner_zig_src",
+    srcs = ["zls_write_runner_zig_src.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["@aspect_bazel_lib//lib:paths"],
+)
+
+bzl_library(
+    name = "toolchain",
+    srcs = ["toolchain.bzl"],
+    visibility = ["//visibility:public"],
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [
+        ":BUILD.bazel",
+        ":defs.bzl",
+        ":extensions.bzl",
+        ":toolchain.bzl",
+        ":workspace_printer.zig",
+        ":workspace_printer_test.zig",
+        ":zls_build_runner.zig",
+        ":zls_completion.bzl",
+        ":zls_runner.zig",
+        ":zls_write_build_config.bzl",
+        ":zls_write_runner_zig_src.bzl",
+        "//zig/zls/private:all_files",
+        "//zig/zls/tests:all_files",
+    ],
+    visibility = ["//zig:__pkg__"],
+)
