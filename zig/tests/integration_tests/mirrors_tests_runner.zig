@@ -43,7 +43,7 @@ test "Zig distribution is fetched from a mirror" {
                                     if (url_value == .string) {
                                         if (std.mem.startsWith(u8, url_value.string, expected_url_prefix)) {
                                             fetch_used_mirror = true;
-                                            fetch_used_source_param = std.mem.endsWith(u8, url_value.string, "?source=github-aherrmann-rules_zig");
+                                            fetch_used_source_param = std.mem.endsWith(u8, url_value.string, "?source=github-hermeticbuild-rules_zig");
                                         }
                                     }
                                 }

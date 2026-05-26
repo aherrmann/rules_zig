@@ -205,7 +205,7 @@ fn testBinaryShouldNotContainOutputBase(mode: []const u8) !void {
 test "zig_binary result should not contain the output base path in debug mode" {
     if (true) {
         // TODO[AH] Avoid output base path in debug mode.
-        //   See https://github.com/aherrmann/rules_zig/issues/79
+        //   See https://github.com/hermeticbuild/rules_zig/issues/79
         return error.SkipZigTest;
     }
 
@@ -215,7 +215,7 @@ test "zig_binary result should not contain the output base path in debug mode" {
 test "zig_binary result should not contain the output base path in release_safe mode" {
     if (true) {
         // TODO[AH] Avoid output base path in release_safe mode.
-        //   See https://github.com/aherrmann/rules_zig/issues/79
+        //   See https://github.com/hermeticbuild/rules_zig/issues/79
         return error.SkipZigTest;
     }
 
@@ -229,7 +229,7 @@ test "zig_binary result should not contain the output base path in release_small
 test "zig_binary result should not contain the output base path in release_fast mode" {
     if (true) {
         // TODO[AH] Avoid output base path in release_fast mode.
-        //   See https://github.com/aherrmann/rules_zig/issues/79
+        //   See https://github.com/hermeticbuild/rules_zig/issues/79
         return error.SkipZigTest;
     }
 

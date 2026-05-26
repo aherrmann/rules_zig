@@ -25,7 +25,7 @@ TOOLCHAINS = [
 def max_int_alignment(arch):
     """Architecture specific maximum integer alignment.
 
-    See https://github.com/aherrmann/zig/blob/5ad91a646a753cc3eecd8751e61cf458dadd9ac4/src/Type.zig#L1641
+    See https://github.com/ziglang/zig/blob/5ad91a646a753cc3eecd8751e61cf458dadd9ac4/src/Type.zig#L1641
     """
     by_arch = {
         "avr": 1,

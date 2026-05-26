@@ -11,7 +11,7 @@ Take a look at the [planned functionality][planned-functionality] tracking
 issue to get a picture of which functionality is already implemented and what
 is still missing.
 
-[planned-functionality]: https://github.com/aherrmann/rules_zig/issues/1
+[planned-functionality]: https://github.com/hermeticbuild/rules_zig/issues/1
 
 ## Motivation
 
@@ -62,7 +62,7 @@ Note, the old WORKSPACE mechanmism is no longer supported by rules_zig.
 To install a [release version of rules_zig][rules-zig-releases] follow the
 installation instructions given in the corresponding release notes.
 
-[rules-zig-releases]: https://github.com/aherrmann/rules_zig/releases
+[rules-zig-releases]: https://github.com/hermeticbuild/rules_zig/releases
 
 To install a development version add the following to your MODULE.bazel file:
 
@@ -72,7 +72,7 @@ archive_override(
     module_name = "rules_zig",
     integrity = "sha256-$SHA256",
     strip_prefix = "rules_zig-$COMMIT",
-    urls = ["https://github.com/aherrmann/rules_zig/archive/$COMMIT.tar.gz"],
+    urls = ["https://github.com/hermeticbuild/rules_zig/archive/$COMMIT.tar.gz"],
 )
 ```
 
@@ -83,7 +83,7 @@ information.
 [archive-override-doc]: https://bazel.build/versions/7.0.0/rules/lib/globals/module#archive_override
 
 <!-- TODO[AH] Write a user-guide
-  https://github.com/aherrmann/rules_zig/issues/59
+  https://github.com/hermeticbuild/rules_zig/issues/59
 
 ## User Guide Documentation
 
@@ -120,7 +120,7 @@ them through Bazel by using the `--repo_env` flag.
 ## Usage Examples
 
 <!-- TODO[AH] Create an instructive example.
-  https://github.com/aherrmann/rules_zig/issues/58
+  https://github.com/hermeticbuild/rules_zig/issues/58
 -->
 
 Examples can be found among the end-to-end tests under

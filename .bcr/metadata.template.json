@@ -1,5 +1,5 @@
 {
-  "homepage": "https://github.com/aherrmann/rules_zig",
+  "homepage": "https://github.com/hermeticbuild/rules_zig",
   "maintainers": [
     {
       "name": "Andreas Herrmann",
@@ -8,7 +8,7 @@
       "github_user_id": 732652
     }
   ],
-  "repository": ["github:aherrmann/rules_zig"],
+  "repository": ["github:hermeticbuild/rules_zig"],
   "versions": [],
   "yanked_versions": {}
 }
