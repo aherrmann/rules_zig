@@ -79,6 +79,19 @@ test "target build mode defaults to Debug" {
     try std.testing.expectEqualStrings("Debug", result.stdout);
 }
 
+test "target build mode follows Bazel opt compilation mode" {
+    const ctx = try BitContext.init();
+    defer ctx.deinit();
+
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "run", "-c", "opt", "//:print_build_mode" },
+    });
+    defer result.deinit();
+
+    try std.testing.expect(result.success);
+    try std.testing.expectEqualStrings("ReleaseFast", result.stdout);
+}
+
 test "exec build mode defaults to ReleaseSafe" {
     const ctx = try BitContext.init();
     defer ctx.deinit();
@@ -100,7 +113,7 @@ test "target build mode can be set on the command line" {
     defer ctx.deinit();
 
     const result = try ctx.exec_bazel(.{
-        .argv = &[_][]const u8{ "run", "//:print_build_mode", "--@rules_zig//zig/settings:mode=release_small" },
+        .argv = &[_][]const u8{ "run", "-c", "opt", "--@rules_zig//zig/settings:mode=release_small", "//:print_build_mode" },
     });
     defer result.deinit();
 

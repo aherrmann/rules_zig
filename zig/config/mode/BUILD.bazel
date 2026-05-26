@@ -1,29 +1,88 @@
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
 config_setting(
-    name = "debug",
+    name = "_debug_explicit",
     flag_values = {
         "//zig/settings:mode": "debug",
     },
 )
 
 config_setting(
-    name = "release_safe",
+    name = "_debug_auto_dbg",
+    flag_values = {
+        "//zig/settings:mode": "auto",
+    },
+    values = {
+        "compilation_mode": "dbg",
+    },
+)
+
+config_setting(
+    name = "_debug_auto_fastbuild",
+    flag_values = {
+        "//zig/settings:mode": "auto",
+    },
+    values = {
+        "compilation_mode": "fastbuild",
+    },
+)
+
+selects.config_setting_group(
+    name = "debug",
+    match_any = [
+        ":_debug_explicit",
+        ":_debug_auto_dbg",
+        ":_debug_auto_fastbuild",
+    ],
+)
+
+config_setting(
+    name = "_release_safe_explicit",
     flag_values = {
         "//zig/settings:mode": "release_safe",
     },
 )
 
+selects.config_setting_group(
+    name = "release_safe",
+    match_any = [":_release_safe_explicit"],
+)
+
 config_setting(
-    name = "release_small",
+    name = "_release_small_explicit",
     flag_values = {
         "//zig/settings:mode": "release_small",
     },
 )
 
+selects.config_setting_group(
+    name = "release_small",
+    match_any = [":_release_small_explicit"],
+)
+
 config_setting(
-    name = "release_fast",
+    name = "_release_fast_explicit",
     flag_values = {
         "//zig/settings:mode": "release_fast",
     },
+)
+
+config_setting(
+    name = "_release_fast_auto_opt",
+    flag_values = {
+        "//zig/settings:mode": "auto",
+    },
+    values = {
+        "compilation_mode": "opt",
+    },
+)
+
+selects.config_setting_group(
+    name = "release_fast",
+    match_any = [
+        ":_release_fast_explicit",
+        ":_release_fast_auto_opt",
+    ],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.
