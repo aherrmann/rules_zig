@@ -579,3 +579,5 @@ zig_test(
 | <a id="zig_test-strip_debug_symbols"></a>strip_debug_symbols |  Whether to pass '-fstrip' to the zig compiler to remove debug symbols.   | Boolean | optional |  `False`  |
 | <a id="zig_test-test_runner"></a>test_runner |  Optional Zig file to specify a custom test runner   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_test-zigopts"></a>zigopts |  Additional list of flags passed to the zig compiler. Subject to location expansion.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
+
+
