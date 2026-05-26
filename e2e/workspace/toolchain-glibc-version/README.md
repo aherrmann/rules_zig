@@ -1,7 +1,6 @@
-By default, `rules_zig` targets a "lowest common denominator" glibc version to ensure broad compatibility. You can find the discussion behind this choice in [this PR](https://github.com/aherrmann/rules_zig/pull/299) and see the implementation [here](https://github.com/aherrmann/rules_zig/blob/main/zig/target/BUILD.bazel#L56).
+By default, `rules_zig` targets a "lowest common denominator" glibc version to ensure broad compatibility. You can find the discussion behind this choice in [this PR](https://github.com/hermeticbuild/rules_zig/pull/299) and see the implementation [here](https://github.com/hermeticbuild/rules_zig/blob/main/zig/target/BUILD.bazel#L56).
 
 This example project demonstrates how to manually configure and use a specific glibc version with `rules_zig`.
-
 
 ```bash
 # navigate to the workspace directory:

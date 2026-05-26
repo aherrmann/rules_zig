@@ -161,7 +161,7 @@ jobs:
           buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY || '' }}
 
   # Zig documentation builds are separated to work around the following issue:
-  # https://github.com/aherrmann/rules_zig/issues/273
+  # https://github.com/hermeticbuild/rules_zig/issues/273
   #test-zig-docs:
   #  # The type of runner that the job will run on
   #  runs-on: ${{ matrix.os }}
@@ -209,7 +209,7 @@ jobs:
   #        targetPattern: ${{ matrix.targetPattern }}
   #        tagFilters: ${{ matrix.tagFilters }}
   #        # Disable remote execution and avoid concurrency to work around
-  #        # https://github.com/aherrmann/rules_zig/issues/273
+  #        # https://github.com/hermeticbuild/rules_zig/issues/273
   #        remoteEnabled: false
   #        bazelFlags: "--jobs=1"
   #        buildbuddyApiKey: ${{ secrets.BUILDBUDDY_API_KEY }}
