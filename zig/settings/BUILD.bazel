@@ -33,7 +33,7 @@ bool_flag(
 
 string_flag(
     name = "mode",
-    build_setting_default = "debug",
+    build_setting_default = "auto",
     values = MODE_VALUES,
     visibility = ["//zig/config/mode:__pkg__"],
 )

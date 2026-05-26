@@ -10,6 +10,8 @@ Transitions a target and its dependencies to a different configuration.
 Settings like the build mode, e.g. `ReleaseSafe`, or the target platform,
 can be set on the command-line on demand,
 e.g. using `--@rules_zig//zig/settings:mode=release_safe`.
+By default, target build mode is `auto`: Bazel `dbg` and `fastbuild`
+compilation modes map to Zig `Debug`, and Bazel `opt` maps to Zig `ReleaseFast`.
 
 However, you may wish to always build a given target
 in a particular configuration,
@@ -208,12 +210,12 @@ def _make_attrs(*, executable):
             default = -1,
         ),
         "mode": attr.string(
-            doc = "The build mode setting, corresponds to the `-O` Zig compiler flag.",
+            doc = "The build mode setting, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.",
             mandatory = False,
             values = MODE_VALUES,
         ),
         "host_mode": attr.string(
-            doc = "The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag.",
+            doc = "The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.",
             mandatory = False,
             values = MODE_VALUES,
         ),

@@ -130,6 +130,8 @@ Transitions a target and its dependencies to a different configuration.
 Settings like the build mode, e.g. `ReleaseSafe`, or the target platform,
 can be set on the command-line on demand,
 e.g. using `--@rules_zig//zig/settings:mode=release_safe`.
+By default, target build mode is `auto`: Bazel `dbg` and `fastbuild`
+compilation modes map to Zig `Debug`, and Bazel `opt` maps to Zig `ReleaseFast`.
 
 However, you may wish to always build a given target
 in a particular configuration,
@@ -174,11 +176,11 @@ zig_configure(
 | <a id="zig_configure-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure-bootstrapped"></a>bootstrapped |  Whether to use a bootstrapped Zig compiler. Possible values: [-1, 0, 1]. -1 means use current configuration value for //zig/settings:bootstrapped. 0 means do not use a bootstrapped Zig compiler. 1 means use a bootstrapped Zig compiler.   | Integer | optional |  `-1`  |
 | <a id="zig_configure-extra_toolchains"></a>extra_toolchains |  Additional toolchains to consider during toolchain resolution for the transitioned target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_configure-host_mode"></a>host_mode |  The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
+| <a id="zig_configure-host_mode"></a>host_mode |  The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.   | String | optional |  `""`  |
 | <a id="zig_configure-host_threaded"></a>host_threaded |  The threaded setting for the host configuration, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure-host_use_cc_common_link"></a>host_use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries in the host configuration. Possible values: [-1, 0, 1]. -1 means use current host configuration value for //zig/settings:host_use_cc_common_link. 0 means do not use cc_common.link (use zig build-exe instead). 1 means use cc_common.link.   | Integer | optional |  `-1`  |
 | <a id="zig_configure-host_zigopt"></a>host_zigopt |  Additional list of flags passed to the zig compiler for all Zig compile actions when building for the host configuration.<br><br>The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules. Instead, they are prepended to the command line before module specific flags.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
-| <a id="zig_configure-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
+| <a id="zig_configure-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.   | String | optional |  `""`  |
 | <a id="zig_configure-target"></a>target |  The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_configure-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries. Possible values: [-1, 0, 1]. -1 means use current configuration value for //zig/settings:experimental_use_cc_common_link. 0 means do not use cc_common.link (use zig build-exe instead). 1 means use cc_common.link.   | Integer | optional |  `-1`  |
@@ -204,6 +206,8 @@ Transitions a target and its dependencies to a different configuration.
 Settings like the build mode, e.g. `ReleaseSafe`, or the target platform,
 can be set on the command-line on demand,
 e.g. using `--@rules_zig//zig/settings:mode=release_safe`.
+By default, target build mode is `auto`: Bazel `dbg` and `fastbuild`
+compilation modes map to Zig `Debug`, and Bazel `opt` maps to Zig `ReleaseFast`.
 
 However, you may wish to always build a given target
 in a particular configuration,
@@ -248,11 +252,11 @@ zig_configure_binary(
 | <a id="zig_configure_binary-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure_binary-bootstrapped"></a>bootstrapped |  Whether to use a bootstrapped Zig compiler. Possible values: [-1, 0, 1]. -1 means use current configuration value for //zig/settings:bootstrapped. 0 means do not use a bootstrapped Zig compiler. 1 means use a bootstrapped Zig compiler.   | Integer | optional |  `-1`  |
 | <a id="zig_configure_binary-extra_toolchains"></a>extra_toolchains |  Additional toolchains to consider during toolchain resolution for the transitioned target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_configure_binary-host_mode"></a>host_mode |  The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
+| <a id="zig_configure_binary-host_mode"></a>host_mode |  The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-host_threaded"></a>host_threaded |  The threaded setting for the host configuration, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-host_use_cc_common_link"></a>host_use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries in the host configuration. Possible values: [-1, 0, 1]. -1 means use current host configuration value for //zig/settings:host_use_cc_common_link. 0 means do not use cc_common.link (use zig build-exe instead). 1 means use cc_common.link.   | Integer | optional |  `-1`  |
 | <a id="zig_configure_binary-host_zigopt"></a>host_zigopt |  Additional list of flags passed to the zig compiler for all Zig compile actions when building for the host configuration.<br><br>The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules. Instead, they are prepended to the command line before module specific flags.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
-| <a id="zig_configure_binary-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
+| <a id="zig_configure_binary-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-target"></a>target |  The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_configure_binary-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_binary-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries. Possible values: [-1, 0, 1]. -1 means use current configuration value for //zig/settings:experimental_use_cc_common_link. 0 means do not use cc_common.link (use zig build-exe instead). 1 means use cc_common.link.   | Integer | optional |  `-1`  |
@@ -278,6 +282,8 @@ Transitions a target and its dependencies to a different configuration.
 Settings like the build mode, e.g. `ReleaseSafe`, or the target platform,
 can be set on the command-line on demand,
 e.g. using `--@rules_zig//zig/settings:mode=release_safe`.
+By default, target build mode is `auto`: Bazel `dbg` and `fastbuild`
+compilation modes map to Zig `Debug`, and Bazel `opt` maps to Zig `ReleaseFast`.
 
 However, you may wish to always build a given target
 in a particular configuration,
@@ -322,11 +328,11 @@ zig_configure_test(
 | <a id="zig_configure_test-actual"></a>actual |  The target to transition.   | <a href="https://bazel.build/concepts/labels">Label</a> | required |  |
 | <a id="zig_configure_test-bootstrapped"></a>bootstrapped |  Whether to use a bootstrapped Zig compiler. Possible values: [-1, 0, 1]. -1 means use current configuration value for //zig/settings:bootstrapped. 0 means do not use a bootstrapped Zig compiler. 1 means use a bootstrapped Zig compiler.   | Integer | optional |  `-1`  |
 | <a id="zig_configure_test-extra_toolchains"></a>extra_toolchains |  Additional toolchains to consider during toolchain resolution for the transitioned target.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional |  `[]`  |
-| <a id="zig_configure_test-host_mode"></a>host_mode |  The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
+| <a id="zig_configure_test-host_mode"></a>host_mode |  The build mode setting for the host configuration, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.   | String | optional |  `""`  |
 | <a id="zig_configure_test-host_threaded"></a>host_threaded |  The threaded setting for the host configuration, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_test-host_use_cc_common_link"></a>host_use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries in the host configuration. Possible values: [-1, 0, 1]. -1 means use current host configuration value for //zig/settings:host_use_cc_common_link. 0 means do not use cc_common.link (use zig build-exe instead). 1 means use cc_common.link.   | Integer | optional |  `-1`  |
 | <a id="zig_configure_test-host_zigopt"></a>host_zigopt |  Additional list of flags passed to the zig compiler for all Zig compile actions when building for the host configuration.<br><br>The flags specified by this setting do not override those specified via the `zigopts` attribute of `zig_*` rules. Instead, they are prepended to the command line before module specific flags.<br><br>This is an advanced feature that can conflict with attributes, build settings, and other flags defined by the toolchain itself. Use this at your own risk of hitting undefined behaviors.   | List of strings | optional |  `[]`  |
-| <a id="zig_configure_test-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag.   | String | optional |  `""`  |
+| <a id="zig_configure_test-mode"></a>mode |  The build mode setting, corresponds to the `-O` Zig compiler flag. `auto` follows Bazel's `--compilation_mode`.   | String | optional |  `""`  |
 | <a id="zig_configure_test-target"></a>target |  The target platform, expects a label to a Bazel target platform used to select a `zig_target_toolchain` instance.   | <a href="https://bazel.build/concepts/labels">Label</a> | optional |  `None`  |
 | <a id="zig_configure_test-threaded"></a>threaded |  The threaded setting, corresponds to the `-fsingle-threaded` Zig compiler flag.   | String | optional |  `""`  |
 | <a id="zig_configure_test-use_cc_common_link"></a>use_cc_common_link |  Whether to use cc_common.link to link zig binaries, tests and shared libraries. Possible values: [-1, 0, 1]. -1 means use current configuration value for //zig/settings:experimental_use_cc_common_link. 0 means do not use cc_common.link (use zig build-exe instead). 1 means use cc_common.link.   | Integer | optional |  `-1`  |

@@ -73,7 +73,13 @@ MODE_ARGS = {
     "release_fast": ["-O", "ReleaseFast"],
 }
 
-MODE_VALUES = ["debug", "release_safe", "release_small", "release_fast"]
+MODE_VALUES = ["auto", "debug", "release_safe", "release_small", "release_fast"]
+
+COMPILATION_MODE_TO_MODE = {
+    "dbg": "debug",
+    "fastbuild": "debug",
+    "opt": "release_fast",
+}
 
 THREADED_ARGS = {
     "multi": ["-fno-single-threaded"],
@@ -85,12 +91,23 @@ THREADED_VALUES = ["multi", "single"]
 def _is_exec_configuration(ctx):
     return ctx.genfiles_dir.path.find("-exec") != -1
 
+def _resolve_mode(ctx, mode):
+    if mode != "auto":
+        return mode
+
+    compilation_mode = ctx.var["COMPILATION_MODE"]
+    if compilation_mode not in COMPILATION_MODE_TO_MODE:
+        fail("Unrecognized Bazel compilation mode {}.".format(compilation_mode))
+
+    return COMPILATION_MODE_TO_MODE[compilation_mode]
+
 def _settings_impl(ctx):
     args = []
 
     is_exec_configuration = _is_exec_configuration(ctx)
 
     mode = ctx.attr.host_mode[BuildSettingInfo].value if is_exec_configuration else ctx.attr.mode[BuildSettingInfo].value
+    mode = _resolve_mode(ctx, mode)
     args.extend(MODE_ARGS[mode])
 
     threaded = ctx.attr.host_threaded[BuildSettingInfo].value if is_exec_configuration else ctx.attr.threaded[BuildSettingInfo].value
