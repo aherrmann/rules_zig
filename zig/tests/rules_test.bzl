@@ -5,6 +5,7 @@ See https://bazel.build/rules/testing#testing-rules
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//zig/private/providers:zig_settings_info.bzl", "ZigSettingsInfo")
 load(
     ":util.bzl",
     "assert_find_unique_surrounded_arguments",
@@ -13,6 +14,8 @@ load(
     "canonical_label",
 )
 
+_COMPILATION_MODE = "//command_line_option:compilation_mode"
+_STRIP = "//command_line_option:strip"
 _SETTINGS_USE_CC_COMMON_LINK = canonical_label("@//zig/settings:use_cc_common_link")
 
 def _simple_binary_test_impl(ctx):
@@ -453,6 +456,99 @@ _strip_debug_symbols_test = analysistest.make(
     attrs = {
         "strip_debug_symbols": attr.bool(mandatory = False),
     },
+    config_settings = {
+        _STRIP: "never",
+    },
+)
+
+def _define_bazel_strip_settings_test(*, strip, compilation_mode, expected_strip):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+
+        settings = analysistest.target_under_test(env)[ZigSettingsInfo]
+        asserts.equals(env, expected_strip, settings.strip)
+        if expected_strip:
+            assert_flag_set(env, "-fstrip", settings.args)
+        else:
+            assert_flag_unset(env, "-fstrip", settings.args)
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {
+            _COMPILATION_MODE: compilation_mode,
+            _STRIP: strip,
+        },
+    )
+
+_bazel_strip_settings_always_test = _define_bazel_strip_settings_test(
+    strip = "always",
+    compilation_mode = "opt",
+    expected_strip = True,
+)
+_bazel_strip_settings_never_test = _define_bazel_strip_settings_test(
+    strip = "never",
+    compilation_mode = "fastbuild",
+    expected_strip = False,
+)
+_bazel_strip_settings_sometimes_fastbuild_test = _define_bazel_strip_settings_test(
+    strip = "sometimes",
+    compilation_mode = "fastbuild",
+    expected_strip = True,
+)
+_bazel_strip_settings_sometimes_opt_test = _define_bazel_strip_settings_test(
+    strip = "sometimes",
+    compilation_mode = "opt",
+    expected_strip = False,
+)
+
+def _define_bazel_strip_action_test(*, strip, compilation_mode, expected_strip):
+    def _test_impl(ctx):
+        env = analysistest.begin(ctx)
+
+        build = [
+            action
+            for action in analysistest.target_actions(env)
+            if action.mnemonic == "ZigBuildExe"
+        ]
+        asserts.equals(env, 1, len(build), "Target should have one ZigBuildExe action.")
+        build = build[0]
+
+        if expected_strip:
+            assert_flag_set(env, "-fstrip", build.argv)
+        else:
+            assert_flag_unset(env, "-fstrip", build.argv)
+
+        return analysistest.end(env)
+
+    return analysistest.make(
+        _test_impl,
+        config_settings = {
+            _COMPILATION_MODE: compilation_mode,
+            _STRIP: strip,
+        },
+    )
+
+_bazel_strip_action_always_test = _define_bazel_strip_action_test(
+    strip = "always",
+    compilation_mode = "opt",
+    expected_strip = True,
+)
+_bazel_strip_action_never_test = _define_bazel_strip_action_test(
+    strip = "never",
+    compilation_mode = "fastbuild",
+    expected_strip = False,
+)
+_bazel_strip_action_sometimes_fastbuild_test = _define_bazel_strip_action_test(
+    strip = "sometimes",
+    compilation_mode = "fastbuild",
+    expected_strip = True,
+)
+_bazel_strip_action_sometimes_opt_test = _define_bazel_strip_action_test(
+    strip = "sometimes",
+    compilation_mode = "opt",
+    expected_strip = False,
 )
 
 def _test_strip_debug_symbols(name):
@@ -486,6 +582,59 @@ def _test_strip_debug_symbols(name):
         name + "-binary-strip",
         name + "-library-shared-strip",
         name + "-test-strip",
+    ]
+
+def _test_bazel_strip(name):
+    _bazel_strip_settings_always_test(
+        name = name + "-settings-always",
+        target_under_test = "//zig/settings",
+        size = "small",
+    )
+    _bazel_strip_settings_never_test(
+        name = name + "-settings-never",
+        target_under_test = "//zig/settings",
+        size = "small",
+    )
+    _bazel_strip_settings_sometimes_fastbuild_test(
+        name = name + "-settings-sometimes-fastbuild",
+        target_under_test = "//zig/settings",
+        size = "small",
+    )
+    _bazel_strip_settings_sometimes_opt_test(
+        name = name + "-settings-sometimes-opt",
+        target_under_test = "//zig/settings",
+        size = "small",
+    )
+    _bazel_strip_action_always_test(
+        name = name + "-action-always",
+        target_under_test = "//zig/tests/strip_debug_symbols:binary",
+        size = "small",
+    )
+    _bazel_strip_action_never_test(
+        name = name + "-action-never",
+        target_under_test = "//zig/tests/strip_debug_symbols:binary",
+        size = "small",
+    )
+    _bazel_strip_action_sometimes_fastbuild_test(
+        name = name + "-action-sometimes-fastbuild",
+        target_under_test = "//zig/tests/strip_debug_symbols:binary",
+        size = "small",
+    )
+    _bazel_strip_action_sometimes_opt_test(
+        name = name + "-action-sometimes-opt",
+        target_under_test = "//zig/tests/strip_debug_symbols:binary",
+        size = "small",
+    )
+
+    return [
+        name + "-settings-always",
+        name + "-settings-never",
+        name + "-settings-sometimes-fastbuild",
+        name + "-settings-sometimes-opt",
+        name + "-action-always",
+        name + "-action-never",
+        name + "-action-sometimes-fastbuild",
+        name + "-action-sometimes-opt",
     ]
 
 def _use_cc_common_link_simple_binary_test_impl(ctx):
@@ -548,6 +697,7 @@ def rules_test_suite(name):
     tests += _test_c_sources_binary(name = "c_sources_binary_test")
     tests += _test_compiler_runtime(name = "compiler_runtime_test")
     tests += _test_strip_debug_symbols(name = "strip_debug_symbols_test")
+    tests += _test_bazel_strip(name = "bazel_strip_test")
     tests += _test_use_cc_common_link_simple_binary(name = "use_cc_common_link_simple_binary_test")
     native.test_suite(
         name = name,

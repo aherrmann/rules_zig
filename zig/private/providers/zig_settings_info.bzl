@@ -8,6 +8,7 @@ FIELDS = {
     "mode": "The Zig build mode.",
     "use_cc_common_link": "Whether to use cc_common.link to link zig binaries, tests and shared libraries.",
     "threaded": "The Zig multi- or single-threaded setting.",
+    "strip": "Whether Zig compile actions should remove debug symbols.",
     "args": "The collected compiler arguments for all active settings.",
 }
 
