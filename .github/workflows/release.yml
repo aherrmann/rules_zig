@@ -7,9 +7,17 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v1.2.3). Must already exist."
+        type: string
+        required: true
 
 permissions:
+  attestations: write
   contents: write
+  id-token: write
 
 jobs:
   tests:
@@ -19,19 +27,21 @@ jobs:
 
   release:
     needs: [tests]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Prepare release notes and artifacts
-        run: .github/scripts/release_prep.sh > release_notes.txt
-      - name: Release
-        uses: softprops/action-gh-release@v3
-        with:
-          draft: true
-          prerelease: true
-          # Use GH feature to populate the changelog automatically
-          generate_release_notes: true
-          body_path: release_notes.txt
-          fail_on_unmatched_files: true
-          files: rules_zig-*.tar.gz
+    uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.4.0
+    with:
+      release_files: rules_zig-*.tar.gz
+      prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
+      tag_name: ${{ inputs.tag || github.ref_name }}
+
+  publish-to-bcr:
+    needs: [release]
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.2.0
+    with:
+      tag_name: ${{ inputs.tag || github.ref_name }}
+      registry_fork: hermeticbuild/bazel-central-registry
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    secrets:
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
