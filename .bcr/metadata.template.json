@@ -6,6 +6,12 @@
       "email": "andreash87@gmx.ch",
       "github": "aherrmann",
       "github_user_id": 732652
+    },
+    {
+      "name": "Corentin Kerisit",
+      "email": "corentin.kerisit@gmail.com",
+      "github": "cerisier",
+      "github_user_id": 1126594
     }
   ],
   "repository": ["github:hermeticbuild/rules_zig"],
