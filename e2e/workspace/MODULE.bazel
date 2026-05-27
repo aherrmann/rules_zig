@@ -32,9 +32,10 @@ http_archive(
 http_archive(
     name = "translate-c",
     build_file = "//third_party/translate-c:translate-c.bazel",
-    sha256 = "2f062a9e8baadf9e9e1a9460639175af727aa132237ca5ec7ea2435ea906f5a4",
-    strip_prefix = "translate-c",
-    url = "https://codeberg.org/ziglang/translate-c/archive/42f630117deffd5318b4a6ceffbd366dd0af8cee.tar.gz",
+    sha256 = "8a24b51b6f1fe1be643b68142077cb92e638b1cd02d58351ff0910a44db7dafd",
+    strip_prefix = "translate-c-42f630117deffd5318b4a6ceffbd366dd0af8cee",
+    # Upstream: https://codeberg.org/ziglang/translate-c/commit/42f630117deffd5318b4a6ceffbd366dd0af8cee
+    url = "https://github.com/aherrmann/translate-c/archive/42f630117deffd5318b4a6ceffbd366dd0af8cee.tar.gz",
 )
 
 register_toolchains("//third_party/translate-c:toolchain")
