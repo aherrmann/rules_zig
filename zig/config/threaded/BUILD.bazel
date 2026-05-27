@@ -3,6 +3,7 @@ config_setting(
     flag_values = {
         "//zig/settings:threaded": "multi",
     },
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -10,6 +11,7 @@ config_setting(
     flag_values = {
         "//zig/settings:threaded": "single",
     },
+    visibility = ["//visibility:public"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.

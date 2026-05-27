@@ -34,6 +34,7 @@ selects.config_setting_group(
         ":_debug_auto_dbg",
         ":_debug_auto_fastbuild",
     ],
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -46,6 +47,7 @@ config_setting(
 selects.config_setting_group(
     name = "release_safe",
     match_any = [":_release_safe_explicit"],
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -58,6 +60,7 @@ config_setting(
 selects.config_setting_group(
     name = "release_small",
     match_any = [":_release_small_explicit"],
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -83,6 +86,7 @@ selects.config_setting_group(
         ":_release_fast_explicit",
         ":_release_fast_auto_opt",
     ],
+    visibility = ["//visibility:public"],
 )
 
 # Execute `bazel run //util:update_filegroups` to update this target.
