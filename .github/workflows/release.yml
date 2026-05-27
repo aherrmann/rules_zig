@@ -42,6 +42,7 @@ jobs:
     with:
       tag_name: ${{ inputs.tag || github.ref_name }}
       registry_fork: hermeticbuild/bazel-central-registry
+      draft: false
     permissions:
       attestations: write
       contents: write
