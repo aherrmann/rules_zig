@@ -32,6 +32,9 @@ jobs:
       release_files: rules_zig-*.tar.gz
       prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
       tag_name: ${{ inputs.tag || github.ref_name }}
+      # Tests already ran in the `tests` job above against the full matrix;
+      # skip the single-config rerun inside the bazel-contrib release flow.
+      bazel_test_command: "true"
 
   publish-to-bcr:
     needs: [release]
