@@ -115,7 +115,7 @@ enabled, see https://github.com/ziglang/zig/issues/25069. Set
         mandatory = False,
     ),
     "strip_debug_symbols": attr.bool(
-        doc = "Whether to pass '-fstrip' to the zig compiler to remove debug symbols.",
+        doc = "Whether to force passing '-fstrip' to the zig compiler to remove debug symbols. Bazel's `--strip` flag is also supported globally.",
         mandatory = False,
         default = False,
     ),
@@ -262,7 +262,8 @@ def zig_build_impl(ctx, *, kind):
     translate_c_toolchain = translate_c_exec_group_toolchain(ctx)
     translatectoolchaininfo = translate_c_toolchain.translatectoolchaininfo if translate_c_toolchain else None
 
-    use_cc_common_link = ctx.attr._settings[ZigSettingsInfo].use_cc_common_link
+    settings = ctx.attr._settings[ZigSettingsInfo]
+    use_cc_common_link = settings.use_cc_common_link
     use_test_obj = kind == "zig_test" and use_cc_common_link and semver.gte(zigtoolchaininfo.zig_version, "0.16.0")
 
     providers = []
@@ -305,7 +306,7 @@ def zig_build_impl(ctx, *, kind):
     elif ctx.attr.compiler_runtime == "exclude":
         args.add("-fno-compiler-rt")
 
-    if ctx.attr.strip_debug_symbols:
+    if ctx.attr.strip_debug_symbols and not settings.strip:
         args.add("-fstrip")
 
     zig_lib_dir(
@@ -411,7 +412,7 @@ def zig_build_impl(ctx, *, kind):
         )
 
     zig_settings(
-        settings = ctx.attr._settings[ZigSettingsInfo],
+        settings = settings,
         args = global_args,
     )
 

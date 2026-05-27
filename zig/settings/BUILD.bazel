@@ -3,6 +3,7 @@ load(
     "//zig/private:settings.bzl",
     "MODE_VALUES",
     "THREADED_VALUES",
+    "bazel_strip",
     "settings",
 )
 
@@ -17,6 +18,15 @@ settings(
     use_cc_common_link = ":use_cc_common_link",
     visibility = ["//visibility:public"],
     zigopt = ":zigopt",
+)
+
+bazel_strip(
+    name = "strip",
+    strip = select({
+        "//zig/config/strip:always": "always",
+        "//zig/config/strip:never": "never",
+        "//zig/config/strip:sometimes": "sometimes",
+    }),
 )
 
 bool_flag(

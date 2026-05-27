@@ -14,6 +14,30 @@ You can build the settings target to obtain a JSON file
 capturing all configured Zig build settings.
 """
 
+MODE_ARGS = {
+    "debug": ["-O", "Debug"],
+    "release_safe": ["-O", "ReleaseSafe"],
+    "release_small": ["-O", "ReleaseSmall"],
+    "release_fast": ["-O", "ReleaseFast"],
+}
+
+MODE_VALUES = ["auto", "debug", "release_safe", "release_small", "release_fast"]
+
+COMPILATION_MODE_TO_MODE = {
+    "dbg": "debug",
+    "fastbuild": "debug",
+    "opt": "release_fast",
+}
+
+THREADED_ARGS = {
+    "multi": ["-fno-single-threaded"],
+    "single": ["-fsingle-threaded"],
+}
+
+THREADED_VALUES = ["multi", "single"]
+
+STRIP_VALUES = ["always", "never", "sometimes"]
+
 ATTRS = {
     "mode": attr.label(
         doc = "The build mode setting.",
@@ -64,29 +88,16 @@ Use this at your own risk of hitting undefined behaviors.
 """,
         mandatory = True,
     ),
+    "_bazel_strip": attr.label(
+        doc = "The selected Bazel --strip option value.",
+        default = "//zig/settings:strip",
+    ),
 }
 
-MODE_ARGS = {
-    "debug": ["-O", "Debug"],
-    "release_safe": ["-O", "ReleaseSafe"],
-    "release_small": ["-O", "ReleaseSmall"],
-    "release_fast": ["-O", "ReleaseFast"],
-}
-
-MODE_VALUES = ["auto", "debug", "release_safe", "release_small", "release_fast"]
-
-COMPILATION_MODE_TO_MODE = {
-    "dbg": "debug",
-    "fastbuild": "debug",
-    "opt": "release_fast",
-}
-
-THREADED_ARGS = {
-    "multi": ["-fno-single-threaded"],
-    "single": ["-fsingle-threaded"],
-}
-
-THREADED_VALUES = ["multi", "single"]
+BazelStripInfo = provider(
+    doc = "The selected Bazel --strip option value.",
+    fields = ["strip"],
+)
 
 def _is_exec_configuration(ctx):
     return ctx.genfiles_dir.path.find("-exec") != -1
@@ -100,6 +111,16 @@ def _resolve_mode(ctx, mode):
         fail("Unrecognized Bazel compilation mode {}.".format(compilation_mode))
 
     return COMPILATION_MODE_TO_MODE[compilation_mode]
+
+def _resolve_strip(ctx, strip):
+    if strip == "always":
+        return True
+    if strip == "never":
+        return False
+    if strip == "sometimes":
+        return ctx.var["COMPILATION_MODE"] == "fastbuild"
+
+    fail("Unrecognized Bazel strip setting {}.".format(strip))
 
 def _settings_impl(ctx):
     args = []
@@ -115,12 +136,17 @@ def _settings_impl(ctx):
 
     use_cc_common_link = ctx.attr.host_use_cc_common_link[BuildSettingInfo].value if is_exec_configuration else ctx.attr.use_cc_common_link[BuildSettingInfo].value
 
+    strip = _resolve_strip(ctx, ctx.attr._bazel_strip[BazelStripInfo].strip)
+    if strip:
+        args.append("-fstrip")
+
     args.extend(ctx.attr.host_zigopt[BuildSettingInfo].value if is_exec_configuration else ctx.attr.zigopt[BuildSettingInfo].value)
 
     settings_info = ZigSettingsInfo(
         mode = mode,
         threaded = threaded,
         use_cc_common_link = use_cc_common_link,
+        strip = strip,
         args = args,
     )
 
@@ -140,4 +166,19 @@ settings = rule(
     _settings_impl,
     attrs = ATTRS,
     doc = DOC,
+)
+
+def _bazel_strip_impl(ctx):
+    return [BazelStripInfo(strip = ctx.attr.strip)]
+
+bazel_strip = rule(
+    _bazel_strip_impl,
+    attrs = {
+        "strip": attr.string(
+            doc = "The Bazel --strip option value.",
+            mandatory = True,
+            values = STRIP_VALUES,
+        ),
+    },
+    doc = "Captures the selected Bazel --strip option value.",
 )

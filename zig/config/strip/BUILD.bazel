@@ -1,0 +1,27 @@
+config_setting(
+    name = "always",
+    values = {
+        "strip": "always",
+    },
+)
+
+config_setting(
+    name = "never",
+    values = {
+        "strip": "never",
+    },
+)
+
+config_setting(
+    name = "sometimes",
+    values = {
+        "strip": "sometimes",
+    },
+)
+
+# Execute `bazel run //util:update_filegroups` to update this target.
+filegroup(
+    name = "all_files",
+    srcs = [":BUILD.bazel"],
+    visibility = ["//zig/config:__pkg__"],
+)
