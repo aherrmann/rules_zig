@@ -12,56 +12,40 @@ from_file = tag_class(
     },
 )
 
-def _zig_build(module_ctx, zig, project_dir, cache_dir, pkg_dir, args):
+def _fetch(module_ctx, zig, manifest, cache_dir, pkg_dir):
     result = module_ctx.execute(
-        [zig, "build", "--cache-dir", str(cache_dir), "--pkg-dir", str(pkg_dir)] + args,
-        working_directory = str(project_dir),
+        [zig, "build", "--fetch=all", "--cache-dir", str(cache_dir), "--pkg-dir", str(pkg_dir)],
+        working_directory = str(manifest.dirname),
     )
     if result.return_code != 0:
-        fail("`zig build {}` failed in {}:\n{}".format(" ".join(args), project_dir, result.stderr))
+        fail("`zig build --fetch=all` failed in {}:\n{}".format(manifest.dirname, result.stderr))
 
-def _read_dependencies(module_ctx, zig, manifest):
-    project_dir = manifest.dirname
-    cache_dir = module_ctx.path("cache")
-    pkg_dir = module_ctx.path("pkg")
-
-    _zig_build(module_ctx, zig, project_dir, cache_dir, pkg_dir, ["--fetch=all"])
-    _zig_build(module_ctx, zig, project_dir, cache_dir, pkg_dir, ["--list-steps"])
-
-    output_dir = cache_dir.get_child("o")
-    for entry in output_dir.readdir():
-        dependencies = entry.get_child("dependencies.zig")
-        if dependencies.exists:
-            return module_ctx.read(dependencies)
-
-    fail("Could not find the generated `@dependencies` module under {}.".format(output_dir))
-
-def _parse_manifest(module_ctx, zig, zon2json, manifest):
-    result = module_ctx.execute([
-        zig,
-        "run",
-        "--cache-dir",
-        str(module_ctx.path("cache")),
-        zon2json,
-        "--",
-        str(manifest),
-    ])
+def _resolve_graph(module_ctx, zig, zon2json, cache_dir, pkg_dir, manifests):
+    result = module_ctx.execute(
+        [zig, "run", "--cache-dir", str(cache_dir), zon2json, "--", str(pkg_dir)] +
+        [str(manifest) for manifest in manifests],
+    )
     if result.return_code != 0:
-        fail("Failed to parse manifest {}:\n{}".format(manifest, result.stderr))
+        fail("Failed to resolve the Zig dependency graph:\n{}".format(result.stderr))
     return json.decode(result.stdout)
 
 def _zig_packages_impl(module_ctx):
     zig = zig_path(module_ctx)
     zon2json = module_ctx.path(Label("//zig/private:zon2json.zig"))
+    cache_dir = module_ctx.path("cache")
+    pkg_dir = module_ctx.path("pkg")
 
+    manifests = []
     for mod in module_ctx.modules:
         for tag in mod.tags.from_file:
             manifest = module_ctx.path(tag.build_zig_zon)
-            _read_dependencies(module_ctx, zig, manifest)
-            manifest_json = _parse_manifest(module_ctx, zig, zon2json, manifest)
+            _fetch(module_ctx, zig, manifest, cache_dir, pkg_dir)
+            manifests.append(manifest)
 
-            # buildifier: disable=print
-            print(manifest_json)
+    graph = _resolve_graph(module_ctx, zig, zon2json, cache_dir, pkg_dir, manifests)
+
+    # buildifier: disable=print
+    print(graph)
 
 zig_packages = module_extension(
     implementation = _zig_packages_impl,
