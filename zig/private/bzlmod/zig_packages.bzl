@@ -36,16 +36,32 @@ def _read_dependencies(module_ctx, zig, manifest):
 
     fail("Could not find the generated `@dependencies` module under {}.".format(output_dir))
 
+def _parse_manifest(module_ctx, zig, zon2json, manifest):
+    result = module_ctx.execute([
+        zig,
+        "run",
+        "--cache-dir",
+        str(module_ctx.path("cache")),
+        zon2json,
+        "--",
+        str(manifest),
+    ])
+    if result.return_code != 0:
+        fail("Failed to parse manifest {}:\n{}".format(manifest, result.stderr))
+    return json.decode(result.stdout)
+
 def _zig_packages_impl(module_ctx):
     zig = zig_path(module_ctx)
+    zon2json = module_ctx.path(Label("//zig/private:zon2json.zig"))
 
     for mod in module_ctx.modules:
         for tag in mod.tags.from_file:
             manifest = module_ctx.path(tag.build_zig_zon)
-            dependencies = _read_dependencies(module_ctx, zig, manifest)
+            _read_dependencies(module_ctx, zig, manifest)
+            manifest_json = _parse_manifest(module_ctx, zig, zon2json, manifest)
 
             # buildifier: disable=print
-            print(dependencies)
+            print(manifest_json)
 
 zig_packages = module_extension(
     implementation = _zig_packages_impl,
