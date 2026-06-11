@@ -12,9 +12,9 @@ from_file = tag_class(
     },
 )
 
-def _zig_build(module_ctx, zig, project_dir, cache_dir, args):
+def _zig_build(module_ctx, zig, project_dir, cache_dir, pkg_dir, args):
     result = module_ctx.execute(
-        [zig, "build", "--cache-dir", str(cache_dir)] + args,
+        [zig, "build", "--cache-dir", str(cache_dir), "--pkg-dir", str(pkg_dir)] + args,
         working_directory = str(project_dir),
     )
     if result.return_code != 0:
@@ -23,9 +23,10 @@ def _zig_build(module_ctx, zig, project_dir, cache_dir, args):
 def _read_dependencies(module_ctx, zig, manifest):
     project_dir = manifest.dirname
     cache_dir = module_ctx.path("cache")
+    pkg_dir = module_ctx.path("pkg")
 
-    _zig_build(module_ctx, zig, project_dir, cache_dir, ["--fetch=all"])
-    _zig_build(module_ctx, zig, project_dir, cache_dir, ["--list-steps"])
+    _zig_build(module_ctx, zig, project_dir, cache_dir, pkg_dir, ["--fetch=all"])
+    _zig_build(module_ctx, zig, project_dir, cache_dir, pkg_dir, ["--list-steps"])
 
     output_dir = cache_dir.get_child("o")
     for entry in output_dir.readdir():
