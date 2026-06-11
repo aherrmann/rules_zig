@@ -2,12 +2,18 @@
 
 load("@zig_toolchains//private:toolchains.bzl", "ZIG_TOOLCHAINS")
 
+_VERSION_ENV = "RULES_ZIG_HOST_SDK"
+
 DOC = """\
-Expose the latest registered Zig SDK for the host platform.
+Expose a registered Zig SDK for the host platform.
+
+By default selects the first registered Zig SDK version, i.e. the default
+toolchain version, or the latest if no default is set. Set the
+`{env}` environment variable to a registered version to override.
 
 Generates a `toolchain.bzl` file with a `zig_path(ctx)` function that resolves
 the host platform's Zig binary from a repository_ctx or module_ctx.
-"""
+""".format(env = _VERSION_ENV)
 
 def _detect_host_platform(repository_ctx):
     os_name = repository_ctx.os.name
@@ -31,17 +37,33 @@ def _detect_host_platform(repository_ctx):
 
     return "{}-{}".format(cpu, os)
 
+def _select_zig(repository_ctx, platform):
+    candidates = [
+        toolchain
+        for toolchain in ZIG_TOOLCHAINS
+        if toolchain.exec_platform == platform
+    ]
+    if not candidates:
+        fail("No registered Zig SDK supports the host platform '{}'.".format(platform))
+
+    requested = repository_ctx.os.environ.get(_VERSION_ENV)
+    if not requested:
+        return candidates[0].zig
+
+    for toolchain in candidates:
+        if toolchain.version == requested:
+            return toolchain.zig
+
+    fail("{} requested Zig SDK version '{}', which is not registered for host platform '{}'. Registered versions: {}.".format(
+        _VERSION_ENV,
+        requested,
+        platform,
+        [toolchain.version for toolchain in candidates],
+    ))
+
 def _zig_host_toolchain_impl(repository_ctx):
     platform = _detect_host_platform(repository_ctx)
-
-    zig = None
-    for toolchain in ZIG_TOOLCHAINS:
-        if toolchain.exec_platform == platform:
-            zig = toolchain.zig
-            break
-
-    if zig == None:
-        fail("No registered Zig SDK supports the host platform '{}'.".format(platform))
+    zig = _select_zig(repository_ctx, platform)
 
     repository_ctx.file("BUILD.bazel", "")
     repository_ctx.file("toolchain.bzl", """\
@@ -56,4 +78,5 @@ def zig_path(ctx):
 zig_host_toolchain = repository_rule(
     _zig_host_toolchain_impl,
     doc = DOC,
+    environ = [_VERSION_ENV],
 )
