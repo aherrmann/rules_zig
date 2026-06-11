@@ -12,16 +12,39 @@ from_file = tag_class(
     },
 )
 
+def _zig_build(module_ctx, zig, project_dir, cache_dir, args):
+    result = module_ctx.execute(
+        [zig, "build", "--cache-dir", str(cache_dir)] + args,
+        working_directory = str(project_dir),
+    )
+    if result.return_code != 0:
+        fail("`zig build {}` failed in {}:\n{}".format(" ".join(args), project_dir, result.stderr))
+
+def _read_dependencies(module_ctx, zig, manifest):
+    project_dir = manifest.dirname
+    cache_dir = module_ctx.path("cache")
+
+    _zig_build(module_ctx, zig, project_dir, cache_dir, ["--fetch=all"])
+    _zig_build(module_ctx, zig, project_dir, cache_dir, ["--list-steps"])
+
+    output_dir = cache_dir.get_child("o")
+    for entry in output_dir.readdir():
+        dependencies = entry.get_child("dependencies.zig")
+        if dependencies.exists:
+            return module_ctx.read(dependencies)
+
+    fail("Could not find the generated `@dependencies` module under {}.".format(output_dir))
+
 def _zig_packages_impl(module_ctx):
     zig = zig_path(module_ctx)
 
     for mod in module_ctx.modules:
         for tag in mod.tags.from_file:
             manifest = module_ctx.path(tag.build_zig_zon)
-            result = module_ctx.execute([zig, "version"])
+            dependencies = _read_dependencies(module_ctx, zig, manifest)
 
             # buildifier: disable=print
-            print("zig {} for manifest {}".format(result.stdout.strip(), manifest))
+            print(dependencies)
 
 zig_packages = module_extension(
     implementation = _zig_packages_impl,
