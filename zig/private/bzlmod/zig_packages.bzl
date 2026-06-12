@@ -110,7 +110,6 @@ def _zig_packages_impl(module_ctx):
     # `graph["packages"]` is topologically ordered, so each dependency's closure
     # is already known by the time we reach a package: accumulate in one pass.
     closures = {}
-    package_labels = {}
     for key, package in graph["packages"].items():
         closure = {}
         for _name, child in _url_edges(graph, key):
@@ -126,15 +125,12 @@ def _zig_packages_impl(module_ctx):
                 deps = json.encode(_deps_data(graph, key, closures[key])),
                 dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in closures[key]},
             )
-            package_labels[key] = "@{}//:files".format(key)
 
-    for tag in root_tags:
-        package_labels[str(tag)] = tag.same_package_label("files")
-
+    manifests, targets = _hub_data(graph, root_tags)
     zig_deps_hub(
         name = "zig_deps",
-        manifests = json.encode(_hub_manifests(graph, root_tags)),
-        packages = package_labels,
+        manifests = json.encode(manifests),
+        packages = targets,
     )
 
     direct = ["zig_deps"] if root_nondev else []
@@ -144,16 +140,32 @@ def _zig_packages_impl(module_ctx):
         root_module_direct_dev_deps = dev,
     )
 
-def _hub_manifests(graph, root_tags):
+def _hub_data(graph, root_tags):
+    """Build the hub manifests and the dependency target map.
+
+    A URL dependency named `name` resolves to the module of the same name in its
+    spoke; a path dependency resolves to the local package's `files` for now.
+    """
+    path_files = {str(tag): tag.same_package_label("files") for tag in root_tags}
     manifests = []
+    targets = {}
     for root, label in zip(graph["roots"], root_tags):
+        deps = {}
+        for name, key in root["deps"].items():
+            if graph["packages"][key]["url"] != None:
+                target = "@{}//:{}".format(key, name)
+                targets[target] = target
+            else:
+                target = str(path_files[key])
+                targets[target] = path_files[key]
+            deps[name] = target
         manifests.append({
             "repo": label.repo_name,
             "package": label.package,
             "scope": str(label.same_package_label("__subpackages__")),
-            "deps": root["deps"],
+            "deps": deps,
         })
-    return manifests
+    return manifests, targets
 
 zig_packages = module_extension(
     implementation = _zig_packages_impl,
