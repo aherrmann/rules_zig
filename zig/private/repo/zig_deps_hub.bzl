@@ -33,20 +33,28 @@ _DEFS = '''\
 _MANIFESTS = json.decode("""%MANIFESTS%""")
 
 def zig_dep(name):
-    """Return the label of dependency `name` for the enclosing Zig manifest."""
+    """Return the label of dependency `name` of the enclosing Zig manifest."""
+    path, names = _manifest()
+    if name not in names:
+        fail("Zig manifest '%s' declares no dependency '%s'; available: %s" % (path, name, names))
+    return _label(path, name)
+
+def zig_deps():
+    """Return the labels of every dependency of the enclosing Zig manifest."""
+    path, names = _manifest()
+    return [_label(path, name) for name in names]
+
+def _manifest():
     repo = native.repo_name()
     package = native.package_name()
     manifests = _MANIFESTS.get(repo, {})
     manifest = _enclosing(manifests, package)
     if manifest == None:
         fail("no Zig `from_file` manifest covers package '%s'" % package)
-    if name not in manifests[manifest]:
-        fail("Zig manifest '%s' declares no dependency '%s'; available: %s" % (
-            manifest,
-            name,
-            manifests[manifest],
-        ))
     path = repo + "/" + manifest if repo else manifest
+    return path, manifests[manifest]
+
+def _label(path, name):
     return Label("//" + path + ":" + name)
 
 def _enclosing(manifests, package):
