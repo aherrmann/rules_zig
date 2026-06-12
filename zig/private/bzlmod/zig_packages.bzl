@@ -144,9 +144,10 @@ def _hub_data(graph, root_tags):
     """Build the hub manifests and the dependency target map.
 
     A URL dependency named `name` resolves to the module of the same name in its
-    spoke; a path dependency resolves to the local package's `files` for now.
+    spoke. A local path dependency resolves, by convention, to a target of the
+    same name in the dependency manifest's own package, which the user provides.
     """
-    path_files = {str(tag): tag.same_package_label("files") for tag in root_tags}
+    tag_by_key = {str(tag): tag for tag in root_tags}
     manifests = []
     targets = {}
     for root, label in zip(graph["roots"], root_tags):
@@ -156,8 +157,9 @@ def _hub_data(graph, root_tags):
                 target = "@{}//:{}".format(key, name)
                 targets[target] = target
             else:
-                target = str(path_files[key])
-                targets[target] = path_files[key]
+                module = tag_by_key[key].same_package_label(name)
+                target = str(module)
+                targets[target] = module
             deps[name] = target
         manifests.append({
             "repo": label.repo_name,
