@@ -67,6 +67,19 @@ def _localize_paths(graph, pkg_dir, manifest_labels):
 
     return graph
 
+def _url_edges(graph, key):
+    return [
+        [name, child]
+        for name, child in graph["packages"][key]["deps"].items()
+        if graph["packages"][child]["url"] != None
+    ]
+
+def _deps_data(graph, key, closure):
+    return {
+        "root_deps": _url_edges(graph, key),
+        "packages": {dep: {"has_build_zig": True, "deps": _url_edges(graph, dep)} for dep in closure},
+    }
+
 def _zig_packages_impl(module_ctx):
     zig = zig_path(module_ctx)
     zon2json = module_ctx.path(Label("//zig/private:zon2json.zig"))
@@ -94,13 +107,24 @@ def _zig_packages_impl(module_ctx):
     graph = _resolve_graph(module_ctx, zig, zon2json, cache_dir, pkg_dir, manifests)
     graph = _localize_paths(graph, str(pkg_dir), manifest_labels)
 
+    # `graph["packages"]` is topologically ordered, so each dependency's closure
+    # is already known by the time we reach a package: accumulate in one pass.
+    closures = {}
     package_labels = {}
     for key, package in graph["packages"].items():
+        closure = {}
+        for _name, child in _url_edges(graph, key):
+            closure[child] = True
+            for dep in closures[child]:
+                closure[dep] = True
+        closures[key] = closure.keys()
         if package["url"] != None:
             zig_package(
                 name = key,
                 url = package["url"],
                 zig_hash = key,
+                deps = json.encode(_deps_data(graph, key, closures[key])),
+                dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in closures[key]},
             )
             package_labels[key] = "@{}//:files".format(key)
 

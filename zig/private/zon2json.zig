@@ -8,7 +8,9 @@
 //! remaining arguments are the root manifests to resolve.
 //!
 //! Packages are keyed by their Zig hash (URL dependencies) or by their resolved
-//! absolute path (path dependencies). The emitted JSON has the shape:
+//! absolute path (path dependencies), and listed in topological order: a package
+//! always precedes any package that lists it as a dependency. The emitted JSON
+//! has the shape:
 //!
 //!     {
 //!       "roots": [{"deps": {"<name>": "<key>"}}],
@@ -56,6 +58,7 @@ const Walker = struct {
     io: Io,
     pkg_dir: []const u8,
     packages: std.StringArrayHashMapUnmanaged(Package) = .empty,
+    visited: std.StringHashMapUnmanaged(void) = .empty,
 
     fn resolveDep(walker: *Walker, dep: Dep, parent_dir: []const u8) !Resolved {
         if (dep.url) |url| {
@@ -85,20 +88,21 @@ const Walker = struct {
     }
 
     fn walk(walker: *Walker, resolved: Resolved) anyerror!void {
-        const gop = try walker.packages.getOrPut(walker.arena, resolved.key);
+        const gop = try walker.visited.getOrPut(walker.arena, resolved.key);
         if (gop.found_existing) return;
-        gop.value_ptr.* = .{ .url = resolved.url, .path = resolved.path, .paths = &.{}, .deps = &.{} };
 
         const manifest_path = try std.fs.path.join(walker.arena, &.{ resolved.dir, "build.zig.zon" });
         const manifest = try parseManifest(walker.arena, walker.io, manifest_path);
         const edges = try walker.resolveEdges(manifest, resolved.dir);
 
-        walker.packages.getPtr(resolved.key).?.* = .{
+        // Append only after the dependencies have been walked, so `packages` ends
+        // up in topological order: a package precedes any package depending on it.
+        try walker.packages.put(walker.arena, resolved.key, .{
             .url = resolved.url,
             .path = resolved.path,
             .paths = manifest.paths,
             .deps = edges,
-        };
+        });
     }
 };
 
