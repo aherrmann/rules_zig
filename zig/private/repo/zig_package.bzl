@@ -15,23 +15,17 @@ ATTRS = {
     "zig_hash": attr.string(mandatory = True, doc = "The expected Zig package hash."),
 }
 
-def _package_prefix(repository_ctx, archive):
-    # The archive nests the package under `<hash>/<archive-root>/`. Strip up to
-    # and including the directory that holds `build.zig.zon`.
-    listing = repository_ctx.execute(["tar", "-tzf", str(archive)])
-    if listing.return_code != 0:
-        fail("Failed to list the Zig package archive '{}':\n{}".format(archive, listing.stderr))
-
-    prefix = None
-    for entry in listing.stdout.split("\n"):
-        if entry.endswith("/build.zig.zon") and (prefix == None or len(entry) < len(prefix)):
-            prefix = entry
-    if prefix == None:
-        fail("No `build.zig.zon` found in the Zig package archive '{}'.".format(archive))
-    return prefix[:-len("/build.zig.zon")]
+def _package_prefix(repository_ctx, zig, helper, cache, archive):
+    # The archive nests the package under `<hash>/<archive-root>/`; strip up to
+    # the directory that holds `build.zig.zon`.
+    result = repository_ctx.execute([zig, "run", "--cache-dir", str(cache), helper, "--", str(archive)])
+    if result.return_code != 0:
+        fail("Failed to inspect the Zig package archive '{}':\n{}".format(archive, result.stderr))
+    return result.stdout.strip()
 
 def _zig_package_impl(repository_ctx):
     zig = zig_path(repository_ctx)
+    helper = repository_ctx.path(Label("//zig/private:package_prefix.zig"))
     cache = repository_ctx.path("cache")
 
     fetch = repository_ctx.execute([zig, "fetch", "--global-cache-dir", str(cache), repository_ctx.attr.url])
@@ -47,7 +41,7 @@ def _zig_package_impl(repository_ctx):
         ))
 
     archive = cache.get_child("p").get_child(fetched_hash + ".tar.gz")
-    repository_ctx.extract(archive, strip_prefix = _package_prefix(repository_ctx, archive))
+    repository_ctx.extract(archive, strip_prefix = _package_prefix(repository_ctx, zig, helper, cache, archive))
     repository_ctx.delete(cache)
 
     repository_ctx.file("BUILD.bazel", """\
