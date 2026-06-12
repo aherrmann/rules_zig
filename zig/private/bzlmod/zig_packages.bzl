@@ -1,6 +1,7 @@
 """Implementation of the `zig_packages` module extension."""
 
 load("@rules_zig_host_toolchain//:toolchain.bzl", "zig_path")
+load("//zig/private/repo:zig_deps_hub.bzl", "zig_deps_hub")
 load("//zig/private/repo:zig_package.bzl", "zig_package")
 
 from_file = tag_class(
@@ -74,16 +75,26 @@ def _zig_packages_impl(module_ctx):
 
     manifests = []
     manifest_labels = {}
+    root_tags = []
+    root_dev = False
+    root_nondev = False
     for mod in module_ctx.modules:
         for tag in mod.tags.from_file:
             manifest = module_ctx.path(tag.build_zig_zon)
             _fetch(module_ctx, zig, manifest, cache_dir, pkg_dir)
             manifests.append(manifest)
             manifest_labels[str(manifest)] = str(tag.build_zig_zon)
+            root_tags.append(tag.build_zig_zon)
+            if mod.is_root:
+                if module_ctx.is_dev_dependency(tag):
+                    root_dev = True
+                else:
+                    root_nondev = True
 
     graph = _resolve_graph(module_ctx, zig, zon2json, cache_dir, pkg_dir, manifests)
     graph = _localize_paths(graph, str(pkg_dir), manifest_labels)
 
+    package_labels = {}
     for key, package in graph["packages"].items():
         if package["url"] != None:
             zig_package(
@@ -91,6 +102,34 @@ def _zig_packages_impl(module_ctx):
                 url = package["url"],
                 zig_hash = key,
             )
+            package_labels[key] = "@{}//:files".format(key)
+
+    for tag in root_tags:
+        package_labels[str(tag)] = tag.same_package_label("files")
+
+    zig_deps_hub(
+        name = "zig_deps",
+        manifests = json.encode(_hub_manifests(graph, root_tags)),
+        packages = package_labels,
+    )
+
+    direct = ["zig_deps"] if root_nondev else []
+    dev = ["zig_deps"] if root_dev and not root_nondev else []
+    return module_ctx.extension_metadata(
+        root_module_direct_deps = direct,
+        root_module_direct_dev_deps = dev,
+    )
+
+def _hub_manifests(graph, root_tags):
+    manifests = []
+    for root, label in zip(graph["roots"], root_tags):
+        package = label.repo_name + "/" + label.package if label.repo_name else label.package
+        manifests.append({
+            "package": package,
+            "scope": str(label.same_package_label("__subpackages__")),
+            "deps": root["deps"],
+        })
+    return manifests
 
 zig_packages = module_extension(
     implementation = _zig_packages_impl,
