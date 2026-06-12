@@ -11,7 +11,7 @@ the `zig_packages` module extension.
 ATTRS = {
     "manifests": attr.string(
         mandatory = True,
-        doc = "JSON-encoded list of `{package, scope, deps}` manifest entries.",
+        doc = "JSON-encoded list of `{repo, package, scope, deps}` manifest entries.",
     ),
     "packages": attr.string_keyed_label_dict(
         mandatory = True,
@@ -27,24 +27,65 @@ alias(
 )
 """
 
+_DEFS = '''\
+"""Accessors for the Zig package dependencies of each `from_file` manifest."""
+
+_MANIFESTS = json.decode("""%MANIFESTS%""")
+
+def zig_dep(name):
+    """Return the label of dependency `name` for the enclosing Zig manifest."""
+    repo = native.repo_name()
+    package = native.package_name()
+    manifests = _MANIFESTS.get(repo, {})
+    manifest = _enclosing(manifests, package)
+    if manifest == None:
+        fail("no Zig `from_file` manifest covers package '%s'" % package)
+    if name not in manifests[manifest]:
+        fail("Zig manifest '%s' declares no dependency '%s'; available: %s" % (
+            manifest,
+            name,
+            manifests[manifest],
+        ))
+    path = repo + "/" + manifest if repo else manifest
+    return Label("//" + path + ":" + name)
+
+def _enclosing(manifests, package):
+    candidate = package
+    for _ in range(len(package) + 1):
+        if candidate in manifests:
+            return candidate
+        if not candidate:
+            break
+        candidate = candidate.rpartition("/")[0]
+    return None
+'''
+
+def _hub_path(manifest):
+    repo, package = manifest["repo"], manifest["package"]
+    return repo + "/" + package if repo else package
+
 def _zig_deps_hub_impl(repository_ctx):
     packages = repository_ctx.attr.packages
     manifests = json.decode(repository_ctx.attr.manifests)
 
     builds = {}
+    registry = {}
     for manifest in manifests:
         aliases = [
             _ALIAS.format(name = name, actual = str(packages[key]), scope = manifest["scope"])
             for name, key in manifest["deps"].items()
         ]
-        builds[manifest["package"]] = "\n".join(aliases)
+        builds[_hub_path(manifest)] = "\n".join(aliases)
+        registry.setdefault(manifest["repo"], {})[manifest["package"]] = manifest["deps"].keys()
 
     if "" not in builds:
         builds[""] = ""
 
-    for package, content in builds.items():
-        path = package + "/BUILD.bazel" if package else "BUILD.bazel"
-        repository_ctx.file(path, content)
+    for path, content in builds.items():
+        build_file = path + "/BUILD.bazel" if path else "BUILD.bazel"
+        repository_ctx.file(build_file, content)
+
+    repository_ctx.file("defs.bzl", _DEFS.replace("%MANIFESTS%", json.encode(registry)))
 
 zig_deps_hub = repository_rule(
     _zig_deps_hub_impl,

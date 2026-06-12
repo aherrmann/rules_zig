@@ -123,9 +123,9 @@ def _zig_packages_impl(module_ctx):
 def _hub_manifests(graph, root_tags):
     manifests = []
     for root, label in zip(graph["roots"], root_tags):
-        package = label.repo_name + "/" + label.package if label.repo_name else label.package
         manifests.append({
-            "package": package,
+            "repo": label.repo_name,
+            "package": label.package,
             "scope": str(label.same_package_label("__subpackages__")),
             "deps": root["deps"],
         })

@@ -1,0 +1,9 @@
+load("@zig_deps//:defs.bzl", "zig_dep")
+
+filegroup(
+    name = "files",
+    srcs = [
+        zig_dep("clap"),
+        zig_dep("greet"),
+    ],
+)
