@@ -1,6 +1,12 @@
+load("@rules_zig//zig:defs.bzl", "zig_binary")
 load("@zig_deps//:defs.bzl", "zig_deps")
 
-filegroup(
-    name = "files",
-    srcs = zig_deps(),
+zig_binary(
+    name = "app",
+    srcs = glob(
+        ["src/**/*.zig"],
+        exclude = ["src/main.zig"],
+    ),
+    main = "src/main.zig",
+    deps = zig_deps(),
 )
