@@ -71,6 +71,46 @@ def _dependencies_source(repository_ctx, deps):
     lines.append("};")
     return "\n".join(lines) + "\n"
 
+_FILES = """\
+filegroup(
+    name = "files",
+    srcs = glob(["**"], exclude = ["BUILD.bazel", "module_manifest.json"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
+_ZIG_LIBRARY = """\
+zig_library(
+    name = "{name}",
+    main = "{main}",
+    import_name = "{name}",
+    srcs = glob(["**/*.zig"], exclude = ["{main}"]),
+    deps = {deps},
+    visibility = ["//visibility:public"],
+)
+"""
+
+def _module_dep(repository_ctx, imported):
+    # A same-package import resolves to a sibling module target; a cross-package
+    # import resolves to the module of the same name in the dependency's spoke.
+    if imported["package"]:
+        spoke = repository_ctx.attr.dep_build_files[imported["package"]]
+        return str(spoke.same_package_label(imported["name"]))
+    return ":" + imported["name"]
+
+def _build_file(repository_ctx, modules):
+    chunks = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")", "", _FILES]
+    for module in modules:
+        if not module["root_source"]:
+            continue
+        deps = [_module_dep(repository_ctx, imported) for imported in module["imports"]]
+        chunks.append(_ZIG_LIBRARY.format(
+            name = module["name"],
+            main = module["root_source"],
+            deps = json.encode(deps),
+        ))
+    return "\n".join(chunks)
+
 def _configure(repository_ctx, zig, build_zig):
     """Configure the package's `build.zig` and return its module-graph JSON."""
     configurer = repository_ctx.path(Label("//zig/private:configurer.zig"))
@@ -132,16 +172,13 @@ def _zig_package_impl(repository_ctx):
     repository_ctx.delete(cache)
 
     build_zig = repository_ctx.path("build.zig")
+    modules = []
     if build_zig.exists:
-        repository_ctx.file("module_manifest.json", _configure(repository_ctx, zig, build_zig))
+        manifest = _configure(repository_ctx, zig, build_zig)
+        repository_ctx.file("module_manifest.json", manifest)
+        modules = json.decode(manifest)["modules"]
 
-    repository_ctx.file("BUILD.bazel", """\
-filegroup(
-    name = "files",
-    srcs = glob(["**"], exclude = ["BUILD.bazel", "module_manifest.json"]),
-    visibility = ["//visibility:public"],
-)
-""")
+    repository_ctx.file("BUILD.bazel", _build_file(repository_ctx, modules))
 
 zig_package = repository_rule(
     _zig_package_impl,
