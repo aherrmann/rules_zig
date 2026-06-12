@@ -32,14 +32,6 @@ zig_packages = use_extension(
 zig_packages.from_file(build_zig_zon = "//zig-package-import/app:build.zig.zon")
 zig_packages.from_file(build_zig_zon = "//zig-package-import/greet:build.zig.zon")
 
-zig_package = use_repo_rule("@rules_zig//zig/private/repo:zig_package.bzl", "zig_package")
-
-zig_package(
-    name = "zig_clap",
-    url = "https://github.com/Hejsil/zig-clap/archive/8d97efa1ee1e575443c7888d5c38e1c3fc145cf5.tar.gz",
-    zig_hash = "clap-0.12.0-oBajB7foAQDqlSwaSG5g0yq7xGbQARUsBk5T64gAOqP5",
-)
-
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
