@@ -1,6 +1,7 @@
 """Implementation of the `zig_packages` module extension."""
 
 load("@rules_zig_host_toolchain//:toolchain.bzl", "zig_path")
+load("//zig/private/repo:zig_package.bzl", "zig_package")
 
 from_file = tag_class(
     attrs = {
@@ -83,8 +84,13 @@ def _zig_packages_impl(module_ctx):
     graph = _resolve_graph(module_ctx, zig, zon2json, cache_dir, pkg_dir, manifests)
     graph = _localize_paths(graph, str(pkg_dir), manifest_labels)
 
-    # buildifier: disable=print
-    print(graph)
+    for key, package in graph["packages"].items():
+        if package["url"] != None:
+            zig_package(
+                name = key,
+                url = package["url"],
+                zig_hash = key,
+            )
 
 zig_packages = module_extension(
     implementation = _zig_packages_impl,
