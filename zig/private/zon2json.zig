@@ -1,11 +1,14 @@
 //! Resolve a Zig package dependency graph by recursively parsing `build.zig.zon`
 //! manifests, and emit the merged graph as JSON on stdout.
 //!
-//! Usage: zon2json <pkg-dir> <build.zig.zon>...
+//! Usage: zon2json <zig> <global-cache> <pkg-dir> <build.zig.zon>...
 //!
-//! `<pkg-dir>` is the local package directory (`zig build --pkg-dir`) that holds
-//! the fetched URL dependencies, each unpacked under `<pkg-dir>/<hash>`. The
-//! remaining arguments are the root manifests to resolve.
+//! URL dependencies are fetched with `<zig> fetch` into `<global-cache>` as
+//! content-addressed tarballs (no source-tree unpacking); their `build.zig.zon`
+//! manifests are extracted under `<pkg-dir>/<hash>`. The remaining arguments are
+//! the root manifests to resolve. Resolving manifests ourselves (rather than via
+//! `zig build --fetch --pkg-dir`) lets path dependencies inside fetched packages
+//! resolve relative to the extracted tree.
 //!
 //! Packages are keyed by their Zig hash (URL dependencies) or by their resolved
 //! absolute path (path dependencies), and listed in topological order: a package
@@ -21,6 +24,8 @@ const std = @import("std");
 const Zoir = std.zig.Zoir;
 const Allocator = std.mem.Allocator;
 const Io = std.Io;
+const flate = std.compress.flate;
+const tar = std.tar;
 
 const Dep = struct {
     name: []const u8,
@@ -56,13 +61,19 @@ const Resolved = struct {
 const Walker = struct {
     arena: Allocator,
     io: Io,
+    zig: []const u8,
+    global_cache: []const u8,
     pkg_dir: []const u8,
     packages: std.StringArrayHashMapUnmanaged(Package) = .empty,
     visited: std.StringHashMapUnmanaged(void) = .empty,
 
     fn resolveDep(walker: *Walker, dep: Dep, parent_dir: []const u8) !Resolved {
         if (dep.url) |url| {
-            const hash = dep.hash orelse fatal("URL dependency '{s}' is missing a hash", .{dep.name});
+            const declared = dep.hash orelse fatal("URL dependency '{s}' is missing a hash", .{dep.name});
+            const hash = try walker.fetch(url);
+            if (!std.mem.eql(u8, hash, declared)) {
+                fatal("hash mismatch for '{s}':\n  declared: {s}\n  fetched:  {s}", .{ dep.name, declared, hash });
+            }
             return .{
                 .key = hash,
                 .url = url,
@@ -75,6 +86,74 @@ const Walker = struct {
             return .{ .key = dir, .url = null, .path = dir, .dir = dir };
         }
         fatal("dependency '{s}' has neither a url nor a path", .{dep.name});
+    }
+
+    /// Fetch a URL package as a content-addressed tarball (no source-tree
+    /// unpacking), then extract its `build.zig.zon` manifests into `pkg_dir` so
+    /// the walk can resolve the dependency graph from the filesystem.
+    fn fetch(walker: *Walker, url: []const u8) ![]const u8 {
+        const result = try std.process.run(walker.arena, walker.io, .{
+            .argv = &.{ walker.zig, "fetch", "--global-cache-dir", walker.global_cache, url },
+        });
+        switch (result.term) {
+            .exited => |code| if (code != 0) fatal("`zig fetch {s}` failed:\n{s}", .{ url, result.stderr }),
+            else => fatal("`zig fetch {s}` terminated abnormally", .{url}),
+        }
+        const hash = try walker.arena.dupe(u8, std.mem.trim(u8, result.stdout, " \t\r\n"));
+
+        const dest = try std.fs.path.join(walker.arena, &.{ walker.pkg_dir, hash });
+        if (Io.Dir.cwd().access(walker.io, dest, .{})) |_| return hash else |_| {}
+        try walker.extractManifests(hash, dest);
+        return hash;
+    }
+
+    fn extractManifests(walker: *Walker, hash: []const u8, dest: []const u8) !void {
+        const arena = walker.arena;
+        const io = walker.io;
+        const tarball = try std.fmt.allocPrint(arena, "{s}/p/{s}.tar.gz", .{ walker.global_cache, hash });
+
+        var file = try Io.Dir.cwd().openFile(io, tarball, .{});
+        defer file.close(io);
+        var read_buffer: [64 * 1024]u8 = undefined;
+        var file_reader = file.reader(io, &read_buffer);
+        var window: [flate.max_window_len]u8 = undefined;
+        var decompress: flate.Decompress = .init(&file_reader.interface, .gzip, &window);
+
+        var name_buffer: [std.fs.max_path_bytes]u8 = undefined;
+        var link_name_buffer: [std.fs.max_path_bytes]u8 = undefined;
+        var iterator: tar.Iterator = .init(&decompress.reader, .{
+            .file_name_buffer = &name_buffer,
+            .link_name_buffer = &link_name_buffer,
+        });
+
+        // Collect every manifest, tracking the shallowest one's directory as the
+        // archive prefix to strip (the tarball nests the package under it).
+        const Found = struct { name: []const u8, content: []const u8 };
+        var manifests: std.ArrayList(Found) = .empty;
+        var prefix: []const u8 = "";
+        var have_prefix = false;
+        while (try iterator.next()) |entry| {
+            if (entry.kind == .directory) continue;
+            if (!std.mem.eql(u8, std.fs.path.basename(entry.name), "build.zig.zon")) continue;
+            var content: std.Io.Writer.Allocating = .init(arena);
+            try iterator.streamRemaining(entry, &content.writer);
+            const name = try arena.dupe(u8, entry.name);
+            const dir = std.fs.path.dirname(name) orelse "";
+            if (!have_prefix or dir.len < prefix.len) {
+                prefix = dir;
+                have_prefix = true;
+            }
+            try manifests.append(arena, .{ .name = name, .content = content.written() });
+        }
+
+        try Io.Dir.cwd().createDirPath(io, dest);
+        var dest_dir = try Io.Dir.cwd().openDir(io, dest, .{});
+        defer dest_dir.close(io);
+        for (manifests.items) |found| {
+            const rel = if (prefix.len == 0) found.name else found.name[prefix.len + 1 ..];
+            if (std.fs.path.dirname(rel)) |parent| try dest_dir.createDirPath(io, parent);
+            try dest_dir.writeFile(io, .{ .sub_path = rel, .data = found.content });
+        }
     }
 
     fn resolveEdges(walker: *Walker, manifest: Manifest, dir: []const u8) ![]const Edge {
@@ -111,12 +190,18 @@ pub fn main(init: std.process.Init) !void {
     const io = init.io;
 
     const args = try init.minimal.args.toSlice(arena);
-    if (args.len < 2) fatal("usage: zon2json <pkg-dir> <build.zig.zon>...", .{});
+    if (args.len < 4) fatal("usage: zon2json <zig> <global-cache> <pkg-dir> <build.zig.zon>...", .{});
 
-    var walker: Walker = .{ .arena = arena, .io = io, .pkg_dir = args[1] };
+    var walker: Walker = .{
+        .arena = arena,
+        .io = io,
+        .zig = args[1],
+        .global_cache = args[2],
+        .pkg_dir = args[3],
+    };
 
     var roots: std.ArrayList([]const Edge) = .empty;
-    for (args[2..]) |root_path| {
+    for (args[4..]) |root_path| {
         const dir = std.fs.path.dirname(root_path) orelse ".";
         const manifest = try parseManifest(arena, io, root_path);
         try roots.append(arena, try walker.resolveEdges(manifest, dir));
