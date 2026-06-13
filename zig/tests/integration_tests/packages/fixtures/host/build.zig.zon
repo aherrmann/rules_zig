@@ -1,0 +1,14 @@
+.{
+    .name = .host,
+    .version = "0.0.0",
+    .fingerprint = 0xcf2713fdd0ee5aad,
+    .dependencies = .{
+        .foo = .{ .path = "libs/foo" },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "libs",
+    },
+}

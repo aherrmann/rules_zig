@@ -1,8 +1,8 @@
 load("@rules_zig//zig:defs.bzl", "zig_binary")
-load("@zig_deps//:defs.bzl", "zig_dep")
+load("@zig_deps//:defs.bzl", "zig_deps")
 
 zig_binary(
     name = "binary",
     main = "main.zig",
-    deps = [zig_dep("leaf")],
+    deps = zig_deps(),
 )

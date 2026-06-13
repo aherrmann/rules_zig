@@ -7,6 +7,10 @@
             .url = "__LEAF_URL__",
             .hash = "__LEAF_HASH__",
         },
+        .host = .{
+            .url = "__HOST_URL__",
+            .hash = "__HOST_HASH__",
+        },
     },
     .paths = .{
         "build.zig",

@@ -47,21 +47,30 @@ def _edge_lines(edges, indent):
         for name, key in edges
     ]
 
+def _build_root(repository_ctx, key, package):
+    # A sub-tree path dependency lives inside this package's own tree; a URL
+    # dependency lives in its own spoke.
+    if package["path"] != None:
+        return str(repository_ctx.path(package["path"]))
+    return str(repository_ctx.path(repository_ctx.attr.dep_build_files[key]).dirname)
+
+def _build_zig(repository_ctx, key, package):
+    if package["path"] != None:
+        return str(repository_ctx.path(package["path"] + "/build.zig"))
+    return str(repository_ctx.path(repository_ctx.attr.dep_build_files[key]))
+
 def _dependencies_source(repository_ctx, deps):
     """Render the `@dependencies` module that `b.dependency` consumes."""
     packages = deps["packages"]
     if not packages:
         return _EMPTY_DEPS
 
-    build_files = repository_ctx.attr.dep_build_files
     lines = ["pub const packages = struct {"]
     for key in sorted(packages):
         package = packages[key]
-        build_root = str(repository_ctx.path(build_files[key]).dirname)
         lines.append("    pub const @\"{}\" = struct {{".format(key))
-        lines.append("        pub const build_root = {};".format(_zig_string(build_root)))
-        if package["has_build_zig"]:
-            lines.append("        pub const build_zig = @import(\"{}\");".format(key))
+        lines.append("        pub const build_root = {};".format(_zig_string(_build_root(repository_ctx, key, package))))
+        lines.append("        pub const build_zig = @import(\"{}\");".format(key))
         lines.append("        pub const deps: []const struct { []const u8, []const u8 } = &.{")
         lines.extend(_edge_lines(package["deps"], "            "))
         lines.append("        };")
@@ -92,24 +101,47 @@ zig_library(
 )
 """
 
-def _module_dep(repository_ctx, imported):
-    # A same-package import resolves to a sibling module target; a cross-package
-    # import resolves to the module of the same name in the dependency's spoke.
-    if imported["package"]:
-        spoke = repository_ctx.attr.dep_build_files[imported["package"]]
+_ZIG_LIBRARY_SUBTREE = """\
+zig_library(
+    name = "{name}",
+    main = "{main}",
+    import_name = "{name}",
+    srcs = glob(["{subpath}/**/*.zig"], exclude = ["{main}"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
+def _module_dep(repository_ctx, imported, packages, subtree):
+    key = imported["package"]
+    if key and key in packages and packages[key]["path"] != None:
+        # A sub-tree path dependency is generated as a sibling module in this spoke.
+        subtree[imported["name"]] = (packages[key]["path"], imported["root_source"])
+        return ":" + imported["name"]
+    if key:
+        # A cross-package import resolves to the module of the same name in the
+        # dependency's spoke.
+        spoke = repository_ctx.attr.dep_build_files[key]
         return str(spoke.same_package_label(imported["name"]))
     return ":" + imported["name"]
 
-def _build_file(repository_ctx, modules):
+def _build_file(repository_ctx, modules, packages):
     chunks = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")", "", _FILES]
+    subtree = {}
     for module in modules:
         if not module["root_source"]:
             continue
-        deps = [_module_dep(repository_ctx, imported) for imported in module["imports"]]
+        deps = [_module_dep(repository_ctx, imported, packages, subtree) for imported in module["imports"]]
         chunks.append(_ZIG_LIBRARY.format(
             name = module["name"],
             main = module["root_source"],
             deps = json.encode(deps),
+        ))
+    for name in sorted(subtree):
+        subpath, root_source = subtree[name]
+        chunks.append(_ZIG_LIBRARY_SUBTREE.format(
+            name = name,
+            main = subpath + "/" + root_source,
+            subpath = subpath,
         ))
     return "\n".join(chunks)
 
@@ -117,18 +149,17 @@ def _configure(repository_ctx, zig, build_zig, cache):
     """Configure the package's `build.zig` and return its module-graph JSON."""
     configurer = repository_ctx.path(Label("//zig/private:configurer.zig"))
     deps = json.decode(repository_ctx.attr.deps)
-    build_files = repository_ctx.attr.dep_build_files
 
     repository_ctx.file("_configure/deps.zig", _dependencies_source(repository_ctx, deps))
 
-    hashes = sorted([key for key in deps["packages"] if deps["packages"][key]["has_build_zig"]])
+    keys = sorted(deps["packages"])
 
     args = [zig, "build-exe", "--dep", "pkg", "--dep", "deps", "-Mroot=" + str(configurer), "-Mpkg=" + str(build_zig)]
-    for key in hashes:
+    for key in keys:
         args.extend(["--dep", key])
     args.append("-Mdeps=" + str(repository_ctx.path("_configure/deps.zig")))
-    for key in hashes:
-        args.append("-M{}={}".format(key, repository_ctx.path(build_files[key])))
+    for key in keys:
+        args.append("-M{}={}".format(key, _build_zig(repository_ctx, key, deps["packages"][key])))
     args.extend([
         "--cache-dir",
         cache,
@@ -181,7 +212,8 @@ def _zig_package_impl(repository_ctx):
         repository_ctx.file("module_manifest.json", manifest)
         modules = json.decode(manifest)["modules"]
 
-    repository_ctx.file("BUILD.bazel", _build_file(repository_ctx, modules))
+    packages = json.decode(repository_ctx.attr.deps)["packages"]
+    repository_ctx.file("BUILD.bazel", _build_file(repository_ctx, modules, packages))
 
 zig_package = repository_rule(
     _zig_package_impl,

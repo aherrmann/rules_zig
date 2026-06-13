@@ -14,17 +14,9 @@ from_file = tag_class(
     },
 )
 
-def _fetch(module_ctx, zig, manifest, cache, pkg_dir):
-    result = module_ctx.execute(
-        [zig, "build", "--fetch=all", "--cache-dir", cache, "--global-cache-dir", cache, "--pkg-dir", str(pkg_dir)],
-        working_directory = str(manifest.dirname),
-    )
-    if result.return_code != 0:
-        fail("`zig build --fetch=all` failed in {}:\n{}".format(manifest.dirname, result.stderr))
-
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
-        [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", str(pkg_dir)] +
+        [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
         [str(manifest) for manifest in manifests],
     )
     if result.return_code != 0:
@@ -74,10 +66,23 @@ def _url_edges(graph, key):
         if graph["packages"][child]["url"] != None
     ]
 
+def _subtree_edges(graph, key):
+    """Direct path dependencies that live inside this package's own fetched tree."""
+    return [
+        [name, child]
+        for name, child in graph["packages"][key]["deps"].items()
+        if graph["packages"][child]["url"] == None and child.startswith(key + "/")
+    ]
+
 def _deps_data(graph, key, closure):
+    # URL dependencies resolve to sibling spokes; sub-tree path dependencies are
+    # configured in-tree (`path` is their location relative to this package).
+    packages = {dep: {"deps": _url_edges(graph, dep), "path": None} for dep in closure}
+    for _name, child in _subtree_edges(graph, key):
+        packages[child] = {"deps": [], "path": child[len(key) + 1:]}
     return {
-        "root_deps": _url_edges(graph, key),
-        "packages": {dep: {"has_build_zig": True, "deps": _url_edges(graph, dep)} for dep in closure},
+        "root_deps": _url_edges(graph, key) + _subtree_edges(graph, key),
+        "packages": packages,
     }
 
 def _zig_packages_impl(module_ctx):
@@ -94,7 +99,6 @@ def _zig_packages_impl(module_ctx):
     for mod in module_ctx.modules:
         for tag in mod.tags.from_file:
             manifest = module_ctx.path(tag.build_zig_zon)
-            _fetch(module_ctx, zig, manifest, cache, pkg_dir)
             manifests.append(manifest)
             manifest_labels[str(manifest)] = str(tag.build_zig_zon)
             root_tags.append(tag.build_zig_zon)
