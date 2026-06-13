@@ -1,6 +1,6 @@
 """Implementation of the `zig_package` repository rule."""
 
-load("@rules_zig_host_toolchain//:toolchain.bzl", "zig_path")
+load("@rules_zig_host_toolchain//:toolchain.bzl", "zig_cache", "zig_path")
 
 DOC = """\
 Fetch a Zig package with the Zig SDK.
@@ -26,7 +26,9 @@ ATTRS = {
 def _package_prefix(repository_ctx, zig, helper, cache, archive):
     # The archive nests the package under `<hash>/<archive-root>/`; strip up to
     # the directory that holds `build.zig.zon`.
-    result = repository_ctx.execute([zig, "run", "--cache-dir", str(cache), helper, "--", str(archive)])
+    result = repository_ctx.execute(
+        [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, helper, "--", str(archive)],
+    )
     if result.return_code != 0:
         fail("Failed to inspect the Zig package archive '{}':\n{}".format(archive, result.stderr))
     return result.stdout.strip()
@@ -111,7 +113,7 @@ def _build_file(repository_ctx, modules):
         ))
     return "\n".join(chunks)
 
-def _configure(repository_ctx, zig, build_zig):
+def _configure(repository_ctx, zig, build_zig, cache):
     """Configure the package's `build.zig` and return its module-graph JSON."""
     configurer = repository_ctx.path(Label("//zig/private:configurer.zig"))
     deps = json.decode(repository_ctx.attr.deps)
@@ -129,7 +131,9 @@ def _configure(repository_ctx, zig, build_zig):
         args.append("-M{}={}".format(key, repository_ctx.path(build_files[key])))
     args.extend([
         "--cache-dir",
-        str(repository_ctx.path("_configure/cache")),
+        cache,
+        "--global-cache-dir",
+        cache,
         "-femit-bin=" + str(repository_ctx.path("_configure/configurer")),
     ])
 
@@ -153,9 +157,9 @@ def _configure(repository_ctx, zig, build_zig):
 def _zig_package_impl(repository_ctx):
     zig = zig_path(repository_ctx)
     helper = repository_ctx.path(Label("//zig/private:package_prefix.zig"))
-    cache = repository_ctx.path("cache")
+    cache = zig_cache(repository_ctx)
 
-    fetch = repository_ctx.execute([zig, "fetch", "--global-cache-dir", str(cache), repository_ctx.attr.url])
+    fetch = repository_ctx.execute([zig, "fetch", "--global-cache-dir", cache, repository_ctx.attr.url])
     if fetch.return_code != 0:
         fail("`zig fetch {}` failed:\n{}".format(repository_ctx.attr.url, fetch.stderr))
 
@@ -167,14 +171,13 @@ def _zig_package_impl(repository_ctx):
             fetched_hash,
         ))
 
-    archive = cache.get_child("p").get_child(fetched_hash + ".tar.gz")
+    archive = repository_ctx.path(cache).get_child("p").get_child(fetched_hash + ".tar.gz")
     repository_ctx.extract(archive, strip_prefix = _package_prefix(repository_ctx, zig, helper, cache, archive))
-    repository_ctx.delete(cache)
 
     build_zig = repository_ctx.path("build.zig")
     modules = []
     if build_zig.exists:
-        manifest = _configure(repository_ctx, zig, build_zig)
+        manifest = _configure(repository_ctx, zig, build_zig, cache)
         repository_ctx.file("module_manifest.json", manifest)
         modules = json.decode(manifest)["modules"]
 

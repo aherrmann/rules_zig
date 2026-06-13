@@ -50,10 +50,9 @@ pub fn main(init: std.process.Init) !void {
     var entries: std.ArrayList(Entry) = .empty;
     var walker = try pkg_dir.walk(arena);
     while (try walker.next(io)) |entry| {
-        if (entry.kind != .file) {
-            if (entry.kind == .directory) continue;
-            fatal("unsupported file kind '{t}' at '{s}'", .{ entry.kind, entry.path });
-        }
+        // Directories are not hashed; symlinks (e.g. Bazel-staged fixture files)
+        // are dereferenced and treated as regular files via their content.
+        if (entry.kind == .directory) continue;
         const path = try arena.dupe(u8, entry.path);
         if (!includePath(manifest.paths, path)) continue;
         try entries.append(arena, .{ .path = path });

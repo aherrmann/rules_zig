@@ -6,6 +6,7 @@ exports_files(
     [
         "defs.bzl",
         "extensions.bzl",
+        "packages.bzl",
         "toolchain.bzl",
     ],
     visibility = ["//docs:__pkg__"],
@@ -82,6 +83,7 @@ filegroup(
         ":BUILD.bazel",
         ":defs.bzl",
         ":extensions.bzl",
+        ":packages.bzl",
         ":toolchain.bzl",
         "//zig/config:all_files",
         "//zig/lib:all_files",
