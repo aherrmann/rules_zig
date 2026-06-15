@@ -1,5 +1,7 @@
 """Implementation of the `zig_deps` hub repository rule."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
+
 DOC = """\
 The `@zig_deps` hub repository.
 
@@ -30,6 +32,8 @@ alias(
 _DEFS = '''\
 """Accessors for the Zig package dependencies of each `from_file` manifest."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
+
 _MANIFESTS = json.decode("""%MANIFESTS%""")
 
 def zig_dep(name):
@@ -51,7 +55,8 @@ def _manifest():
     manifest = _enclosing(manifests, package)
     if manifest == None:
         fail("no Zig `from_file` manifest covers package '%s'" % package)
-    path = "/".join([part for part in [repo, manifest] if part])
+    parts = [part for part in [repo, manifest] if part]
+    path = paths.join(*parts) if parts else ""
     return path, manifests[manifest]
 
 def _label(path, name):
@@ -69,7 +74,10 @@ def _enclosing(manifests, package):
 '''
 
 def _hub_path(manifest):
-    return "/".join([part for part in [manifest["repo"], manifest["package"]] if part])
+    # `paths.join` keeps empty trailing segments (e.g. `repo/`), so drop empties
+    # first: the main module has no repo prefix and root manifests no package.
+    parts = [part for part in [manifest["repo"], manifest["package"]] if part]
+    return paths.join(*parts) if parts else ""
 
 def _zig_deps_hub_impl(repository_ctx):
     packages = repository_ctx.attr.packages
