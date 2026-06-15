@@ -19,6 +19,9 @@
             .url = "__MULTI_URL__",
             .hash = "__MULTI_HASH__",
         },
+        .greeter = .{
+            .path = "path_deps/greeter",
+        },
     },
     .paths = .{
         "build.zig",
