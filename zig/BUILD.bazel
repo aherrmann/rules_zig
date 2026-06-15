@@ -76,6 +76,13 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "packages",
+    srcs = ["packages.bzl"],
+    visibility = ["//visibility:public"],
+    deps = ["//zig/private/bzlmod:zig_packages"],
+)
+
 # Execute `bazel run //util:update_filegroups` to update this target.
 filegroup(
     name = "all_files",
