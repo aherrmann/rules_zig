@@ -112,11 +112,10 @@ zig_library(
 )
 """
 
-def _module_dep(repository_ctx, imported, packages, subtree):
+def _module_dep(repository_ctx, imported, packages):
     key = imported["package"]
     if key and key in packages and packages[key]["path"] != None:
-        # A sub-tree path dependency is generated as a sibling module in this spoke.
-        subtree[imported["name"]] = (key, imported["root_source"])
+        # An in-tree (sub-tree) module is generated as a sibling in this spoke.
         return ":" + imported["name"]
     if key:
         # A cross-package import resolves to the module of the same name in the
@@ -125,41 +124,32 @@ def _module_dep(repository_ctx, imported, packages, subtree):
         return str(spoke.same_package_label(imported["name"]))
     return ":" + imported["name"]
 
-def _subtree_dep(repository_ctx, edge, packages):
-    """Resolve a sub-tree package's own dependency edge to a Bazel label.
-
-    The configurer only reports the host package's modules, so a sub-tree's own
-    imports are wired from the resolved graph instead, by convention assuming the
-    imported module shares the dependency's name.
-    """
-    name, key = edge[0], edge[1]
-    if packages[key]["path"] != None:
-        return ":" + name
-    spoke = repository_ctx.attr.dep_build_files[key]
-    return str(spoke.same_package_label(name))
-
 def _build_file(repository_ctx, modules, packages):
     chunks = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")", "", _FILES]
-    subtree = {}
     for module in modules:
         if not module["root_source"]:
             continue
-        deps = [_module_dep(repository_ctx, imported, packages, subtree) for imported in module["imports"]]
-        chunks.append(_ZIG_LIBRARY.format(
-            name = module["name"],
-            main = module["root_source"],
-            deps = json.encode(deps),
-        ))
-    for name in sorted(subtree):
-        key, root_source = subtree[name]
-        subpath = packages[key]["path"]
-        deps = [_subtree_dep(repository_ctx, edge, packages) for edge in packages[key]["deps"]]
-        chunks.append(_ZIG_LIBRARY_SUBTREE.format(
-            name = name,
-            main = subpath + "/" + root_source,
-            subpath = subpath,
-            deps = json.encode(deps),
-        ))
+
+        # The configurer reports every reachable module tagged with its owner: the
+        # root package being configured (empty key) becomes a top-level library; an
+        # in-tree sub-tree path dependency becomes a library scoped to its sub-path;
+        # a module owned by a URL dependency lives in its own spoke and is skipped.
+        owner = module["package"]
+        deps = [_module_dep(repository_ctx, imported, packages) for imported in module["imports"]]
+        if not owner:
+            chunks.append(_ZIG_LIBRARY.format(
+                name = module["name"],
+                main = module["root_source"],
+                deps = json.encode(deps),
+            ))
+        elif owner in packages and packages[owner]["path"] != None:
+            subpath = packages[owner]["path"]
+            chunks.append(_ZIG_LIBRARY_SUBTREE.format(
+                name = module["name"],
+                main = subpath + "/" + module["root_source"],
+                subpath = subpath,
+                deps = json.encode(deps),
+            ))
     return "\n".join(chunks)
 
 def _configure(repository_ctx, zig, build_zig, cache):
