@@ -97,6 +97,7 @@ zig_library(
     import_name = "{name}",
     srcs = glob(["**/*.zig"], exclude = ["{main}"]),
     deps = {deps},
+    import_names = {import_names},
     visibility = ["//visibility:public"],
 )
 """
@@ -108,30 +109,34 @@ zig_library(
     import_name = "{import_name}",
     srcs = glob(["{subpath}/**/*.zig"], exclude = ["{main}"]),
     deps = {deps},
+    import_names = {import_names},
     visibility = ["//visibility:public"],
 )
 """
 
-def _target_name(packages, owner, name):
+def _is_subtree(packages, owner):
+    return bool(owner) and owner in packages and packages[owner]["path"] != None
+
+def _target_name(packages, owner, module):
     # Root-package modules keep their bare name (the spoke's public API). In-tree
     # sub-tree modules are namespaced by their sub-path so that identically named
-    # modules in different sub-trees do not collide; their `import_name` stays the
-    # bare module name, which is what importing code uses.
+    # modules in different sub-trees do not collide. Targets are keyed by the
+    # module's own name, independent of the (possibly aliased) name it is imported
+    # under.
     if not owner:
-        return name
-    return packages[owner]["path"] + "/" + name
+        return module
+    return packages[owner]["path"] + "/" + module
 
 def _module_dep(repository_ctx, imported, packages):
     key = imported["package"]
-    if key and key in packages and packages[key]["path"] != None:
+    if _is_subtree(packages, key):
         # An in-tree (sub-tree) module is generated as a sibling in this spoke.
-        return ":" + _target_name(packages, key, imported["name"])
+        return ":" + _target_name(packages, key, imported["module"])
     if key:
-        # A cross-package import resolves to the module of the same name in the
-        # dependency's spoke.
+        # A cross-package import resolves to the module in the dependency's spoke.
         spoke = repository_ctx.attr.dep_build_files[key]
-        return str(spoke.same_package_label(imported["name"]))
-    return ":" + imported["name"]
+        return str(spoke.same_package_label(imported["module"]))
+    return ":" + imported["module"]
 
 def _build_file(repository_ctx, modules, packages):
     chunks = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")", "", _FILES]
@@ -144,14 +149,30 @@ def _build_file(repository_ctx, modules, packages):
         # in-tree sub-tree path dependency becomes a library scoped to its sub-path;
         # a module owned by a URL dependency lives in its own spoke and is skipped.
         owner = module["package"]
-        deps = [_module_dep(repository_ctx, imported, packages) for imported in module["imports"]]
+        if owner and not _is_subtree(packages, owner):
+            continue
+        if not module["name"]:
+            fail("Cannot expose an anonymous Zig module (one declared without `b.addModule`) of '{}'.".format(repository_ctx.attr.url))
+
+        # A dependency is imported under its own name by default; an import that
+        # uses a different name is remapped per-edge via `import_names`, so the
+        # same module can be imported under different names by different modules.
+        deps = []
+        import_names = {}
+        for imported in module["imports"]:
+            target = _module_dep(repository_ctx, imported, packages)
+            deps.append(target)
+            if imported["name"] != imported["module"]:
+                import_names[target] = imported["name"]
+
         if not owner:
             chunks.append(_ZIG_LIBRARY.format(
                 name = module["name"],
                 main = module["root_source"],
                 deps = json.encode(deps),
+                import_names = json.encode(import_names),
             ))
-        elif owner in packages and packages[owner]["path"] != None:
+        else:
             subpath = packages[owner]["path"]
             chunks.append(_ZIG_LIBRARY_SUBTREE.format(
                 name = _target_name(packages, owner, module["name"]),
@@ -159,6 +180,7 @@ def _build_file(repository_ctx, modules, packages):
                 main = subpath + "/" + module["root_source"],
                 subpath = subpath,
                 deps = json.encode(deps),
+                import_names = json.encode(import_names),
             ))
     return "\n".join(chunks)
 

@@ -1,4 +1,4 @@
 const foo = @import("foo");
-const bar = @import("bar");
+const barlib = @import("barlib");
 
-pub const value = foo.value + bar.value;
+pub const value = foo.value + barlib.value;

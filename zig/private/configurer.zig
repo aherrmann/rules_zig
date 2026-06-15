@@ -14,11 +14,14 @@
 //! The emitted JSON has the shape:
 //!
 //!     {"modules": [{"name": ..., "package": <hash>, "root_source": ...,
-//!         "imports": [{"name": ..., "package": <hash>}]}]}
+//!         "imports": [{"name": ..., "module": ..., "package": <hash>}]}]}
 //!
 //! A module's `package` is the Zig hash (or sub-tree key) of the package that
 //! owns it, or the empty string for the root package being configured. An
-//! import's `package` identifies the owner of the imported module likewise.
+//! import's `package` identifies the owner of the imported module likewise. An
+//! import's `name` is the name the importer uses (`@import(name)`), while its
+//! `module` is the imported module's own registered name; the two differ when a
+//! module is imported under an alias.
 
 const std = @import("std");
 const Io = std.Io;
@@ -134,6 +137,8 @@ fn emit(arena: Allocator, io: Io, builder: *Build) !void {
             try json.beginObject();
             try json.objectField("name");
             try json.write(import_name);
+            try json.objectField("module");
+            try json.write(moduleName(imported));
             try json.objectField("package");
             try json.write(imported.owner.pkg_hash);
             try json.endObject();
