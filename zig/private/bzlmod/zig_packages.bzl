@@ -59,29 +59,27 @@ def _localize_paths(graph, pkg_dir, manifest_labels):
 
     return graph
 
-def _url_edges(graph, key):
-    return [
-        [name, child]
-        for name, child in graph["packages"][key]["deps"].items()
-        if graph["packages"][child]["url"] != None
-    ]
+def _edges(graph, key):
+    return [[name, child] for name, child in graph["packages"][key]["deps"].items()]
 
-def _subtree_edges(graph, key):
-    """Direct path dependencies that live inside this package's own fetched tree."""
-    return [
-        [name, child]
-        for name, child in graph["packages"][key]["deps"].items()
-        if graph["packages"][child]["url"] == None and child.startswith(key + "/")
-    ]
-
-def _deps_data(graph, key, closure):
-    # URL dependencies resolve to sibling spokes; sub-tree path dependencies are
-    # configured in-tree (`path` is their location relative to this package).
-    packages = {dep: {"deps": _url_edges(graph, dep), "path": None} for dep in closure}
-    for _name, child in _subtree_edges(graph, key):
-        packages[child] = {"deps": [], "path": child[len(key) + 1:]}
+def _deps_data(graph, key, reachable):
+    # Every transitively reachable package must be configurable: a URL dependency
+    # resolves to its sibling spoke (`path` is None); a sub-tree path dependency
+    # is configured in-tree (`path` is its location relative to this package).
+    # Sub-tree dependencies keep their own `deps`, including any reached through
+    # them, so their `build.zig` (e.g. `b.dependency`) and modules resolve.
+    packages = {}
+    for dep in reachable:
+        package = graph["packages"][dep]
+        if package["url"] != None:
+            path = None
+        elif dep.startswith(key + "/"):
+            path = dep[len(key) + 1:]
+        else:
+            fail("Zig package '{}' depends on out-of-tree path dependency '{}', which is unsupported.".format(key, dep))
+        packages[dep] = {"deps": _edges(graph, dep), "path": path}
     return {
-        "root_deps": _url_edges(graph, key) + _subtree_edges(graph, key),
+        "root_deps": _edges(graph, key),
         "packages": packages,
     }
 
@@ -111,23 +109,26 @@ def _zig_packages_impl(module_ctx):
     graph = _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests)
     graph = _localize_paths(graph, str(pkg_dir), manifest_labels)
 
-    # `graph["packages"]` is topologically ordered, so each dependency's closure
-    # is already known by the time we reach a package: accumulate in one pass.
-    closures = {}
+    # `graph["packages"]` is topologically ordered, so each dependency's reachable
+    # set is already known by the time we reach a package: accumulate in one pass.
+    # Reachability follows every edge (URL and sub-tree path), so URL spokes reached
+    # through a sub-tree dependency are configured too.
+    reachable = {}
     for key, package in graph["packages"].items():
-        closure = {}
-        for _name, child in _url_edges(graph, key):
-            closure[child] = True
-            for dep in closures[child]:
-                closure[dep] = True
-        closures[key] = closure.keys()
+        reached = {}
+        for _name, child in graph["packages"][key]["deps"].items():
+            reached[child] = True
+            for dep in reachable[child]:
+                reached[dep] = True
+        reachable[key] = reached
         if package["url"] != None:
+            spokes = [dep for dep in reached if graph["packages"][dep]["url"] != None]
             zig_package(
                 name = key,
                 url = package["url"],
                 zig_hash = key,
-                deps = json.encode(_deps_data(graph, key, closures[key])),
-                dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in closures[key]},
+                deps = json.encode(_deps_data(graph, key, reached)),
+                dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in spokes},
             )
 
     manifests, targets = _hub_data(graph, root_tags)

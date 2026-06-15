@@ -5,12 +5,15 @@ const BitContext = integration_testing.BitContext;
 const Package = struct {
     name: []const u8,
     deps: []const []const u8 = &.{},
+    // Manifest holding this package's dependency placeholders, relative to the
+    // fixture root. `host`'s dependency belongs to its `libs/foo` sub-tree.
+    manifest: []const u8 = "build.zig.zon",
 };
 
 // Packed in topological order (dependencies first).
 const packages = [_]Package{
     .{ .name = "leaf" },
-    .{ .name = "host" },
+    .{ .name = "host", .deps = &.{"leaf"}, .manifest = "libs/foo/build.zig.zon" },
     .{ .name = "base" },
     .{ .name = "bottom", .deps = &.{"base"} },
     .{ .name = "left", .deps = &.{"bottom"} },
@@ -43,7 +46,7 @@ test "Zig packages are imported from file:// tarballs" {
 
     for (packages) |pkg| {
         if (pkg.deps.len > 0) {
-            const manifest = try std.fmt.allocPrint(allocator, "fixtures/{s}/build.zig.zon", .{pkg.name});
+            const manifest = try std.fmt.allocPrint(allocator, "fixtures/{s}/{s}", .{ pkg.name, pkg.manifest });
             try ctx.patchWorkspaceFile(manifest, try depReplacements(allocator, pkg.deps, &urls, &hashes));
         }
 

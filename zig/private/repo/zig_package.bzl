@@ -107,6 +107,7 @@ zig_library(
     main = "{main}",
     import_name = "{name}",
     srcs = glob(["{subpath}/**/*.zig"], exclude = ["{main}"]),
+    deps = {deps},
     visibility = ["//visibility:public"],
 )
 """
@@ -115,7 +116,7 @@ def _module_dep(repository_ctx, imported, packages, subtree):
     key = imported["package"]
     if key and key in packages and packages[key]["path"] != None:
         # A sub-tree path dependency is generated as a sibling module in this spoke.
-        subtree[imported["name"]] = (packages[key]["path"], imported["root_source"])
+        subtree[imported["name"]] = (key, imported["root_source"])
         return ":" + imported["name"]
     if key:
         # A cross-package import resolves to the module of the same name in the
@@ -123,6 +124,19 @@ def _module_dep(repository_ctx, imported, packages, subtree):
         spoke = repository_ctx.attr.dep_build_files[key]
         return str(spoke.same_package_label(imported["name"]))
     return ":" + imported["name"]
+
+def _subtree_dep(repository_ctx, edge, packages):
+    """Resolve a sub-tree package's own dependency edge to a Bazel label.
+
+    The configurer only reports the host package's modules, so a sub-tree's own
+    imports are wired from the resolved graph instead, by convention assuming the
+    imported module shares the dependency's name.
+    """
+    name, key = edge[0], edge[1]
+    if packages[key]["path"] != None:
+        return ":" + name
+    spoke = repository_ctx.attr.dep_build_files[key]
+    return str(spoke.same_package_label(name))
 
 def _build_file(repository_ctx, modules, packages):
     chunks = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")", "", _FILES]
@@ -137,11 +151,14 @@ def _build_file(repository_ctx, modules, packages):
             deps = json.encode(deps),
         ))
     for name in sorted(subtree):
-        subpath, root_source = subtree[name]
+        key, root_source = subtree[name]
+        subpath = packages[key]["path"]
+        deps = [_subtree_dep(repository_ctx, edge, packages) for edge in packages[key]["deps"]]
         chunks.append(_ZIG_LIBRARY_SUBTREE.format(
             name = name,
             main = subpath + "/" + root_source,
             subpath = subpath,
+            deps = json.encode(deps),
         ))
     return "\n".join(chunks)
 

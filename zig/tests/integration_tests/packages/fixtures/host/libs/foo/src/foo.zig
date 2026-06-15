@@ -1,1 +1,3 @@
-pub const value: u32 = 42;
+const leaf = @import("leaf");
+
+pub const value: u32 = leaf.value + 42;
