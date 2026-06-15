@@ -151,8 +151,6 @@ def _build_file(repository_ctx, modules, packages):
         owner = module["package"]
         if owner and not _is_subtree(packages, owner):
             continue
-        if not module["name"]:
-            fail("Cannot expose an anonymous Zig module (one declared without `b.addModule`) of '{}'.".format(repository_ctx.attr.url))
 
         # A dependency is imported under its own name by default; an import that
         # uses a different name is remapped per-edge via `import_names`, so the

@@ -101,14 +101,17 @@ fn collect(arena: Allocator, modules: *ModuleSet, module: *Build.Module) !void {
     for (module.import_table.values()) |imported| try collect(arena, modules, imported);
 }
 
-/// The name a module is registered under in its owning package, or the empty
-/// string for an anonymous module (which our generated targets do not expose).
-fn moduleName(module: *Build.Module) []const u8 {
+/// The name a module is registered under in its owning package. Anonymous
+/// modules (created via `b.createModule` rather than `b.addModule`) have no
+/// registered name, so synthesize a stable one from the module's position in the
+/// deduplicated set; its generated target and every import edge referencing it go
+/// through this function and so agree.
+fn moduleName(arena: Allocator, modules: *const ModuleSet, module: *Build.Module) ![]const u8 {
     var it = module.owner.modules.iterator();
     while (it.next()) |entry| {
         if (entry.value_ptr.* == module) return entry.key_ptr.*;
     }
-    return "";
+    return std.fmt.allocPrint(arena, "__anon_{d}", .{modules.getIndex(module).?});
 }
 
 fn emit(arena: Allocator, io: Io, builder: *Build) !void {
@@ -126,7 +129,7 @@ fn emit(arena: Allocator, io: Io, builder: *Build) !void {
     for (modules.keys()) |module| {
         try json.beginObject();
         try json.objectField("name");
-        try json.write(moduleName(module));
+        try json.write(try moduleName(arena, &modules, module));
         try json.objectField("package");
         try json.write(module.owner.pkg_hash);
         try json.objectField("root_source");
@@ -138,7 +141,7 @@ fn emit(arena: Allocator, io: Io, builder: *Build) !void {
             try json.objectField("name");
             try json.write(import_name);
             try json.objectField("module");
-            try json.write(moduleName(imported));
+            try json.write(try moduleName(arena, &modules, imported));
             try json.objectField("package");
             try json.write(imported.owner.pkg_hash);
             try json.endObject();
