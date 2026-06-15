@@ -16,6 +16,7 @@ const packages = [_]Package{
     .{ .name = "left", .deps = &.{"bottom"} },
     .{ .name = "right", .deps = &.{"bottom"} },
     .{ .name = "top", .deps = &.{ "left", "right" } },
+    .{ .name = "multi" },
 };
 
 const Consumer = struct {
@@ -25,7 +26,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{"leaf"} },
 };
 

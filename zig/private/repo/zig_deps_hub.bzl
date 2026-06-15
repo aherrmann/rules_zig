@@ -36,17 +36,26 @@ load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _MANIFESTS = json.decode("""%MANIFESTS%""")
 
-def zig_dep(name):
-    """Return the label of dependency `name` of the enclosing Zig manifest."""
-    path, names = _manifest()
-    if name not in names:
-        fail("Zig manifest '%s' declares no dependency '%s'; available: %s" % (path, name, names))
-    return _label(path, name)
+def zig_dep(name, module = None):
+    """Return the label of dependency `name` of the enclosing Zig manifest.
+
+    Resolves to the dependency's module of the same name. Pass `module` to select
+    a differently named module exposed by the same (URL) dependency.
+    """
+    path, deps = _manifest()
+    if name not in deps:
+        fail("Zig manifest '%s' declares no dependency '%s'; available: %s" % (path, name, sorted(deps)))
+    if module == None or module == name:
+        return _label(path, name)
+    dep = deps[name]
+    if not dep["select"]:
+        fail("Zig dependency '%s' is a path dependency; cannot select module '%s'" % (name, module))
+    return Label("@@" + dep["spoke"] + "//:" + module)
 
 def zig_deps():
     """Return the labels of every dependency of the enclosing Zig manifest."""
-    path, names = _manifest()
-    return [_label(path, name) for name in names]
+    path, deps = _manifest()
+    return [_label(path, name) for name in deps]
 
 def _manifest():
     repo = native.repo_name()
@@ -86,12 +95,17 @@ def _zig_deps_hub_impl(repository_ctx):
     builds = {}
     registry = {}
     for manifest in manifests:
-        aliases = [
-            _ALIAS.format(name = name, actual = str(packages[key]), scope = manifest["scope"])
-            for name, key in manifest["deps"].items()
-        ]
+        aliases = []
+        deps = {}
+        for name, dep in manifest["deps"].items():
+            label = packages[dep["target"]]
+            aliases.append(_ALIAS.format(name = name, actual = str(label), scope = manifest["scope"]))
+
+            # URL dependencies expose further modules by name, addressed through
+            # their spoke's canonical repository; path dependencies do not.
+            deps[name] = {"spoke": label.repo_name if dep["url"] else "", "select": dep["url"]}
         builds[_hub_path(manifest)] = "\n".join(aliases)
-        registry.setdefault(manifest["repo"], {})[manifest["package"]] = manifest["deps"].keys()
+        registry.setdefault(manifest["repo"], {})[manifest["package"]] = deps
 
     if "" not in builds:
         builds[""] = ""

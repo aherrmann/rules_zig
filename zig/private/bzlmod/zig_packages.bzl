@@ -150,6 +150,8 @@ def _hub_data(graph, root_tags):
     A URL dependency named `name` resolves to the module of the same name in its
     spoke. A local path dependency resolves, by convention, to a target of the
     same name in the dependency manifest's own package, which the user provides.
+    Each dependency records whether it is a URL spoke, so the hub can expose its
+    other modules by name (`zig_dep(name, module = ...)`).
     """
     tag_by_key = {str(tag): tag for tag in root_tags}
     manifests = []
@@ -157,14 +159,15 @@ def _hub_data(graph, root_tags):
     for root, label in zip(graph["roots"], root_tags):
         deps = {}
         for name, key in root["deps"].items():
-            if graph["packages"][key]["url"] != None:
+            url = graph["packages"][key]["url"] != None
+            if url:
                 target = "@{}//:{}".format(key, name)
                 targets[target] = target
             else:
                 module = tag_by_key[key].same_package_label(name)
                 target = str(module)
                 targets[target] = module
-            deps[name] = target
+            deps[name] = {"target": target, "url": url}
         manifests.append({
             "repo": label.repo_name,
             "package": label.package,

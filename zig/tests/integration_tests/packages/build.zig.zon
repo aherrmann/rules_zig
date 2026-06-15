@@ -15,6 +15,10 @@
             .url = "__TOP_URL__",
             .hash = "__TOP_HASH__",
         },
+        .multi = .{
+            .url = "__MULTI_URL__",
+            .hash = "__MULTI_HASH__",
+        },
     },
     .paths = .{
         "build.zig",
