@@ -11,6 +11,10 @@
             .url = "__HOST_URL__",
             .hash = "__HOST_HASH__",
         },
+        .top = .{
+            .url = "__TOP_URL__",
+            .hash = "__TOP_HASH__",
+        },
     },
     .paths = .{
         "build.zig",

@@ -2,16 +2,24 @@ const std = @import("std");
 const integration_testing = @import("integration_testing");
 const BitContext = integration_testing.BitContext;
 
-const Fixture = struct {
+const Package = struct {
     name: []const u8,
-    url_placeholder: []const u8,
-    hash_placeholder: []const u8,
+    deps: []const []const u8 = &.{},
 };
 
-const fixtures = [_]Fixture{
-    .{ .name = "leaf", .url_placeholder = "__LEAF_URL__", .hash_placeholder = "__LEAF_HASH__" },
-    .{ .name = "host", .url_placeholder = "__HOST_URL__", .hash_placeholder = "__HOST_HASH__" },
+// Packed in topological order (dependencies first).
+const packages = [_]Package{
+    .{ .name = "leaf" },
+    .{ .name = "host" },
+    .{ .name = "base" },
+    .{ .name = "bottom", .deps = &.{"base"} },
+    .{ .name = "left", .deps = &.{"bottom"} },
+    .{ .name = "right", .deps = &.{"bottom"} },
+    .{ .name = "top", .deps = &.{ "left", "right" } },
 };
+
+// Direct dependencies declared by the consumer manifest.
+const root_deps = [_][]const u8{ "leaf", "host", "top" };
 
 test "Zig packages are imported from file:// tarballs" {
     const ctx = try BitContext.init();
@@ -21,31 +29,55 @@ test "Zig packages are imported from file:// tarballs" {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    // Pack each fixture (built by the inner nightly toolchain) into a tarball and
-    // resolve the consumer manifest's URL/hash placeholders to it.
-    var replacements: [fixtures.len * 2][2][]const u8 = undefined;
-    for (fixtures, 0..) |fixture, i| {
-        const dir = try std.fmt.allocPrint(allocator, "{s}/fixtures/{s}", .{ ctx.workspace_path, fixture.name });
-        const tarball = try std.fmt.allocPrint(allocator, "{s}/{s}.tar", .{ ctx.workspace_path, fixture.name });
+    var urls = std.StringHashMap([]const u8).init(allocator);
+    var hashes = std.StringHashMap([]const u8).init(allocator);
 
+    for (packages) |pkg| {
+        if (pkg.deps.len > 0) {
+            const manifest = try std.fmt.allocPrint(allocator, "fixtures/{s}/build.zig.zon", .{pkg.name});
+            try ctx.patchWorkspaceFile(manifest, try depReplacements(allocator, pkg.deps, &urls, &hashes));
+        }
+
+        const dir = try std.fmt.allocPrint(allocator, "{s}/fixtures/{s}", .{ ctx.workspace_path, pkg.name });
+        const tarball = try std.fmt.allocPrint(allocator, "{s}/{s}.tar", .{ ctx.workspace_path, pkg.name });
         const pack = try ctx.exec_bazel(.{
             .argv = &[_][]const u8{ "run", "//tools:pack", "--", dir, tarball },
         });
         defer pack.deinit();
         try std.testing.expect(pack.success);
 
-        const hash = try allocator.dupe(u8, std.mem.trim(u8, pack.stdout, " \t\r\n"));
-        const url = try std.fmt.allocPrint(allocator, "file://{s}", .{tarball});
-        replacements[i * 2] = .{ fixture.url_placeholder, url };
-        replacements[i * 2 + 1] = .{ fixture.hash_placeholder, hash };
+        try hashes.put(pkg.name, try allocator.dupe(u8, std.mem.trim(u8, pack.stdout, " \t\r\n")));
+        try urls.put(pkg.name, try std.fmt.allocPrint(allocator, "file://{s}", .{tarball}));
     }
-    try ctx.patchWorkspaceFile("build.zig.zon", &replacements);
+
+    try ctx.patchWorkspaceFile("build.zig.zon", try depReplacements(allocator, &root_deps, &urls, &hashes));
 
     // The importer fetches, configures, and exposes each package (including the
-    // sub-tree path dependency of `host`) as a module that the binary imports.
+    // sub-tree path dependency of `host` and the transitive chain under `top`)
+    // as a module that the binary imports.
     const result = try ctx.exec_bazel(.{
         .argv = &[_][]const u8{ "build", "//:binary" },
     });
     defer result.deinit();
     try std.testing.expect(result.success);
+}
+
+fn depReplacements(
+    allocator: std.mem.Allocator,
+    deps: []const []const u8,
+    urls: *std.StringHashMap([]const u8),
+    hashes: *std.StringHashMap([]const u8),
+) ![]const [2][]const u8 {
+    const replacements = try allocator.alloc([2][]const u8, deps.len * 2);
+    for (deps, 0..) |dep, i| {
+        replacements[i * 2] = .{ try placeholder(allocator, dep, "URL"), urls.get(dep).? };
+        replacements[i * 2 + 1] = .{ try placeholder(allocator, dep, "HASH"), hashes.get(dep).? };
+    }
+    return replacements;
+}
+
+fn placeholder(allocator: std.mem.Allocator, name: []const u8, kind: []const u8) ![]const u8 {
+    const upper = try allocator.alloc(u8, name.len);
+    _ = std.ascii.upperString(upper, name);
+    return std.fmt.allocPrint(allocator, "__{s}_{s}__", .{ upper, kind });
 }
