@@ -4,6 +4,7 @@
     .fingerprint = 0xcf2713fdd0ee5aad,
     .dependencies = .{
         .foo = .{ .path = "libs/foo" },
+        .bar = .{ .path = "libs/bar" },
     },
     .paths = .{
         "build.zig",

@@ -105,18 +105,27 @@ _ZIG_LIBRARY_SUBTREE = """\
 zig_library(
     name = "{name}",
     main = "{main}",
-    import_name = "{name}",
+    import_name = "{import_name}",
     srcs = glob(["{subpath}/**/*.zig"], exclude = ["{main}"]),
     deps = {deps},
     visibility = ["//visibility:public"],
 )
 """
 
+def _target_name(packages, owner, name):
+    # Root-package modules keep their bare name (the spoke's public API). In-tree
+    # sub-tree modules are namespaced by their sub-path so that identically named
+    # modules in different sub-trees do not collide; their `import_name` stays the
+    # bare module name, which is what importing code uses.
+    if not owner:
+        return name
+    return packages[owner]["path"] + "/" + name
+
 def _module_dep(repository_ctx, imported, packages):
     key = imported["package"]
     if key and key in packages and packages[key]["path"] != None:
         # An in-tree (sub-tree) module is generated as a sibling in this spoke.
-        return ":" + imported["name"]
+        return ":" + _target_name(packages, key, imported["name"])
     if key:
         # A cross-package import resolves to the module of the same name in the
         # dependency's spoke.
@@ -145,7 +154,8 @@ def _build_file(repository_ctx, modules, packages):
         elif owner in packages and packages[owner]["path"] != None:
             subpath = packages[owner]["path"]
             chunks.append(_ZIG_LIBRARY_SUBTREE.format(
-                name = module["name"],
+                name = _target_name(packages, owner, module["name"]),
+                import_name = module["name"],
                 main = subpath + "/" + module["root_source"],
                 subpath = subpath,
                 deps = json.encode(deps),
