@@ -18,8 +18,16 @@ const packages = [_]Package{
     .{ .name = "top", .deps = &.{ "left", "right" } },
 };
 
-// Direct dependencies declared by the consumer manifest.
-const root_deps = [_][]const u8{ "leaf", "host", "top" };
+const Consumer = struct {
+    manifest: []const u8,
+    deps: []const []const u8,
+};
+
+// Manifests that resolve dependencies via `zig_packages.from_file`.
+const consumers = [_]Consumer{
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top" } },
+    .{ .manifest = "child/build.zig.zon", .deps = &.{"leaf"} },
+};
 
 test "Zig packages are imported from file:// tarballs" {
     const ctx = try BitContext.init();
@@ -50,7 +58,9 @@ test "Zig packages are imported from file:// tarballs" {
         try urls.put(pkg.name, try std.fmt.allocPrint(allocator, "file://{s}", .{tarball}));
     }
 
-    try ctx.patchWorkspaceFile("build.zig.zon", try depReplacements(allocator, &root_deps, &urls, &hashes));
+    for (consumers) |consumer| {
+        try ctx.patchWorkspaceFile(consumer.manifest, try depReplacements(allocator, consumer.deps, &urls, &hashes));
+    }
 
     // The importer fetches, configures, and exposes each package (including the
     // sub-tree path dependency of `host` and the transitive chain under `top`)

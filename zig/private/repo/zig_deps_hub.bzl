@@ -51,7 +51,7 @@ def _manifest():
     manifest = _enclosing(manifests, package)
     if manifest == None:
         fail("no Zig `from_file` manifest covers package '%s'" % package)
-    path = repo + "/" + manifest if repo else manifest
+    path = "/".join([part for part in [repo, manifest] if part])
     return path, manifests[manifest]
 
 def _label(path, name):
@@ -69,8 +69,7 @@ def _enclosing(manifests, package):
 '''
 
 def _hub_path(manifest):
-    repo, package = manifest["repo"], manifest["package"]
-    return repo + "/" + package if repo else package
+    return "/".join([part for part in [manifest["repo"], manifest["package"]] if part])
 
 def _zig_deps_hub_impl(repository_ctx):
     packages = repository_ctx.attr.packages

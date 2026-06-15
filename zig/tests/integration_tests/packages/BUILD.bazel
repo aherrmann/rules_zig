@@ -4,5 +4,5 @@ load("@zig_deps//:defs.bzl", "zig_deps")
 zig_binary(
     name = "binary",
     main = "main.zig",
-    deps = zig_deps(),
+    deps = zig_deps() + ["@child_module//:child_lib"],
 )
