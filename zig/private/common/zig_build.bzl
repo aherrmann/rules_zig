@@ -94,6 +94,17 @@ Note that in that case, 'srcs', 'extra_srcs' and 'csrcs' must also be empty as t
         mandatory = False,
         providers = [[ZigModuleInfo], [CcInfo]],
     ),
+    "import_names": attr.label_keyed_string_dict(
+        doc = """\
+Override the import name under which a dependency is imported.
+
+Maps a dependency in `deps` to the name used to `@import` it from this target's
+sources. By default a Zig module dependency is imported under its own
+`import_name` or its target name.
+""",
+        mandatory = False,
+        providers = [[ZigModuleInfo]],
+    ),
     "compiler_runtime": attr.string(
         doc = """\
 Whether to include Zig compiler runtime symbols in the generated output.
@@ -391,13 +402,24 @@ def zig_build_impl(ctx, *, kind):
 
     zdeps = []
     cdeps = []
+    dep_canonical_names = {}
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])
+            dep_canonical_names[dep[ZigModuleInfo].canonical_name] = None
         elif CcInfo in dep:
             cdeps.append(dep[CcInfo])
 
+    import_names = {}
+    for dep, import_name in ctx.attr.import_names.items():
+        canonical_name = dep[ZigModuleInfo].canonical_name
+        if canonical_name not in dep_canonical_names:
+            fail("import_names: '{}' must also be listed in deps.".format(dep.label))
+        import_names[canonical_name] = import_name
+
     if root_module_is_only_dep:
+        if ctx.attr.import_names:
+            fail("import_names has no effect when a single dependency is used as the root module; set `main` to define a module.")
         root_module = ctx.attr.deps[0][ZigModuleInfo]
     else:
         root_module = zig_module_info(
@@ -409,6 +431,7 @@ def zig_build_impl(ctx, *, kind):
             deps = zdeps + [bazel_builtin_module(ctx)],
             cdeps = cdeps,
             zigopts = zigopts,
+            import_names = import_names,
         )
 
     zig_settings(

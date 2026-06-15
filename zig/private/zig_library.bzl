@@ -68,6 +68,17 @@ ATTRS = {
         mandatory = False,
         providers = [[ZigModuleInfo], [CcInfo]],
     ),
+    "import_names": attr.label_keyed_string_dict(
+        doc = """\
+Override the import name under which a dependency is imported.
+
+Maps a dependency in `deps` to the name used to `@import` it from this target's
+sources. By default a Zig module dependency is imported under its own
+`import_name` or its target name.
+""",
+        mandatory = False,
+        providers = [[ZigModuleInfo]],
+    ),
     "data": attr.label_list(
         allow_files = True,
         doc = "Files required by the module during runtime.",
@@ -105,11 +116,20 @@ def _zig_library_impl(ctx):
 
     zdeps = []
     cdeps = []
+    dep_canonical_names = {}
     for dep in ctx.attr.deps:
         if ZigModuleInfo in dep:
             zdeps.append(dep[ZigModuleInfo])
+            dep_canonical_names[dep[ZigModuleInfo].canonical_name] = None
         elif CcInfo in dep:
             cdeps.append(dep[CcInfo])
+
+    import_names = {}
+    for dep, override in ctx.attr.import_names.items():
+        canonical_name = dep[ZigModuleInfo].canonical_name
+        if canonical_name not in dep_canonical_names:
+            fail("import_names: '{}' must also be listed in deps.".format(dep.label))
+        import_names[canonical_name] = override
 
     import_name = ctx.attr.import_name or ctx.label.name
     module = zig_module_info(
@@ -124,6 +144,7 @@ def _zig_library_impl(ctx):
         deps = zdeps + [bazel_builtin_module(ctx)],
         cdeps = cdeps,
         zigopts = ctx.attr.zigopts,
+        import_names = import_names,
     )
 
     return [default, module]

@@ -1,0 +1,31 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library")
+
+zig_library(
+    name = "greet",
+    import_name = "greeting",
+    main = "greet.zig",
+)
+
+zig_library(
+    name = "lib",
+    import_names = {":greet": "salutation"},
+    main = "lib.zig",
+    deps = [":greet"],
+)
+
+zig_binary(
+    name = "binary",
+    import_names = {":greet": "hello"},
+    main = "main.zig",
+    deps = [
+        ":greet",
+        ":lib",
+    ],
+)
+
+build_test(
+    name = "output_test",
+    size = "small",
+    targets = [":binary"],
+)
