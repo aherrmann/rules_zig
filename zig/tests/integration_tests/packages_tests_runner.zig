@@ -2,23 +2,27 @@ const std = @import("std");
 const integration_testing = @import("integration_testing");
 const BitContext = integration_testing.BitContext;
 
+// A manifest inside a fixture whose URL-dependency placeholders to fill with
+// already-packed fixtures' url+hash.
+const Patch = struct {
+    manifest: []const u8 = "build.zig.zon",
+    deps: []const []const u8,
+};
+
 const Package = struct {
     name: []const u8,
-    deps: []const []const u8 = &.{},
-    // Manifest holding this package's dependency placeholders, relative to the
-    // fixture root. `host`'s dependency belongs to its `libs/foo` sub-tree.
-    manifest: []const u8 = "build.zig.zon",
+    patches: []const Patch = &.{},
 };
 
 // Packed in topological order (dependencies first).
 const packages = [_]Package{
     .{ .name = "leaf" },
-    .{ .name = "host", .deps = &.{"leaf"}, .manifest = "libs/foo/build.zig.zon" },
+    .{ .name = "host", .patches = &.{.{ .manifest = "libs/foo/build.zig.zon", .deps = &.{"leaf"} }} },
     .{ .name = "base" },
-    .{ .name = "bottom", .deps = &.{"base"} },
-    .{ .name = "left", .deps = &.{"bottom"} },
-    .{ .name = "right", .deps = &.{"bottom"} },
-    .{ .name = "top", .deps = &.{ "left", "right" } },
+    .{ .name = "bottom", .patches = &.{.{ .deps = &.{"base"} }} },
+    .{ .name = "left", .patches = &.{.{ .deps = &.{"bottom"} }} },
+    .{ .name = "right", .patches = &.{.{ .deps = &.{"bottom"} }} },
+    .{ .name = "top", .patches = &.{.{ .deps = &.{ "left", "right" } }} },
     .{ .name = "multi" },
 };
 
@@ -45,9 +49,9 @@ test "Zig packages are imported from file:// tarballs" {
     var hashes = std.StringHashMap([]const u8).init(allocator);
 
     for (packages) |pkg| {
-        if (pkg.deps.len > 0) {
-            const manifest = try std.fmt.allocPrint(allocator, "fixtures/{s}/{s}", .{ pkg.name, pkg.manifest });
-            try ctx.patchWorkspaceFile(manifest, try depReplacements(allocator, pkg.deps, &urls, &hashes));
+        for (pkg.patches) |patch| {
+            const manifest = try std.fmt.allocPrint(allocator, "fixtures/{s}/{s}", .{ pkg.name, patch.manifest });
+            try ctx.patchWorkspaceFile(manifest, try depReplacements(allocator, patch.deps, &urls, &hashes));
         }
 
         const dir = try std.fmt.allocPrint(allocator, "{s}/fixtures/{s}", .{ ctx.workspace_path, pkg.name });
