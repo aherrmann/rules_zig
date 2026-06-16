@@ -83,6 +83,53 @@ test "Zig packages are imported from file:// tarballs" {
     try std.testing.expect(result.success);
 }
 
+// Runs after the positive test above, tarballs are packed and consumer
+// manifests are patched. Breaks one thing at a time, asserts the build fails as
+// expected, and restores the original.
+test "the importer rejects invalid package configurations" {
+    const ctx = try BitContext.init();
+    defer ctx.deinit();
+
+    // A declared hash that does not match the fetched package.
+    try ctx.patchWorkspaceFile("build.zig.zon", &.{.{ "leaf-0.0.0-", "leaf-0.0.0-x" }});
+    try expectBuildFailure(ctx, "hash mismatch");
+    try ctx.patchWorkspaceFile("build.zig.zon", &.{.{ "leaf-0.0.0-x", "leaf-0.0.0-" }});
+
+    // A path dependency whose `build.zig.zon` is not provided via `from_file`.
+    const greeter_manifest = "path_deps/greeter/build.zig.zon";
+    try ctx.patchWorkspaceFile(greeter_manifest, &.{.{ "../message", "../../fixtures/leaf" }});
+    try expectBuildFailure(ctx, "has no provided manifest");
+    try ctx.patchWorkspaceFile(greeter_manifest, &.{.{ "../../fixtures/leaf", "../message" }});
+
+    // `zig_dep` referencing a dependency the manifest does not declare.
+    const greeter_build = "path_deps/greeter/BUILD.bazel";
+    try ctx.patchWorkspaceFile(greeter_build, &.{
+        .{ "\"zig_deps\")", "\"zig_dep\", \"zig_deps\")" },
+        .{ "deps = zig_deps()", "deps = [zig_dep(\"nonexistent\")]" },
+    });
+    try expectBuildFailure(ctx, "declares no dependency");
+    try ctx.patchWorkspaceFile(greeter_build, &.{
+        .{ "\"zig_dep\", \"zig_deps\")", "\"zig_deps\")" },
+        .{ "deps = [zig_dep(\"nonexistent\")]", "deps = zig_deps()" },
+    });
+}
+
+fn expectBuildFailure(ctx: BitContext, expected: []const u8) !void {
+    const result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:binary" },
+        .print_on_error = false,
+    });
+    defer result.deinit();
+    if (result.success) {
+        std.debug.print("expected build to FAIL (mentioning '{s}') but it succeeded\n", .{expected});
+        return error.BuildUnexpectedlySucceeded;
+    }
+    if (std.mem.indexOf(u8, result.stderr, expected) == null) {
+        std.debug.print("expected build failure mentioning '{s}', stderr:\n{s}\n", .{ expected, result.stderr });
+        return error.UnexpectedFailureMessage;
+    }
+}
+
 fn depReplacements(
     allocator: std.mem.Allocator,
     deps: []const []const u8,
