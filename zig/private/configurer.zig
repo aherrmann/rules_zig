@@ -22,6 +22,10 @@
 //! import's `name` is the name the importer uses (`@import(name)`), while its
 //! `module` is the imported module's own registered name; the two differ when a
 //! module is imported under an alias.
+//!
+//! A module whose root source is produced by `b.addOptions()` has no file in the
+//! package tree; for these the `generated_source` field carries the step's
+//! accumulated source so the importer can materialize it as a static file.
 
 const std = @import("std");
 const Io = std.Io;
@@ -134,6 +138,10 @@ fn emit(arena: Allocator, io: Io, builder: *Build) !void {
         try json.write(module.owner.pkg_hash);
         try json.objectField("root_source");
         try json.write(lazyPathString(module.root_source_file));
+        if (generatedOptionsSource(builder, module.root_source_file)) |source| {
+            try json.objectField("generated_source");
+            try json.write(source);
+        }
         try json.objectField("imports");
         try json.beginArray();
         for (module.import_table.keys(), module.import_table.values()) |import_name, imported| {
@@ -163,6 +171,24 @@ fn lazyPathString(lazy_path: ?LazyPath) ?[]const u8 {
         .relative => |rel| rel.sub_path,
         else => null,
     };
+}
+
+/// If `lazy_path` is the generated output of a `b.addOptions()` step, return its
+/// accumulated source. The options source is a self-contained set of `pub const`
+/// declarations fully determined once `build` has run, so it can be materialized
+/// as a static file instead of being produced by a build step — which the
+/// importer cannot run. Other generated paths return null (and the module is
+/// dropped, as it has no static source).
+fn generatedOptionsSource(builder: *Build, lazy_path: ?LazyPath) ?[]const u8 {
+    const generated = switch (lazy_path orelse return null) {
+        .generated => |generated| generated,
+        else => return null,
+    };
+    if (generated.up != 0 or generated.sub_path.len != 0) return null;
+    const step = builder.graph.generated_files.items[@intFromEnum(generated.index)];
+    if (step.tag != .options) return null;
+    const options: *Build.Step.Options = @fieldParentPtr("step", step);
+    return options.contents.items;
 }
 
 fn nextArg(args: []const [:0]const u8, i: *usize) []const u8 {

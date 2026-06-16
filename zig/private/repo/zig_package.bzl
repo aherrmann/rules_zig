@@ -229,6 +229,18 @@ def _configure(repository_ctx, zig, build_zig, cache):
     repository_ctx.delete("_configure")
     return configured.stdout
 
+def _materialize_generated(repository_ctx, modules, packages):
+    for module in modules:
+        generated = module.get("generated_source")
+        if generated == None:
+            continue
+        rel = "_zig_generated/" + module["name"] + ".zig"
+        if _is_subtree(packages, module["package"]):
+            repository_ctx.file(packages[module["package"]]["path"] + "/" + rel, generated)
+        else:
+            repository_ctx.file(rel, generated)
+        module["root_source"] = rel
+
 def _zig_package_impl(repository_ctx):
     zig = zig_path(repository_ctx)
     helper = repository_ctx.path(Label("//zig/private:package_prefix.zig"))
@@ -257,6 +269,7 @@ def _zig_package_impl(repository_ctx):
         modules = json.decode(manifest)["modules"]
 
     packages = json.decode(repository_ctx.attr.deps)["packages"]
+    _materialize_generated(repository_ctx, modules, packages)
     repository_ctx.file("BUILD.bazel", _build_file(repository_ctx, modules, packages))
 
 zig_package = repository_rule(
