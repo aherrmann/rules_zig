@@ -97,7 +97,7 @@ const Walker = struct {
         });
         switch (result.term) {
             .exited => |code| if (code != 0) fatal("`zig fetch {s}` failed:\n{s}", .{ url, result.stderr }),
-            else => fatal("`zig fetch {s}` terminated abnormally", .{url}),
+            else => |term| fatal("`zig fetch {s}` terminated abnormally ({s}):\n{s}", .{ url, @tagName(term), result.stderr }),
         }
         const hash = try walker.arena.dupe(u8, std.mem.trim(u8, result.stdout, " \t\r\n"));
 
