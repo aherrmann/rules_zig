@@ -6,6 +6,7 @@ const multi = @import("multi");
 const widget = @import("widget");
 const greeter = @import("greeter");
 const pruned = @import("pruned");
+const lib = @import("lib");
 
 pub fn main() void {
     _ = leaf.value;
@@ -16,4 +17,5 @@ pub fn main() void {
     _ = widget.value;
     _ = greeter.value;
     _ = pruned.value;
+    _ = lib.v1;
 }

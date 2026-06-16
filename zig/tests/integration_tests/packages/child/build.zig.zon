@@ -7,6 +7,12 @@
             .url = "__LEAF_URL__",
             .hash = "__LEAF_HASH__",
         },
+        // The same package `lib` as the root module depends on, but a different
+        // version: the two must resolve to separate spokes (no MVS).
+        .lib = .{
+            .url = "__LIBV2_URL__",
+            .hash = "__LIBV2_HASH__",
+        },
     },
     .paths = .{
         "build.zig.zon",
