@@ -7,6 +7,7 @@ const widget = @import("widget");
 const greeter = @import("greeter");
 const pruned = @import("pruned");
 const lib = @import("lib");
+const lazyhost = @import("lazyhost");
 
 pub fn main() void {
     _ = leaf.value;
@@ -18,4 +19,5 @@ pub fn main() void {
     _ = greeter.value;
     _ = pruned.value;
     _ = lib.v1;
+    _ = lazyhost.value;
 }
