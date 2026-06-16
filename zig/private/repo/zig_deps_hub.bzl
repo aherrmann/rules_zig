@@ -29,6 +29,9 @@ alias(
 )
 """
 
+# The generated accessors reference each spoke by its canonical (`@@`) repo name,
+# which is resolved at module-extension time and has no apparent-name alias here.
+# buildifier: disable=canonical-repository
 _DEFS = '''\
 """Accessors for the Zig package dependencies of each `from_file` manifest."""
 
