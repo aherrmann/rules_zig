@@ -166,11 +166,10 @@ bazel_integration_test(
     name = "packages_test",
     size = "large",
     bazel_version = bazel_binaries.versions.current,
-    # `no-sandbox`: `zig fetch` (`0.17.0-dev.813`) fails on macOS with sandbox.
-    tags = [
-        "no-sandbox",
-        "requires-network",
-    ] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
+    tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
+    # `zig fetch` (`0.17.0-dev.813`) segfaults (SIGSEGV) on aarch64-macOS when
+    # fetching `file://` fixture tarballs. Retry on `0.17.0` release.
+    target_compatible_with = ["@platforms//os:linux"],
     test_runner = ":packages_tests_runner",
     workspace_files = packages_files,
     workspace_path = "packages",
