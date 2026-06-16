@@ -22,6 +22,10 @@
         .greeter = .{
             .path = "path_deps/greeter",
         },
+        .pruned = .{
+            .url = "__PRUNED_URL__",
+            .hash = "__PRUNED_HASH__",
+        },
     },
     .paths = .{
         "build.zig",
