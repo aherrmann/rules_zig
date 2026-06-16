@@ -11,6 +11,11 @@
         .greet = .{
             .path = "../greet",
         },
+        .cbor = .{
+            // Intentionally a git+https URL to test that fetch mechanism.
+            .url = "git+https://github.com/neurocyte/cbor.git#0d9cab516a1508c832c685183aeac0365b9a224a",
+            .hash = "cbor-1.3.0-RcQE_Mx9AQBfuyJs1eAURJfqdG_5vTJ-VqYCNgpdXrHJ",
+        },
     },
     .paths = .{
         "build.zig",

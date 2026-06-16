@@ -1,6 +1,7 @@
 const std = @import("std");
 const clap = @import("clap");
 const greet = @import("greet");
+const cbor = @import("cbor");
 
 pub fn main(init: std.process.Init) !void {
     var diag = clap.Diagnostic{};
@@ -18,5 +19,15 @@ pub fn main(init: std.process.Init) !void {
 
     const message = try greet.greeting(init.gpa, res);
     defer init.gpa.free(message);
-    std.debug.print("{s}\n", .{message});
+
+    // CBOR-encode the greeting using the git+https `cbor` dependency.
+    var cbor_buf: [256]u8 = undefined;
+    const encoded = cbor.fmt(&cbor_buf, message);
+
+    var stdout_buf: [512]u8 = undefined;
+    var stdout_writer = std.Io.File.stdout().writer(init.io, &stdout_buf);
+    const stdout = &stdout_writer.interface;
+    try stdout.print("{s}\n", .{message});
+    try stdout.print("cbor: {d} bytes\n", .{encoded.len});
+    try stdout.flush();
 }

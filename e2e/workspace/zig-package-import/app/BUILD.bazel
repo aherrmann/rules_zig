@@ -1,3 +1,5 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@rules_zig//zig:defs.bzl", "zig_binary")
 load("@zig_deps//:defs.bzl", "zig_deps")
 
@@ -9,4 +11,24 @@ zig_binary(
     ),
     main = "src/main.zig",
     deps = zig_deps(),
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :app) > $(OUTS)",
+    tools = [":app"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)
+
+build_test(
+    name = "build_test",
+    size = "small",
+    targets = [":app"],
 )
