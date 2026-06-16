@@ -31,6 +31,7 @@ const packages = [_]Package{
     .{ .name = "lazyleaf" },
     .{ .name = "lazyhost", .patches = &.{.{ .deps = &.{"lazyleaf"} }} },
     .{ .name = "symlinked", .symlink = .{ "real.zig", "src/aliased.zig" } },
+    .{ .name = "srconly" },
 };
 
 const Consumer = struct {
@@ -40,7 +41,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "srconly" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 
@@ -121,6 +122,10 @@ test "the importer rejects invalid package configurations" {
         .{ "\"zig_dep\", \"zig_deps\")", "\"zig_deps\")" },
         .{ "deps = [zig_dep(\"nonexistent\")]", "deps = zig_deps()" },
     });
+
+    try ctx.patchWorkspaceFile("build.zig.zon", &.{.{ "// .srconly", ".srconly" }});
+    try expectBuildFailure(ctx, "source-only");
+    try ctx.patchWorkspaceFile("build.zig.zon", &.{.{ ".srconly", "// .srconly" }});
 }
 
 fn expectBuildFailure(ctx: BitContext, expected: []const u8) !void {

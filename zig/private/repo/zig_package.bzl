@@ -187,6 +187,13 @@ def _configure(repository_ctx, zig, build_zig, cache):
     configurer = repository_ctx.path(Label("//zig/private:configurer.zig"))
     deps = json.decode(repository_ctx.attr.deps)
 
+    for key in sorted(deps["packages"]):
+        package = deps["packages"][key]
+        if package["path"] != None and not repository_ctx.path(package["path"] + "/build.zig").exists:
+            fail(("The Zig package '{}' has a source-only dependency at '{}' (a " +
+                  "`build.zig.zon` with no `build.zig`); source-only dependencies " +
+                  "are not supported.").format(repository_ctx.attr.url, package["path"]))
+
     repository_ctx.file("_configure/deps.zig", _dependencies_source(repository_ctx, deps))
 
     keys = sorted(deps["packages"])

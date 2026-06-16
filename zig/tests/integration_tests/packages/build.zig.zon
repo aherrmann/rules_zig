@@ -40,6 +40,8 @@
             .url = "__SYMLINKED_URL__",
             .hash = "__SYMLINKED_HASH__",
         },
+        // A source-only sub-tree dependency; only enabled by the test.
+        // .srconly = .{ .url = "__SRCONLY_URL__", .hash = "__SRCONLY_HASH__" },
     },
     .paths = .{
         "build.zig",
