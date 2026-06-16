@@ -12,6 +12,7 @@ const Patch = struct {
 const Package = struct {
     name: []const u8,
     patches: []const Patch = &.{},
+    symlink: ?[2][]const u8 = null,
 };
 
 // Packed in topological order (dependencies first).
@@ -29,6 +30,7 @@ const packages = [_]Package{
     .{ .name = "libv2" },
     .{ .name = "lazyleaf" },
     .{ .name = "lazyhost", .patches = &.{.{ .deps = &.{"lazyleaf"} }} },
+    .{ .name = "symlinked", .symlink = .{ "real.zig", "src/aliased.zig" } },
 };
 
 const Consumer = struct {
@@ -38,7 +40,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 
@@ -57,6 +59,11 @@ test "Zig packages are imported from file:// tarballs" {
         for (pkg.patches) |patch| {
             const manifest = try std.fmt.allocPrint(allocator, "fixtures/{s}/{s}", .{ pkg.name, patch.manifest });
             try ctx.patchWorkspaceFile(manifest, try depReplacements(allocator, patch.deps, &urls, &hashes));
+        }
+
+        if (pkg.symlink) |link| {
+            const link_path = try std.fmt.allocPrint(allocator, "fixtures/{s}/{s}", .{ pkg.name, link[1] });
+            try ctx.symLinkWorkspaceFile(link[0], link_path);
         }
 
         const dir = try std.fmt.allocPrint(allocator, "{s}/fixtures/{s}", .{ ctx.workspace_path, pkg.name });

@@ -223,6 +223,25 @@ pub const BitContext = struct {
         try writer.interface.flush();
     }
 
+    /// Create a symlink at `sym_link_sub_path` pointing to `target`. Used to
+    /// introduce an in-package symlink at test time, since the harness stages the
+    /// workspace by dereferencing symlinks.
+    pub const symLinkWorkspaceFile = if (is_zig_0_16_or_later) symLinkWorkspaceFile_016 else symLinkWorkspaceFile_pre_016;
+
+    fn symLinkWorkspaceFile_pre_016(self: BitContext, target: []const u8, sym_link_sub_path: []const u8) !void {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+        workspace.deleteFile(sym_link_sub_path) catch {};
+        try workspace.symLink(target, sym_link_sub_path, .{});
+    }
+
+    fn symLinkWorkspaceFile_016(self: BitContext, target: []const u8, sym_link_sub_path: []const u8) !void {
+        var workspace = try self.openWorkspace();
+        defer closeWorkspaceDir(&workspace);
+        workspace.deleteFile(std.testing.io, sym_link_sub_path) catch {};
+        try workspace.symLink(std.testing.io, target, sym_link_sub_path, .{});
+    }
+
     /// Replace each `needle` with its `replacement` in a workspace file, writing
     /// a fresh file so the original source (a symlink in the test sandbox) is
     /// never modified.

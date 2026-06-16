@@ -36,6 +36,10 @@
             .url = "__LAZYHOST_URL__",
             .hash = "__LAZYHOST_HASH__",
         },
+        .symlinked = .{
+            .url = "__SYMLINKED_URL__",
+            .hash = "__SYMLINKED_HASH__",
+        },
     },
     .paths = .{
         "build.zig",

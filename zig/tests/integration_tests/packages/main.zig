@@ -8,6 +8,7 @@ const greeter = @import("greeter");
 const pruned = @import("pruned");
 const lib = @import("lib");
 const lazyhost = @import("lazyhost");
+const symlinked = @import("symlinked");
 
 pub fn main() void {
     _ = leaf.value;
@@ -20,4 +21,5 @@ pub fn main() void {
     _ = pruned.value;
     _ = lib.v1;
     _ = lazyhost.value;
+    _ = symlinked.value;
 }
