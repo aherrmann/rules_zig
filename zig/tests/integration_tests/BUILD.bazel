@@ -166,7 +166,11 @@ bazel_integration_test(
     name = "packages_test",
     size = "large",
     bazel_version = bazel_binaries.versions.current,
-    tags = ["requires-network"] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
+    # `no-sandbox`: `zig fetch` (`0.17.0-dev.813`) fails on macOS with sandbox.
+    tags = [
+        "no-sandbox",
+        "requires-network",
+    ] + integration_test_utils.DEFAULT_INTEGRATION_TEST_TAGS,
     test_runner = ":packages_tests_runner",
     workspace_files = packages_files,
     workspace_path = "packages",
