@@ -97,6 +97,8 @@ def _zig_packages_impl(module_ctx):
     for mod in module_ctx.modules:
         for tag in mod.tags.from_file:
             manifest = module_ctx.path(tag.build_zig_zon)
+
+            module_ctx.watch(manifest)
             manifests.append(manifest)
             manifest_labels[str(manifest)] = str(tag.build_zig_zon)
             root_tags.append(tag.build_zig_zon)
