@@ -37,6 +37,7 @@ const packages = [_]Package{
     .{ .name = "cdep" },
     .{ .name = "syslibdep" },
     .{ .name = "optdep" },
+    .{ .name = "cppdep" },
 };
 
 const Consumer = struct {
@@ -46,7 +47,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep", "optdep" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep", "optdep", "cppdep" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 

@@ -60,6 +60,10 @@
             .url = "__OPTDEP_URL__",
             .hash = "__OPTDEP_HASH__",
         },
+        .cppdep = .{
+            .url = "__CPPDEP_URL__",
+            .hash = "__CPPDEP_HASH__",
+        },
         // A source-only sub-tree dependency; only enabled by the test.
         // .srconly = .{ .url = "__SRCONLY_URL__", .hash = "__SRCONLY_HASH__" },
     },
