@@ -14,7 +14,8 @@
 //! The emitted JSON has the shape:
 //!
 //!     {"modules": [{"name": ..., "package": <hash>, "root_source": ...,
-//!         "link_libc": true, "link_libcpp": true,  // each present only when set
+//!         "generated_source": ..., "link_libc": true, "link_libcpp": true,
+//!         "csrcs": [...], "include_dirs": [...], "unsupported": [...],  // each present only when set/non-empty
 //!         "imports": [{"name": ..., "module": ..., "package": <hash>}]}]}
 //!
 //! A module's `package` is the Zig hash (or sub-tree key) of the package that
@@ -32,6 +33,14 @@
 //! module links the C / C++ standard library, e.g. via
 //! `b.addModule(..., .{ .link_libc = true })` or `module.linkSystemLibrary("c",
 //! .{})`; they are omitted otherwise.
+//!
+//! The `csrcs` field lists the module's vendored C sources, each with its
+//! per-file `flags` and an optional `language`. The `include_dirs` field lists
+//! the module's own include directories, each tagged by `kind` (`path`,
+//! `path_system`, or `path_after`). The `unsupported` field lists
+//! human-readable descriptions of C or link constructs the importer cannot
+//! represent (assembly, prebuilt objects, generated config headers, linked
+//! compile steps, ...), causes failure if present.
 
 const std = @import("std");
 const Io = std.Io;
@@ -156,6 +165,7 @@ fn emit(arena: Allocator, io: Io, builder: *Build) !void {
             try json.objectField("link_libcpp");
             try json.write(true);
         }
+        try emitC(arena, &json, module);
         try json.objectField("imports");
         try json.beginArray();
         for (module.import_table.keys(), module.import_table.values()) |import_name, imported| {
@@ -203,6 +213,119 @@ fn generatedOptionsSource(builder: *Build, lazy_path: ?LazyPath) ?[]const u8 {
     if (step.tag != .options) return null;
     const options: *Build.Step.Options = @fieldParentPtr("step", step);
     return options.contents.items;
+}
+
+const CSource = struct {
+    path: []const u8,
+    flags: []const []const u8,
+    language: ?[]const u8,
+};
+
+const IncludeDir = struct {
+    kind: []const u8,
+    path: []const u8,
+};
+
+fn joinPath(arena: Allocator, base: []const u8, sub: []const u8) ![]const u8 {
+    if (base.len == 0) return sub;
+    return std.fmt.allocPrint(arena, "{s}/{s}", .{ base, sub });
+}
+
+fn languageName(language: ?Build.Module.CSourceLanguage) ?[]const u8 {
+    return if (language) |l| @tagName(l) else null;
+}
+
+fn appendIncludeDir(
+    arena: Allocator,
+    include_dirs: *std.ArrayList(IncludeDir),
+    unsupported: *std.ArrayList([]const u8),
+    kind: []const u8,
+    lazy_path: LazyPath,
+) !void {
+    if (lazyPathString(lazy_path)) |path| {
+        try include_dirs.append(arena, .{ .kind = kind, .path = path });
+    } else {
+        try unsupported.append(arena, "an include path with a generated or out-of-package location");
+    }
+}
+
+fn emitC(arena: Allocator, json: *std.json.Stringify, module: *Build.Module) !void {
+    var csrcs: std.ArrayList(CSource) = .empty;
+    var include_dirs: std.ArrayList(IncludeDir) = .empty;
+    var unsupported: std.ArrayList([]const u8) = .empty;
+
+    for (module.link_objects.items) |link_object| switch (link_object) {
+        .c_source_file => |c| {
+            if (lazyPathString(c.file)) |path| {
+                try csrcs.append(arena, .{ .path = path, .flags = c.flags, .language = languageName(c.language) });
+            } else {
+                try unsupported.append(arena, "a C source file with a generated or out-of-package path");
+            }
+        },
+        .c_source_files => |c| {
+            if (lazyPathString(c.root)) |root_path| {
+                for (c.files) |file| {
+                    try csrcs.append(arena, .{ .path = try joinPath(arena, root_path, file), .flags = c.flags, .language = languageName(c.language) });
+                }
+            } else {
+                try unsupported.append(arena, "C source files with a generated or out-of-package root");
+            }
+        },
+        .system_lib => {},
+        .static_path => try unsupported.append(arena, "a precompiled object or static library (`addObjectFile`)"),
+        .assembly_file => try unsupported.append(arena, "an assembly source file"),
+        .win32_resource_file => try unsupported.append(arena, "a Win32 resource file"),
+        .other_step => try unsupported.append(arena, "a linked compile step (`linkLibrary`/`addObject`)"),
+    };
+
+    for (module.include_dirs.items) |include_dir| switch (include_dir) {
+        .path => |lp| try appendIncludeDir(arena, &include_dirs, &unsupported, "path", lp),
+        .path_system => |lp| try appendIncludeDir(arena, &include_dirs, &unsupported, "path_system", lp),
+        .path_after => |lp| try appendIncludeDir(arena, &include_dirs, &unsupported, "path_after", lp),
+        .embed_path => try unsupported.append(arena, "an embed include path (`addEmbedPath`)"),
+        .framework_path, .framework_path_system => try unsupported.append(arena, "a framework include path"),
+        .config_header_step => try unsupported.append(arena, "a generated config header (`addConfigHeader`)"),
+        .other_step => try unsupported.append(arena, "an include path from a linked compile step"),
+    };
+
+    if (csrcs.items.len > 0) {
+        try json.objectField("csrcs");
+        try json.beginArray();
+        for (csrcs.items) |c| {
+            try json.beginObject();
+            try json.objectField("path");
+            try json.write(c.path);
+            try json.objectField("flags");
+            try json.beginArray();
+            for (c.flags) |flag| try json.write(flag);
+            try json.endArray();
+            try json.objectField("language");
+            try json.write(c.language);
+            try json.endObject();
+        }
+        try json.endArray();
+    }
+
+    if (include_dirs.items.len > 0) {
+        try json.objectField("include_dirs");
+        try json.beginArray();
+        for (include_dirs.items) |inc| {
+            try json.beginObject();
+            try json.objectField("kind");
+            try json.write(inc.kind);
+            try json.objectField("path");
+            try json.write(inc.path);
+            try json.endObject();
+        }
+        try json.endArray();
+    }
+
+    if (unsupported.items.len > 0) {
+        try json.objectField("unsupported");
+        try json.beginArray();
+        for (unsupported.items) |u| try json.write(u);
+        try json.endArray();
+    }
 }
 
 fn nextArg(args: []const [:0]const u8, i: *usize) []const u8 {

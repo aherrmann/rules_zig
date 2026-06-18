@@ -11,6 +11,7 @@ const lazyhost = @import("lazyhost");
 const symlinked = @import("symlinked");
 const genopts = @import("genopts");
 const usec = @import("usec");
+const cdep = @import("cdep");
 
 pub fn main() void {
     _ = leaf.value;
@@ -26,4 +27,5 @@ pub fn main() void {
     _ = symlinked.value;
     _ = genopts.value;
     _ = usec.pid();
+    _ = cdep.value();
 }

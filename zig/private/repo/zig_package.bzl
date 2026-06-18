@@ -114,6 +114,28 @@ zig_library(
 )
 """
 
+_HEADER_EXTENSIONS = ["h", "hh", "hpp", "hxx"]
+
+# vendored C is compiled via sibling `cc_library` targets.
+_CC_LIBRARY = """\
+cc_library(
+    name = "{name}",
+    srcs = {srcs},
+    hdrs = glob({hdrs}, allow_empty = True),
+    copts = {copts},
+    includes = {includes},
+    visibility = ["//visibility:public"],
+)
+"""
+
+_CC_LIBRARY_GROUP = """\
+cc_library(
+    name = "{name}",
+    deps = {deps},
+    visibility = ["//visibility:public"],
+)
+"""
+
 def _is_subtree(packages, owner):
     return bool(owner) and owner in packages and packages[owner]["path"] != None
 
@@ -127,6 +149,11 @@ def _target_name(packages, owner, module):
         return module
     return packages[owner]["path"] + "/" + module
 
+def _csrc_path(packages, owner, path):
+    if not owner:
+        return path
+    return packages[owner]["path"] + "/" + path
+
 def _module_dep(repository_ctx, imported, packages):
     key = imported["package"]
     if _is_subtree(packages, key):
@@ -139,7 +166,8 @@ def _module_dep(repository_ctx, imported, packages):
     return ":" + imported["module"]
 
 def _build_file(repository_ctx, modules, packages):
-    chunks = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")", "", _FILES]
+    library_chunks = []
+    cc_chunks = []
     for module in modules:
         if not module["root_source"]:
             continue
@@ -151,6 +179,14 @@ def _build_file(repository_ctx, modules, packages):
         owner = module["package"]
         if owner and not _is_subtree(packages, owner):
             continue
+
+        unsupported = module.get("unsupported")
+        if unsupported:
+            fail(("The Zig package '{}' module '{}' uses unsupported constructs: {}.").format(
+                repository_ctx.attr.url,
+                module["name"],
+                "; ".join(unsupported),
+            ))
 
         # A dependency is imported under its own name by default; an import that
         # uses a different name is remapped per-edge via `import_names`, so the
@@ -168,8 +204,59 @@ def _build_file(repository_ctx, modules, packages):
         if module.get("link_libcpp"):
             deps.append("@rules_zig//zig/lib:libc++")
 
+        c_sources = []
+        for csrc in module.get("csrcs", []):
+            if csrc["language"] not in (None, "c", "cpp"):
+                fail(("The Zig package '{}' module '{}' declares the unsupported language '{}' for a C source.").format(
+                    repository_ctx.attr.url,
+                    module["name"],
+                    csrc["language"],
+                ))
+            c_sources.append((_csrc_path(packages, owner, csrc["path"]), csrc["flags"]))
+
+        if c_sources:
+            cinc = _target_name(packages, owner, module["name"]) + ".cinc"
+            prefix = (packages[owner]["path"] + "/") if owner else ""
+
+            header_dirs = {prefix + inc["path"]: None for inc in module.get("include_dirs", [])}
+            for path, _flags in c_sources:
+                header_dirs[path.rpartition("/")[0]] = None
+            header_globs = [
+                (dir + "/" if dir else "") + "**/*." + ext
+                for dir in sorted(header_dirs)
+                for ext in _HEADER_EXTENSIONS
+            ]
+            includes = [prefix + inc["path"] for inc in module.get("include_dirs", [])]
+
+            # Partition C sources by common `copts`.
+            groups = []
+            for path, flags in c_sources:
+                if groups and groups[-1][0] == flags:
+                    groups[-1][1].append(path)
+                else:
+                    groups.append((flags, [path]))
+
+            group_labels = []
+            for index in range(len(groups)):
+                flags = groups[index][0]
+                paths = groups[index][1]
+                group_name = "{}.{}".format(cinc, index)
+                group_labels.append(":" + group_name)
+                cc_chunks.append(_CC_LIBRARY.format(
+                    name = group_name,
+                    srcs = json.encode(paths),
+                    hdrs = json.encode(header_globs),
+                    copts = json.encode(flags),
+                    includes = json.encode(includes),
+                ))
+            cc_chunks.append(_CC_LIBRARY_GROUP.format(
+                name = cinc,
+                deps = json.encode(group_labels),
+            ))
+            deps.append(":" + cinc)
+
         if not owner:
-            chunks.append(_ZIG_LIBRARY.format(
+            library_chunks.append(_ZIG_LIBRARY.format(
                 name = module["name"],
                 main = module["root_source"],
                 deps = json.encode(deps),
@@ -177,7 +264,7 @@ def _build_file(repository_ctx, modules, packages):
             ))
         else:
             subpath = packages[owner]["path"]
-            chunks.append(_ZIG_LIBRARY_SUBTREE.format(
+            library_chunks.append(_ZIG_LIBRARY_SUBTREE.format(
                 name = _target_name(packages, owner, module["name"]),
                 import_name = module["name"],
                 main = subpath + "/" + module["root_source"],
@@ -185,7 +272,11 @@ def _build_file(repository_ctx, modules, packages):
                 deps = json.encode(deps),
                 import_names = json.encode(import_names),
             ))
-    return "\n".join(chunks)
+
+    loads = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")"]
+    if cc_chunks:
+        loads.append("load(\"@rules_cc//cc:defs.bzl\", \"cc_library\")")
+    return "\n".join(loads + ["", _FILES] + cc_chunks + library_chunks)
 
 def _configure(repository_ctx, zig, build_zig, cache):
     """Configure the package's `build.zig` and return its module-graph JSON."""
