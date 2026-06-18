@@ -15,7 +15,7 @@
 //!
 //!     {"modules": [{"name": ..., "package": <hash>, "root_source": ...,
 //!         "generated_source": ..., "link_libc": true, "link_libcpp": true,
-//!         "csrcs": [...], "include_dirs": [...], "unsupported": [...],  // each present only when set/non-empty
+//!         "csrcs": [...], "include_dirs": [...], "system_libs": [...], "unsupported": [...],  // each present only when set/non-empty
 //!         "imports": [{"name": ..., "module": ..., "package": <hash>}]}]}
 //!
 //! A module's `package` is the Zig hash (or sub-tree key) of the package that
@@ -37,7 +37,10 @@
 //! The `csrcs` field lists the module's vendored C sources, each with its
 //! per-file `flags` and an optional `language`. The `include_dirs` field lists
 //! the module's own include directories, each tagged by `kind` (`path`,
-//! `path_system`, or `path_after`). The `unsupported` field lists
+//! `path_system`, or `path_after`). The `system_libs` field lists the names of
+//! non-libc system libraries the module links (`linkSystemLibrary`); the
+//! importer requires each to be mapped to a `cc_library` via a
+//! `zig_packages.system_library` annotation. The `unsupported` field lists
 //! human-readable descriptions of C or link constructs the importer cannot
 //! represent (assembly, prebuilt objects, generated config headers, linked
 //! compile steps, ...), causes failure if present.
@@ -252,6 +255,7 @@ fn appendIncludeDir(
 fn emitC(arena: Allocator, json: *std.json.Stringify, module: *Build.Module) !void {
     var csrcs: std.ArrayList(CSource) = .empty;
     var include_dirs: std.ArrayList(IncludeDir) = .empty;
+    var system_libs: std.ArrayList([]const u8) = .empty;
     var unsupported: std.ArrayList([]const u8) = .empty;
 
     for (module.link_objects.items) |link_object| switch (link_object) {
@@ -271,7 +275,7 @@ fn emitC(arena: Allocator, json: *std.json.Stringify, module: *Build.Module) !vo
                 try unsupported.append(arena, "C source files with a generated or out-of-package root");
             }
         },
-        .system_lib => {},
+        .system_lib => |lib| try system_libs.append(arena, lib.name),
         .static_path => try unsupported.append(arena, "a precompiled object or static library (`addObjectFile`)"),
         .assembly_file => try unsupported.append(arena, "an assembly source file"),
         .win32_resource_file => try unsupported.append(arena, "a Win32 resource file"),
@@ -317,6 +321,13 @@ fn emitC(arena: Allocator, json: *std.json.Stringify, module: *Build.Module) !vo
             try json.write(inc.path);
             try json.endObject();
         }
+        try json.endArray();
+    }
+
+    if (system_libs.items.len > 0) {
+        try json.objectField("system_libs");
+        try json.beginArray();
+        for (system_libs.items) |name| try json.write(name);
         try json.endArray();
     }
 

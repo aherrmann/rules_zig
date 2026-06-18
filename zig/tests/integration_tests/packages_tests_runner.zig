@@ -35,6 +35,7 @@ const packages = [_]Package{
     .{ .name = "genopts" },
     .{ .name = "usec" },
     .{ .name = "cdep" },
+    .{ .name = "syslibdep" },
 };
 
 const Consumer = struct {
@@ -44,7 +45,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 
@@ -129,6 +130,11 @@ test "the importer rejects invalid package configurations" {
     try ctx.patchWorkspaceFile("build.zig.zon", &.{.{ "// .srconly", ".srconly" }});
     try expectBuildFailure(ctx, "source-only");
     try ctx.patchWorkspaceFile("build.zig.zon", &.{.{ ".srconly", "// .srconly" }});
+
+    // A required system library with no matching annotation fails.
+    try ctx.patchWorkspaceFile("MODULE.bazel", &.{.{ "name = \"mymath\"", "name = \"mymath-unprovided\"" }});
+    try expectBuildFailure(ctx, "system library");
+    try ctx.patchWorkspaceFile("MODULE.bazel", &.{.{ "name = \"mymath-unprovided\"", "name = \"mymath\"" }});
 }
 
 fn expectBuildFailure(ctx: BitContext, expected: []const u8) !void {

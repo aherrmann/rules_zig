@@ -1,3 +1,4 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_zig//zig:defs.bzl", "zig_binary")
 load("@zig_deps//:defs.bzl", "zig_dep", "zig_deps")
 
@@ -14,4 +15,10 @@ zig_binary(
             module = "widget",
         ),
     ],
+)
+
+cc_library(
+    name = "mymath_impl",
+    srcs = ["mymath.c"],
+    visibility = ["//visibility:public"],
 )

@@ -12,6 +12,7 @@ const symlinked = @import("symlinked");
 const genopts = @import("genopts");
 const usec = @import("usec");
 const cdep = @import("cdep");
+const syslibdep = @import("syslibdep");
 
 pub fn main() void {
     _ = leaf.value;
@@ -28,4 +29,5 @@ pub fn main() void {
     _ = genopts.value;
     _ = usec.pid();
     _ = cdep.value();
+    _ = syslibdep.compute(21);
 }
