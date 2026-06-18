@@ -36,6 +36,7 @@ const packages = [_]Package{
     .{ .name = "usec" },
     .{ .name = "cdep" },
     .{ .name = "syslibdep" },
+    .{ .name = "optdep" },
 };
 
 const Consumer = struct {
@@ -45,7 +46,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep", "optdep" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 
@@ -135,6 +136,10 @@ test "the importer rejects invalid package configurations" {
     try ctx.patchWorkspaceFile("MODULE.bazel", &.{.{ "name = \"mymath\"", "name = \"mymath-unprovided\"" }});
     try expectBuildFailure(ctx, "system library");
     try ctx.patchWorkspaceFile("MODULE.bazel", &.{.{ "name = \"mymath-unprovided\"", "name = \"mymath\"" }});
+
+    try ctx.patchWorkspaceFile("MODULE.bazel", &.{.{ "system_integration(name = \"optmath\")", "system_integration(name = \"optmath-off\")" }});
+    try expectBuildFailure(ctx, "opt_compute");
+    try ctx.patchWorkspaceFile("MODULE.bazel", &.{.{ "system_integration(name = \"optmath-off\")", "system_integration(name = \"optmath\")" }});
 }
 
 fn expectBuildFailure(ctx: BitContext, expected: []const u8) !void {

@@ -22,3 +22,9 @@ cc_library(
     srcs = ["mymath.c"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "optmath_impl",
+    srcs = ["optmath.c"],
+    visibility = ["//visibility:public"],
+)

@@ -27,6 +27,15 @@ system_library = tag_class(
     },
 )
 
+system_integration = tag_class(
+    attrs = {
+        "name": attr.string(
+            doc = "The name of an optional system integration (`systemIntegrationOption`) to enable.",
+            mandatory = True,
+        ),
+    },
+)
+
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
         [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
@@ -129,6 +138,13 @@ def _zig_packages_impl(module_ctx):
                 fail("Conflicting `system_library` annotations for '{}': {} and {}.".format(tag.name, existing, tag.lib))
             system_libraries[tag.name] = tag.lib
 
+    system_integrations = {}
+    for mod in module_ctx.modules:
+        for tag in mod.tags.system_integration:
+            system_integrations[tag.name] = True
+
+    system_integrations = system_integrations.keys()
+
     graph = _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests)
     graph = _localize_paths(graph, str(pkg_dir), manifest_labels)
 
@@ -153,6 +169,7 @@ def _zig_packages_impl(module_ctx):
                 deps = json.encode(_deps_data(graph, key, reached)),
                 dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in spokes},
                 system_libraries = system_libraries,
+                system_integrations = system_integrations,
             )
 
     manifests, targets = _hub_data(graph, root_tags)
@@ -206,5 +223,6 @@ zig_packages = module_extension(
     tag_classes = {
         "from_file": from_file,
         "system_library": system_library,
+        "system_integration": system_integration,
     },
 )

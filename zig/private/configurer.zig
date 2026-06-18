@@ -1,7 +1,7 @@
 //! Configure a Zig package's `build.zig` and emit its public module graph as
 //! JSON, for translation into Bazel `zig_library` targets.
 //!
-//! Usage: configurer --zig <zig> --build-root <dir>
+//! Usage: configurer --zig <zig> --build-root <dir> [--system-integration NAME ...]
 //!
 //! Modeled on `lib/compiler/configurer.zig`: it sets up a `std.Build`, runs the
 //! package's `build` function, then walks the module import graph (seeded by the
@@ -40,10 +40,14 @@
 //! `path_system`, or `path_after`). The `system_libs` field lists the names of
 //! non-libc system libraries the module links (`linkSystemLibrary`); the
 //! importer requires each to be mapped to a `cc_library` via a
-//! `zig_packages.system_library` annotation. The `unsupported` field lists
-//! human-readable descriptions of C or link constructs the importer cannot
-//! represent (assembly, prebuilt objects, generated config headers, linked
-//! compile steps, ...), causes failure if present.
+//! `zig_packages.system_library` annotation. Each `--system-integration NAME`
+//! argument pre-enables the named optional system integration before the build
+//! runs, so the package's `systemIntegrationOption(NAME)` returns true and its
+//! guarded `linkSystemLibrary` calls run (surfacing as `system_libs` entries).
+//! The `unsupported` field lists human-readable descriptions of C or link
+//! constructs the importer cannot represent (assembly, prebuilt objects,
+//! generated config headers, linked compile steps, ...) and causes failure if
+//! present.
 
 const std = @import("std");
 const Io = std.Io;
@@ -64,12 +68,15 @@ pub fn main(init: process.Init) !void {
 
     var zig_exe: ?[]const u8 = null;
     var build_root_sub_path: ?[]const u8 = null;
+    var system_integrations: std.ArrayList([]const u8) = .empty;
     var i: usize = 1;
     while (i < args.len) : (i += 1) {
         if (mem.eql(u8, args[i], "--zig")) {
             zig_exe = nextArg(args, &i);
         } else if (mem.eql(u8, args[i], "--build-root")) {
             build_root_sub_path = nextArg(args, &i);
+        } else if (mem.eql(u8, args[i], "--system-integration")) {
+            try system_integrations.append(arena, nextArg(args, &i));
         } else {
             fatal("unrecognized argument: {s}", .{args[i]});
         }
@@ -97,6 +104,10 @@ pub fn main(init: process.Init) !void {
     const root_string = try graph.wip_configuration.addString("root");
     std.debug.assert(empty_string == .empty);
     std.debug.assert(root_string == .root);
+
+    for (system_integrations.items) |name| {
+        try graph.system_integration_options.put(arena, name, .user_enabled);
+    }
 
     const build_root: Build.Cache.Path = .{
         .root_dir = .{

@@ -13,6 +13,7 @@ const genopts = @import("genopts");
 const usec = @import("usec");
 const cdep = @import("cdep");
 const syslibdep = @import("syslibdep");
+const optdep = @import("optdep");
 
 pub fn main() void {
     _ = leaf.value;
@@ -30,4 +31,5 @@ pub fn main() void {
     _ = usec.pid();
     _ = cdep.value();
     _ = syslibdep.compute(21);
+    _ = optdep.compute(1);
 }
