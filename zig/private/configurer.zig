@@ -14,6 +14,7 @@
 //! The emitted JSON has the shape:
 //!
 //!     {"modules": [{"name": ..., "package": <hash>, "root_source": ...,
+//!         "link_libc": true, "link_libcpp": true,  // each present only when set
 //!         "imports": [{"name": ..., "module": ..., "package": <hash>}]}]}
 //!
 //! A module's `package` is the Zig hash (or sub-tree key) of the package that
@@ -26,6 +27,11 @@
 //! A module whose root source is produced by `b.addOptions()` has no file in the
 //! package tree; for these the `generated_source` field carries the step's
 //! accumulated source so the importer can materialize it as a static file.
+//!
+//! The `link_libc`/`link_libcpp` fields are emitted (as `true`) only when the
+//! module links the C / C++ standard library, e.g. via
+//! `b.addModule(..., .{ .link_libc = true })` or `module.linkSystemLibrary("c",
+//! .{})`; they are omitted otherwise.
 
 const std = @import("std");
 const Io = std.Io;
@@ -141,6 +147,14 @@ fn emit(arena: Allocator, io: Io, builder: *Build) !void {
         if (generatedOptionsSource(builder, module.root_source_file)) |source| {
             try json.objectField("generated_source");
             try json.write(source);
+        }
+        if (module.link_libc == true) {
+            try json.objectField("link_libc");
+            try json.write(true);
+        }
+        if (module.link_libcpp == true) {
+            try json.objectField("link_libcpp");
+            try json.write(true);
         }
         try json.objectField("imports");
         try json.beginArray();

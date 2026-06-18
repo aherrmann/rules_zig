@@ -163,6 +163,11 @@ def _build_file(repository_ctx, modules, packages):
             if imported["name"] != imported["module"]:
                 import_names[target] = imported["name"]
 
+        if module.get("link_libc"):
+            deps.append("@rules_zig//zig/lib:libc")
+        if module.get("link_libcpp"):
+            deps.append("@rules_zig//zig/lib:libc++")
+
         if not owner:
             chunks.append(_ZIG_LIBRARY.format(
                 name = module["name"],

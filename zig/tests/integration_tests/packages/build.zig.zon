@@ -44,6 +44,10 @@
             .url = "__GENOPTS_URL__",
             .hash = "__GENOPTS_HASH__",
         },
+        .usec = .{
+            .url = "__USEC_URL__",
+            .hash = "__USEC_HASH__",
+        },
         // A source-only sub-tree dependency; only enabled by the test.
         // .srconly = .{ .url = "__SRCONLY_URL__", .hash = "__SRCONLY_HASH__" },
     },

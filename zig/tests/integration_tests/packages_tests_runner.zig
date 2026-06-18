@@ -33,6 +33,7 @@ const packages = [_]Package{
     .{ .name = "symlinked", .symlink = .{ "real.zig", "src/aliased.zig" } },
     .{ .name = "srconly" },
     .{ .name = "genopts" },
+    .{ .name = "usec" },
 };
 
 const Consumer = struct {
@@ -42,7 +43,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 
