@@ -27,8 +27,11 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
-def _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts):
-    mappings = [struct(name = dep.name, canonical_name = dep.canonical_name) for dep in deps]
+def _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts, import_names):
+    mappings = [
+        struct(name = import_names.get(dep.canonical_name, dep.name), canonical_name = dep.canonical_name)
+        for dep in deps
+    ]
     if any([need_translate_c(dep) for dep in cdeps]):
         # Global C module has a predefined name and canonical name since it is not defined yet here.
         mappings.append(struct(name = "c", canonical_name = "c"))
@@ -40,7 +43,7 @@ def _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts):
         dependency_mappings = tuple(mappings),
     )
 
-def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], deps = [], cdeps = [], zigopts = []):
+def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], deps = [], cdeps = [], zigopts = [], import_names = {}):
     """Create `ZigModuleInfo` for a new Zig module.
 
     Args:
@@ -52,6 +55,9 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
       deps: list of ZigModuleInfo, Import dependencies of this module.
       cdeps: list of CcInfo, C dependencies of this module.
       zigopts: list of string, Additional list of flags passed to the zig compiler.
+      import_names: dict of string to string, Override the import name of a
+        dependency, keyed by the dependency's canonical name. A dependency not
+        listed is imported under its own `name`.
 
     Returns:
       `ZigModuleInfo`
@@ -59,7 +65,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
     cc_infos = cdeps + [dep.cc_info for dep in deps if dep.cc_info]
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos)
 
-    module_context = _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts)
+    module_context = _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts, import_names)
 
     module = ZigModuleInfo(
         name = name,
