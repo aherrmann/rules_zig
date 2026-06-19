@@ -165,6 +165,74 @@ def parse_cells(configs):
     rest = [cell for cell in cells if cell.config_setting != ""]
     return (None, fallbacks + rest)
 
+def merge(package, per_cell_data, cells):
+    """Merge each cell's target records into one set, pushing `select()` to attrs.
+
+    The set of target names must agree across cells, as must each target's `kind`
+    and its `fixed` attrs. Each `varying` attr resolves to `("const", value)` when
+    equal across cells, else `("select", {cell: value})`.
+
+    Args:
+      package: the package URL, for error messages.
+      per_cell_data: map from cell name to that cell's list of target records.
+      cells: the ordered cells, the fallback first.
+
+    Returns:
+      (error, merged), each merged record a `struct(kind, name, fixed, varying)`,
+        fallback first.
+    """
+    fallback = cells[0].name
+
+    indexed = {
+        cell.name: {record.name: record for record in per_cell_data[cell.name]}
+        for cell in cells
+    }
+
+    base_names = sorted(indexed[fallback])
+    for cell in cells[1:]:
+        if sorted(indexed[cell.name]) != base_names:
+            return ("package '{}' produces a different set of targets under config '{}' than under '{}'".format(
+                package,
+                cell.name,
+                fallback,
+            ), None)
+
+    merged = []
+    for name in indexed[fallback]:
+        base = indexed[fallback][name]
+
+        for cell in cells[1:]:
+            other = indexed[cell.name][name]
+            if other.kind != base.kind:
+                return ("package '{}' target '{}' has kind '{}' under config '{}' but '{}' under '{}'".format(
+                    package,
+                    name,
+                    other.kind,
+                    cell.name,
+                    base.kind,
+                    fallback,
+                ), None)
+            for attr in base.fixed:
+                if base.fixed[attr] != other.fixed[attr]:
+                    return ("package '{}' target '{}' fixed attribute '{}' varies by configuration".format(
+                        package,
+                        base.name,
+                        attr,
+                    ), None)
+
+        resolved = {}
+        for attr in base.varying:
+            value = base.varying[attr]
+            uniform = all([indexed[cell.name][name].varying[attr] == value for cell in cells[1:]])
+            if uniform:
+                resolved[attr] = ("const", value)
+            else:
+                resolved[attr] = ("select", {cell.name: indexed[cell.name][name].varying[attr] for cell in cells})
+
+        merged.append(struct(kind = base.kind, name = base.name, fixed = base.fixed, varying = resolved))
+
+    return (None, merged)
+
 def _is_subtree(packages, owner):
     return bool(owner) and owner in packages and packages[owner]["path"] != None
 

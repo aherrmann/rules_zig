@@ -2,7 +2,13 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private/repo:zig_package.bzl", "parse_cells")
+load("//zig/private/repo:zig_package.bzl", "merge", "parse_cells")
+
+def _record(*, kind = "zig_library", name, fixed = {}, varying = {}):
+    return struct(kind = kind, name = name, fixed = fixed, varying = varying)
+
+_FALLBACK = struct(name = "dbg", config_setting = "")
+_REL = struct(name = "rel", config_setting = "rel")
 
 def _parse_cells_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -44,8 +50,80 @@ def _parse_cells_test_impl(ctx):
 
 _parse_cells_test = unittest.make(_parse_cells_test_impl)
 
+def _merge_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(
+        env,
+        (None, [_record(name = "foo", fixed = {"main": "foo.zig"}, varying = {"deps": ("const", ["a"])})]),
+        merge("pkg", {"dbg": [_record(name = "foo", fixed = {"main": "foo.zig"}, varying = {"deps": ["a"]})]}, [_FALLBACK]),
+        "a single cell makes every varying attr constant",
+    )
+
+    asserts.equals(
+        env,
+        (None, [_record(
+            name = "foo",
+            fixed = {"main": "foo.zig"},
+            varying = {"deps": ("select", {"dbg": ["a"], "rel": ["b"]}), "import_names": ("const", {})},
+        )]),
+        merge(
+            "pkg",
+            {
+                "dbg": [_record(name = "foo", fixed = {"main": "foo.zig"}, varying = {"deps": ["a"], "import_names": {}})],
+                "rel": [_record(name = "foo", fixed = {"main": "foo.zig"}, varying = {"deps": ["b"], "import_names": {}})],
+            },
+            [_FALLBACK, _REL],
+        ),
+        "a differing attr becomes a select; an agreeing attr stays constant",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' produces a different set of targets under config 'rel' than under 'dbg'", None),
+        merge(
+            "pkg",
+            {"dbg": [_record(name = "foo")], "rel": [_record(name = "foo"), _record(name = "bar")]},
+            [_FALLBACK, _REL],
+        ),
+        "the set of targets must be constant across configs",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' target 'foo' has kind 'cc_library' under config 'rel' but 'zig_library' under 'dbg'", None),
+        merge(
+            "pkg",
+            {
+                "dbg": [_record(kind = "zig_library", name = "foo")],
+                "rel": [_record(kind = "cc_library", name = "foo")],
+            },
+            [_FALLBACK, _REL],
+        ),
+        "a target's kind must be constant across configs",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' target 'foo' fixed attribute 'main' varies by configuration", None),
+        merge(
+            "pkg",
+            {
+                "dbg": [_record(name = "foo", fixed = {"main": "foo.zig"})],
+                "rel": [_record(name = "foo", fixed = {"main": "bar.zig"})],
+            },
+            [_FALLBACK, _REL],
+        ),
+        "a fixed attribute must be constant across configs",
+    )
+
+    return unittest.end(env)
+
+_merge_test = unittest.make(_merge_test_impl)
+
 def zig_package_test_suite(name):
     unittest.suite(
         name,
         partial.make(_parse_cells_test, size = "small"),
+        partial.make(_merge_test, size = "small"),
     )
