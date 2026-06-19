@@ -2,10 +2,13 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private/bzlmod:zig_packages.bzl", "resolve_cell")
+load("//zig/private/bzlmod:zig_packages.bzl", "check_cells", "resolve_cell")
 
 def _config(*, name, optimize = "", select_on = [], zig_flags = []):
     return struct(name = name, optimize = optimize, select_on = select_on, zig_flags = zig_flags)
+
+def _cell(*, name, select_on = [], zig_options = [], config_setting = ""):
+    return struct(name = name, select_on = select_on, zig_options = zig_options, config_setting = config_setting)
 
 def _resolve_cell_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -62,8 +65,58 @@ def _resolve_cell_test_impl(ctx):
 
 _resolve_cell_test = unittest.make(_resolve_cell_test_impl)
 
+def _check_cells_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    fallback = _cell(name = "dbg", select_on = ["//mode:debug"], config_setting = "")
+    rel = _cell(name = "rel", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseFast"], config_setting = "rel")
+
+    asserts.equals(
+        env,
+        (None, [fallback, rel]),
+        check_cells("pkg", [fallback, rel]),
+        "a fallback and a distinct non-fallback cell pass through",
+    )
+
+    duplicate = _cell(name = "rel2", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseFast"], config_setting = "rel2")
+    asserts.equals(
+        env,
+        (None, [fallback, rel]),
+        check_cells("pkg", [fallback, rel, duplicate]),
+        "duplicate cells are merged",
+    )
+
+    conflicting = _cell(name = "rel3", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseSafe"], config_setting = "rel3")
+    asserts.equals(
+        env,
+        ("package 'pkg' configs 'rel' and 'rel3' share conditions but differ in build options", None),
+        check_cells("pkg", [fallback, rel, conflicting]),
+        "shared conditions with differing options conflict",
+    )
+
+    general = _cell(name = "g", select_on = ["//os:linux"], config_setting = "g")
+    specific = _cell(name = "s", select_on = ["//os:linux", "//mode:release"], config_setting = "s")
+    asserts.equals(
+        env,
+        ("package 'pkg' config 'g' conditions are a subset of 's'; they would match ambiguously", None),
+        check_cells("pkg", [fallback, general, specific]),
+        "a cell whose conditions are a subset of another's is rejected",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' config 'e' has no select conditions", None),
+        check_cells("pkg", [fallback, _cell(name = "e", config_setting = "e")]),
+        "a non-fallback cell must have conditions",
+    )
+
+    return unittest.end(env)
+
+_check_cells_test = unittest.make(_check_cells_test_impl)
+
 def zig_packages_test_suite(name):
     unittest.suite(
         name,
         partial.make(_resolve_cell_test, size = "small"),
+        partial.make(_check_cells_test, size = "small"),
     )

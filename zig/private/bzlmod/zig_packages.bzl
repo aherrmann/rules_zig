@@ -75,6 +75,53 @@ def resolve_cell(tag):
 
     return (None, struct(name = tag.name, select_on = select_on, zig_options = zig_options))
 
+def check_cells(package_name, cells):
+    """Validate and deduplicate a package's matrix cells.
+
+    Args:
+      package_name: the package the cells belong to, for error messages.
+      cells: the package's cells, each a
+        `struct(name, select_on, zig_options, config_setting)`.
+
+    Returns:
+      (error, cells), the fallback cells followed by the deduplicated
+        non-fallback cells.
+    """
+    fallbacks = [cell for cell in cells if cell.config_setting == ""]
+    nonfallback = [cell for cell in cells if cell.config_setting != ""]
+
+    deduped = []
+    by_conditions = {}
+    for cell in nonfallback:
+        if not cell.select_on:
+            return ("package '{}' config '{}' has no select conditions".format(package_name, cell.name), None)
+
+        key = tuple(sorted(cell.select_on))
+        existing = by_conditions.get(key)
+        if existing != None:
+            if existing.zig_options != cell.zig_options:
+                return ("package '{}' configs '{}' and '{}' share conditions but differ in build options".format(
+                    package_name,
+                    existing.name,
+                    cell.name,
+                ), None)
+            continue
+        by_conditions[key] = cell
+        deduped.append(cell)
+
+    for outer in deduped:
+        for inner in deduped:
+            if outer.name == inner.name:
+                continue
+            if len(outer.select_on) < len(inner.select_on) and all([c in inner.select_on for c in outer.select_on]):
+                return ("package '{}' config '{}' conditions are a subset of '{}'; they would match ambiguously".format(
+                    package_name,
+                    outer.name,
+                    inner.name,
+                ), None)
+
+    return (None, fallbacks + deduped)
+
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
         [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
