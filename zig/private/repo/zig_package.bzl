@@ -142,6 +142,29 @@ cc_library(
 )
 """
 
+def parse_cells(configs):
+    """Parse the `configs` attr into the package's configuration matrix cells.
+
+    Args:
+      configs: the JSON `configs` attr, or "" for the host default.
+
+    Returns:
+      (error, cells), each cell `struct(name, zig_options, config_setting)`.
+    """
+    if not configs:
+        return (None, [struct(name = "", zig_options = [], config_setting = "")])
+
+    cells = [
+        struct(name = cell["name"], zig_options = cell["zig_options"], config_setting = cell["config_setting"])
+        for cell in json.decode(configs)
+    ]
+    fallbacks = [cell for cell in cells if cell.config_setting == ""]
+    if len(fallbacks) != 1:
+        return ("expected exactly one fallback cell, found {}".format(len(fallbacks)), None)
+
+    rest = [cell for cell in cells if cell.config_setting != ""]
+    return (None, fallbacks + rest)
+
 def _is_subtree(packages, owner):
     return bool(owner) and owner in packages and packages[owner]["path"] != None
 
