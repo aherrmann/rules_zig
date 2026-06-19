@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private/bzlmod:zig_packages.bzl", "check_cells", "package_name_version", "resolve_cell")
+load("//zig/private/bzlmod:zig_packages.bzl", "check_cells", "package_cells", "package_name_version", "resolve_cell")
 
 def _config(*, name, optimize = "", select_on = [], zig_flags = []):
     return struct(name = name, optimize = optimize, select_on = select_on, zig_flags = zig_flags)
@@ -135,10 +135,91 @@ def _package_name_version_test_impl(ctx):
 
 _package_name_version_test = unittest.make(_package_name_version_test_impl)
 
+_CELLS_BY_NAME = {
+    "dbg": struct(name = "dbg", select_on = ["//mode:debug"], zig_options = ["-Doptimize=Debug"]),
+    "rel": struct(name = "rel", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseFast"]),
+}
+
+def _configure(*, configs, fallback):
+    return struct(configs = configs, fallback = fallback)
+
+def _configured(base, config_setting):
+    return struct(name = base.name, select_on = base.select_on, zig_options = base.zig_options, config_setting = config_setting)
+
+def _package_cells_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    dbg = _configured(_CELLS_BY_NAME["dbg"], "")
+    rel = _configured(_CELLS_BY_NAME["rel"], "rel")
+
+    asserts.equals(
+        env,
+        (None, None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, None, {}),
+        "no configure means no matrix",
+    )
+
+    asserts.equals(
+        env,
+        (None, [dbg, rel]),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["dbg", "rel"], fallback = "dbg"), {}),
+        "global configure applies",
+    )
+
+    asserts.equals(
+        env,
+        (None, [_configured(_CELLS_BY_NAME["rel"], "")]),
+        package_cells(
+            "pkg-1.0.0-xyz",
+            _CELLS_BY_NAME,
+            _configure(configs = ["dbg", "rel"], fallback = "dbg"),
+            {("pkg", "1.0.0"): _configure(configs = ["rel"], fallback = "rel")},
+        ),
+        "a versioned per-package configure overrides the global one",
+    )
+
+    asserts.equals(
+        env,
+        (None, [dbg, rel]),
+        package_cells(
+            "pkg-1.0.0-xyz",
+            _CELLS_BY_NAME,
+            None,
+            {("pkg", ""): _configure(configs = ["dbg", "rel"], fallback = "dbg")},
+        ),
+        "a version-less per-package configure matches any version",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' configure fallback 'rel' is not among its configs", None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["dbg"], fallback = "rel"), {}),
+        "the fallback must be one of the configs",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' configure references unknown config 'nope'", None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["nope"], fallback = "nope"), {}),
+        "an unknown config name is rejected",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' configure lists config 'dbg' more than once", None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["dbg", "rel", "dbg"], fallback = "dbg"), {}),
+        "a config listed more than once is rejected",
+    )
+
+    return unittest.end(env)
+
+_package_cells_test = unittest.make(_package_cells_test_impl)
+
 def zig_packages_test_suite(name):
     unittest.suite(
         name,
         partial.make(_resolve_cell_test, size = "small"),
         partial.make(_check_cells_test, size = "small"),
         partial.make(_package_name_version_test, size = "small"),
+        partial.make(_package_cells_test, size = "small"),
     )

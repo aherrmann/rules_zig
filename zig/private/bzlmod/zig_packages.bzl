@@ -135,6 +135,51 @@ def package_name_version(key):
     name, _, rest = key.partition("-")
     return name, rest.rpartition("-")[0]
 
+def package_cells(key, cells_by_name, global_configure, per_package_configure):
+    """Resolve the matrix cells a URL package is configured under.
+
+    Args:
+      key: the package's Zig hash key.
+      cells_by_name: map from config name to its `struct(name, select_on, zig_options)`.
+      global_configure: the global `configure` (with `configs`/`fallback`), or None.
+      per_package_configure: map from `(name, version)` to a `configure`.
+
+    Returns:
+      (error, cells): cells is the ordered list of `struct(name, select_on,
+        zig_options, config_setting)`, or None if the package is configured
+        once at the host default.
+    """
+    name, version = package_name_version(key)
+
+    selected = per_package_configure.get((name, version))
+    if selected == None:
+        selected = per_package_configure.get((name, ""))
+    if selected == None:
+        selected = global_configure
+    if selected == None:
+        return (None, None)
+
+    if selected.fallback not in selected.configs:
+        return ("package '{}' configure fallback '{}' is not among its configs".format(name, selected.fallback), None)
+
+    cells = []
+    seen = {}
+    for config_name in selected.configs:
+        if config_name in seen:
+            return ("package '{}' configure lists config '{}' more than once".format(name, config_name), None)
+        seen[config_name] = True
+        cell = cells_by_name.get(config_name)
+        if cell == None:
+            return ("package '{}' configure references unknown config '{}'".format(name, config_name), None)
+        cells.append(struct(
+            name = cell.name,
+            select_on = cell.select_on,
+            zig_options = cell.zig_options,
+            config_setting = "" if config_name == selected.fallback else cell.name,
+        ))
+
+    return check_cells(name, cells)
+
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
         [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
