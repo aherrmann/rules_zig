@@ -36,6 +36,45 @@ system_integration = tag_class(
     },
 )
 
+_OPTIMIZE_MODES = {
+    "debug": "Debug",
+    "release_safe": "ReleaseSafe",
+    "release_small": "ReleaseSmall",
+    "release_fast": "ReleaseFast",
+}
+
+def resolve_cell(tag):
+    """Resolve a `config` tag into a build-configuration matrix cell.
+
+    `optimize` expands to `//zig/config/mode:mode` and `-Doptimize=Mode`;
+    `select_on` is appended verbatim and `zig_flags` become `-DNAME=VALUE`.
+
+    Args:
+      tag: a `config` tag.
+
+    Returns:
+      `(error, cell)`, `cell`: `struct(name, select_on, zig_options)`, where
+      `zig_options` is a list of `-DNAME=VALUE` Zig build option flags.
+    """
+    select_on = []
+    zig_options = []
+
+    if tag.optimize:
+        mode = _OPTIMIZE_MODES.get(tag.optimize)
+        if mode == None:
+            return ("config '{}' has unknown optimize mode '{}'".format(tag.name, tag.optimize), None)
+        select_on.append("@rules_zig//zig/config/mode:" + tag.optimize)
+        zig_options.append("-Doptimize=" + mode)
+
+    select_on.extend(tag.select_on)
+
+    for flag in tag.zig_flags:
+        if "=" not in flag:
+            return ("config '{}' flag '{}' is not NAME=VALUE".format(tag.name, flag), None)
+        zig_options.append("-D" + flag)
+
+    return (None, struct(name = tag.name, select_on = select_on, zig_options = zig_options))
+
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
         [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
