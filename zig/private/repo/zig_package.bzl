@@ -27,6 +27,13 @@ ATTRS = {
     "system_integrations": attr.string_list(
         doc = "Names of optional system integrations (`systemIntegrationOption`) to enable when configuring the package.",
     ),
+    "configs": attr.string(
+        default = "",
+        doc = "JSON configuration-matrix cells; empty configures once at the host default.",
+    ),
+    "config_settings": attr.string_keyed_label_dict(
+        doc = "Map from a non-fallback cell name to its config_setting_group label.",
+    ),
 }
 
 def _package_prefix(repository_ctx, zig, helper, cache, archive):
@@ -341,9 +348,10 @@ def _module_dep(repository_ctx, imported, packages):
         return str(spoke.same_package_label(imported["module"]))
     return ":" + imported["module"]
 
-def _build_file(repository_ctx, modules, packages):
-    library_chunks = []
-    cc_chunks = []
+def _target_data(repository_ctx, modules, packages):
+    """Compute one configuration cell's generated-target records."""
+    cc_records = []
+    library_records = []
     for module in modules:
         if not module["root_source"]:
             continue
@@ -431,44 +439,40 @@ def _build_file(repository_ctx, modules, packages):
                 paths = groups[index][1]
                 group_name = "{}.{}".format(cinc, index)
                 group_labels.append(":" + group_name)
-                cc_chunks.append(_CC_LIBRARY.format(
+                cc_records.append(struct(
+                    kind = "cc_library",
                     name = group_name,
-                    srcs = json.encode(paths),
-                    hdrs = json.encode(header_globs),
-                    copts = json.encode(flags),
-                    includes = json.encode(includes),
+                    fixed = {"header_globs": header_globs},
+                    varying = {"srcs": paths, "copts": flags, "includes": includes},
                 ))
-            cc_chunks.append(_CC_LIBRARY_GROUP.format(
+            cc_records.append(struct(
+                kind = "cc_library_group",
                 name = cinc,
-                deps = json.encode(group_labels),
+                fixed = {},
+                varying = {"deps": group_labels},
             ))
             deps.append(":" + cinc)
 
         if not owner:
-            library_chunks.append(_ZIG_LIBRARY.format(
+            library_records.append(struct(
+                kind = "zig_library",
                 name = module["name"],
-                main = module["root_source"],
-                deps = json.encode(deps),
-                import_names = json.encode(import_names),
+                fixed = {"main": module["root_source"], "import_name": module["name"]},
+                varying = {"deps": deps, "import_names": import_names},
             ))
         else:
             subpath = packages[owner]["path"]
-            library_chunks.append(_ZIG_LIBRARY_SUBTREE.format(
+            library_records.append(struct(
+                kind = "zig_library_subtree",
                 name = _target_name(packages, owner, module["name"]),
-                import_name = module["name"],
-                main = subpath + "/" + module["root_source"],
-                subpath = subpath,
-                deps = json.encode(deps),
-                import_names = json.encode(import_names),
+                fixed = {"main": subpath + "/" + module["root_source"], "import_name": module["name"], "subpath": subpath},
+                varying = {"deps": deps, "import_names": import_names},
             ))
 
-    loads = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")"]
-    if cc_chunks:
-        loads.append("load(\"@rules_cc//cc:defs.bzl\", \"cc_library\")")
-    return "\n".join(loads + ["", _FILES] + cc_chunks + library_chunks)
+    return cc_records + library_records
 
-def _configure(repository_ctx, zig, build_zig, cache):
-    """Configure the package's `build.zig` and return its module-graph JSON."""
+def _compile_configurer(repository_ctx, zig, build_zig, cache):
+    """Compile the configurer once, returning its executable path."""
     configurer = repository_ctx.path(Label("//zig/private:configurer.zig"))
     deps = json.decode(repository_ctx.attr.deps)
 
@@ -501,20 +505,20 @@ def _configure(repository_ctx, zig, build_zig, cache):
     if compiled.return_code != 0:
         fail("Failed to compile the Zig configurer for '{}':\n{}".format(repository_ctx.attr.url, compiled.stderr))
 
-    configure_args = [
-        str(repository_ctx.path("_configure/configurer")),
-        "--zig",
-        str(zig),
-        "--build-root",
-        str(repository_ctx.path(".")),
-    ]
-    for name in repository_ctx.attr.system_integrations:
-        configure_args.extend(["--system-integration", name])
-    configured = repository_ctx.execute(configure_args)
-    if configured.return_code != 0:
-        fail("Failed to configure the Zig package '{}':\n{}".format(repository_ctx.attr.url, configured.stderr))
+    return repository_ctx.path("_configure/configurer")
 
-    repository_ctx.delete("_configure")
+def _configure(repository_ctx, zig, configurer_bin, cell):
+    """Run the compiled configurer for one cell, returning its module-graph JSON."""
+    args = [str(configurer_bin), "--zig", str(zig), "--build-root", str(repository_ctx.path("."))]
+    for name in repository_ctx.attr.system_integrations:
+        args.extend(["--system-integration", name])
+    for option in cell.zig_options:
+        args.extend(["--zig-option", option])
+
+    configured = repository_ctx.execute(args)
+    if configured.return_code != 0:
+        scope = " under configuration '{}'".format(cell.name) if cell.name else ""
+        fail("Failed to configure the Zig package '{}'{}:\n{}".format(repository_ctx.attr.url, scope, configured.stderr))
     return configured.stdout
 
 def _materialize_generated(repository_ctx, modules, packages):
@@ -549,16 +553,57 @@ def _zig_package_impl(repository_ctx):
     archive = repository_ctx.path(cache).get_child("p").get_child(fetched_hash + ".tar.gz")
     repository_ctx.extract(archive, strip_prefix = _package_prefix(repository_ctx, zig, helper, cache, archive))
 
-    build_zig = repository_ctx.path("build.zig")
-    modules = []
-    if build_zig.exists:
-        manifest = _configure(repository_ctx, zig, build_zig, cache)
-        repository_ctx.file("module_manifest.json", manifest)
-        modules = json.decode(manifest)["modules"]
+    error, cells = parse_cells(repository_ctx.attr.configs)
+    if error != None:
+        fail("The Zig package '{}' has an invalid configuration matrix: {}.".format(repository_ctx.attr.url, error))
+    fallback = cells[0].name
 
     packages = json.decode(repository_ctx.attr.deps)["packages"]
-    _materialize_generated(repository_ctx, modules, packages)
-    repository_ctx.file("BUILD.bazel", _build_file(repository_ctx, modules, packages))
+    config_settings = {name: str(label) for name, label in repository_ctx.attr.config_settings.items()}
+
+    build_zig = repository_ctx.path("build.zig")
+    if not build_zig.exists:
+        repository_ctx.file("BUILD.bazel", render(config_settings, [], cells))
+        return
+
+    # Configure once per cell with that cell's `-D` build options.
+    configurer_bin = _compile_configurer(repository_ctx, zig, build_zig, cache)
+    per_cell_modules = {}
+    for cell in cells:
+        manifest = _configure(repository_ctx, zig, configurer_bin, cell)
+        if cell.name == fallback:
+            repository_ctx.file("module_manifest.json", manifest)
+        per_cell_modules[cell.name] = json.decode(manifest)["modules"]
+    repository_ctx.delete("_configure")
+
+    # Generated source is materialized to one file shared by every cell, so it
+    # must not vary across them; reflect the fallback's into the others.
+    fallback_generated = {
+        module["name"]: module["generated_source"]
+        for module in per_cell_modules[fallback]
+        if module.get("generated_source") != None
+    }
+    for cell in cells[1:]:
+        for module in per_cell_modules[cell.name]:
+            if module.get("generated_source") != fallback_generated.get(module["name"]):
+                fail(("The Zig package '{}' module '{}' produces different generated source under " +
+                      "configuration '{}' than under '{}'; config-varying generated source is not " +
+                      "supported.").format(repository_ctx.attr.url, module["name"], cell.name, fallback))
+    _materialize_generated(repository_ctx, per_cell_modules[fallback], packages)
+    fallback_root_source = {module["name"]: module["root_source"] for module in per_cell_modules[fallback]}
+    for cell in cells[1:]:
+        for module in per_cell_modules[cell.name]:
+            if module["name"] in fallback_root_source:
+                module["root_source"] = fallback_root_source[module["name"]]
+
+    per_cell_data = {
+        cell.name: _target_data(repository_ctx, per_cell_modules[cell.name], packages)
+        for cell in cells
+    }
+    error, merged = merge(repository_ctx.attr.url, per_cell_data, cells)
+    if error != None:
+        fail("The Zig package '{}' cannot be configured across the matrix: {}.".format(repository_ctx.attr.url, error))
+    repository_ctx.file("BUILD.bazel", render(config_settings, merged, cells))
 
 zig_package = repository_rule(
     _zig_package_impl,
