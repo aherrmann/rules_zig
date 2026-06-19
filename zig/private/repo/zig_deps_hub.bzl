@@ -19,6 +19,10 @@ ATTRS = {
         mandatory = True,
         doc = "Map from each package key to its `files` target.",
     ),
+    "config_groups": attr.string(
+        default = "[]",
+        doc = "JSON list of `{name, select_on}`, the non-fallback configuration cells across all packages.",
+    ),
 }
 
 _ALIAS = """\
@@ -28,6 +32,34 @@ alias(
     visibility = ["{scope}"],
 )
 """
+
+_CONFIG_GROUP = """\
+selects.config_setting_group(
+    name = "cfg_{name}",
+    match_all = {match_all},
+    visibility = ["//visibility:public"],
+)
+"""
+
+def render_config_groups(config_groups):
+    """Render the matrix's config_setting_groups as the hub's `config/BUILD.bazel`.
+
+    Each cell becomes a `cfg_<name>` group matching all of its conditions, which
+    the spokes `select()` on.
+
+    Args:
+      config_groups: list of `{name, select_on}` (the non-fallback cells).
+
+    Returns:
+      the `config/BUILD.bazel` text, or "" when there are no groups.
+    """
+    if not config_groups:
+        return ""
+
+    chunks = ["load(\"@bazel_skylib//lib:selects.bzl\", \"selects\")"]
+    for group in config_groups:
+        chunks.append(_CONFIG_GROUP.format(name = group["name"], match_all = json.encode(group["select_on"])))
+    return "\n".join(chunks)
 
 # The generated accessors reference each spoke by its canonical (`@@`) repo name,
 # which is resolved at module-extension time and has no apparent-name alias here.
@@ -118,6 +150,10 @@ def _zig_deps_hub_impl(repository_ctx):
         repository_ctx.file(build_file, content)
 
     repository_ctx.file("defs.bzl", _DEFS.replace("%MANIFESTS%", json.encode(registry)))
+
+    config_build = render_config_groups(json.decode(repository_ctx.attr.config_groups))
+    if config_build:
+        repository_ctx.file("config/BUILD.bazel", config_build)
 
 zig_deps_hub = repository_rule(
     _zig_deps_hub_impl,
