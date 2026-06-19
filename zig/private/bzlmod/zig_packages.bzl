@@ -180,6 +180,58 @@ def package_cells(key, cells_by_name, global_configure, per_package_configure):
 
     return check_cells(name, cells)
 
+def collect_configs(modules):
+    """Collect the build-configuration matrix from the root module's tags.
+
+    Configurations from non-root modules are ignored (their names are returned
+    so the caller can warn).
+
+    Args:
+      modules: sequence of bazel_module, the extension's modules with
+        `tags.config` and `tags.configure`.
+
+    Returns:
+      (error, result), where result is `struct(cells_by_name, global_configure,
+        per_package_configure, ignored)`.
+    """
+    ignored = []
+    cells_by_name = {}
+    global_configure = None
+    per_package_configure = {}
+
+    for mod in modules:
+        if not mod.is_root:
+            if mod.tags.config or mod.tags.configure:
+                ignored.append(mod.name)
+            continue
+
+        for tag in mod.tags.config:
+            error, cell = resolve_cell(tag)
+            if error != None:
+                return (error, None)
+            existing = cells_by_name.get(tag.name)
+            if existing != None and existing != cell:
+                return ("conflicting config tags named '{}'".format(tag.name), None)
+            cells_by_name[tag.name] = cell
+
+        for tag in mod.tags.configure:
+            if tag.package:
+                key = (tag.package, tag.version)
+                if key in per_package_configure:
+                    return ("multiple configure tags for package '{}'".format(tag.package), None)
+                per_package_configure[key] = tag
+            elif global_configure != None:
+                return ("at most one global configure tag is allowed", None)
+            else:
+                global_configure = tag
+
+    return (None, struct(
+        cells_by_name = cells_by_name,
+        global_configure = global_configure,
+        per_package_configure = per_package_configure,
+        ignored = ignored,
+    ))
+
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
         [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
