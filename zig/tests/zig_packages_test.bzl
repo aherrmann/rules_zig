@@ -2,7 +2,7 @@
 
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//zig/private/bzlmod:zig_packages.bzl", "check_cells", "resolve_cell")
+load("//zig/private/bzlmod:zig_packages.bzl", "check_cells", "package_name_version", "resolve_cell")
 
 def _config(*, name, optimize = "", select_on = [], zig_flags = []):
     return struct(name = name, optimize = optimize, select_on = select_on, zig_flags = zig_flags)
@@ -114,9 +114,31 @@ def _check_cells_test_impl(ctx):
 
 _check_cells_test = unittest.make(_check_cells_test_impl)
 
+def _package_name_version_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(
+        env,
+        ("cfgdep", "0.0.0"),
+        package_name_version("cfgdep-0.0.0-AAAABBBBCCCC"),
+        "name and version split off the digest",
+    )
+
+    asserts.equals(
+        env,
+        ("ezi_gex", "0.5.0-dev"),
+        package_name_version("ezi_gex-0.5.0-dev-fTQAPBMbFwDJ"),
+        "a version may itself contain '-'",
+    )
+
+    return unittest.end(env)
+
+_package_name_version_test = unittest.make(_package_name_version_test_impl)
+
 def zig_packages_test_suite(name):
     unittest.suite(
         name,
         partial.make(_resolve_cell_test, size = "small"),
         partial.make(_check_cells_test, size = "small"),
+        partial.make(_package_name_version_test, size = "small"),
     )

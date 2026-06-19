@@ -122,6 +122,19 @@ def check_cells(package_name, cells):
 
     return (None, fallbacks + deduped)
 
+def package_name_version(key):
+    """Split a URL package's hash key into its name and version.
+
+    Args:
+      key: a URL package's Zig hash key, `<name>-<version>-<digest>`.
+        `version` may contain `-` (e.g. `0.5.0-dev`).
+
+    Returns:
+      (name, version).
+    """
+    name, _, rest = key.partition("-")
+    return name, rest.rpartition("-")[0]
+
 def _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests):
     result = module_ctx.execute(
         [zig, "run", "--cache-dir", cache, "--global-cache-dir", cache, zon2json, "--", zig, cache, str(pkg_dir)] +
