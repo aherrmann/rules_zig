@@ -15,6 +15,7 @@ const cdep = @import("cdep");
 const syslibdep = @import("syslibdep");
 const optdep = @import("optdep");
 const cppdep = @import("cppdep");
+const cfgdep = @import("cfgdep");
 
 pub fn main() void {
     _ = leaf.value;
@@ -34,4 +35,5 @@ pub fn main() void {
     _ = syslibdep.compute(21);
     _ = optdep.compute(1);
     _ = cppdep.value();
+    _ = cfgdep.value();
 }

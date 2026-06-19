@@ -38,6 +38,7 @@ const packages = [_]Package{
     .{ .name = "syslibdep" },
     .{ .name = "optdep" },
     .{ .name = "cppdep" },
+    .{ .name = "cfgdep" },
 };
 
 const Consumer = struct {
@@ -47,7 +48,7 @@ const Consumer = struct {
 
 // Manifests that resolve dependencies via `zig_packages.from_file`.
 const consumers = [_]Consumer{
-    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep", "optdep", "cppdep" } },
+    .{ .manifest = "build.zig.zon", .deps = &.{ "leaf", "host", "top", "multi", "pruned", "libv1", "lazyhost", "symlinked", "genopts", "srconly", "usec", "cdep", "syslibdep", "optdep", "cppdep", "cfgdep" } },
     .{ .manifest = "child/build.zig.zon", .deps = &.{ "leaf", "libv2" } },
 };
 
@@ -97,6 +98,13 @@ test "Zig packages are imported from file:// tarballs" {
     });
     defer result.deinit();
     try std.testing.expect(result.success);
+
+    // Test that the importer correctly selects system libraries per-configuration.
+    const opt_result = try ctx.exec_bazel(.{
+        .argv = &[_][]const u8{ "build", "//:binary", "-c", "opt" },
+    });
+    defer opt_result.deinit();
+    try std.testing.expect(opt_result.success);
 }
 
 // Runs after the positive test above, tarballs are packed and consumer

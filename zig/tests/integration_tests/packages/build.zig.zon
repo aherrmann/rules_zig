@@ -64,6 +64,10 @@
             .url = "__CPPDEP_URL__",
             .hash = "__CPPDEP_HASH__",
         },
+        .cfgdep = .{
+            .url = "__CFGDEP_URL__",
+            .hash = "__CFGDEP_HASH__",
+        },
         // A source-only sub-tree dependency; only enabled by the test.
         // .srconly = .{ .url = "__SRCONLY_URL__", .hash = "__SRCONLY_HASH__" },
     },

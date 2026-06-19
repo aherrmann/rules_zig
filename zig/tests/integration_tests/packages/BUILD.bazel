@@ -28,3 +28,15 @@ cc_library(
     srcs = ["optmath.c"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "dbgonly_impl",
+    srcs = ["dbgonly.c"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "relonly_impl",
+    srcs = ["relonly.c"],
+    visibility = ["//visibility:public"],
+)
