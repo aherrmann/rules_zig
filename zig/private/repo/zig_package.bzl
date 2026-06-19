@@ -233,6 +233,85 @@ def merge(package, per_cell_data, cells):
 
     return (None, merged)
 
+def render_attr(config_settings, resolved, cells):
+    """Render a merged attribute as a literal or a `select()`.
+
+    Args:
+      config_settings: map from a non-fallback cell name to its config_setting label.
+      resolved: `("const", value)` or `("select", {cell: value})`.
+      cells: configuration matrix cells.
+
+    Returns:
+      the attribute's Starlark code.
+    """
+    if resolved[0] == "const":
+        return json.encode(resolved[1])
+
+    by_cell = resolved[1]
+    lines = ["select({"]
+    for cell in cells:
+        if cell.config_setting != "":
+            lines.append("    {}: {},".format(json.encode(config_settings[cell.name]), json.encode(by_cell[cell.name])))
+    for cell in cells:
+        if cell.config_setting == "":
+            lines.append("    {}: {},".format(json.encode("//conditions:default"), json.encode(by_cell[cell.name])))
+    lines.append("})")
+    return "\n".join(lines)
+
+def render(config_settings, merged, cells):
+    """Render merged target records into the spoke's `BUILD.bazel` text.
+
+    Args:
+      config_settings: map from a non-fallback cell name to its config_setting label.
+      merged: the merged target records from `merge`.
+      cells: configuration matrix cells.
+
+    Returns:
+      the `BUILD.bazel` contents.
+    """
+    cc_chunks = []
+    library_chunks = []
+    has_cc = False
+    for record in merged:
+        fixed = record.fixed
+        varying = record.varying
+        if record.kind == "zig_library":
+            library_chunks.append(_ZIG_LIBRARY.format(
+                name = record.name,
+                main = fixed["main"],
+                deps = render_attr(config_settings, varying["deps"], cells),
+                import_names = render_attr(config_settings, varying["import_names"], cells),
+            ))
+        elif record.kind == "zig_library_subtree":
+            library_chunks.append(_ZIG_LIBRARY_SUBTREE.format(
+                name = record.name,
+                import_name = fixed["import_name"],
+                main = fixed["main"],
+                subpath = fixed["subpath"],
+                deps = render_attr(config_settings, varying["deps"], cells),
+                import_names = render_attr(config_settings, varying["import_names"], cells),
+            ))
+        elif record.kind == "cc_library":
+            has_cc = True
+            cc_chunks.append(_CC_LIBRARY.format(
+                name = record.name,
+                srcs = render_attr(config_settings, varying["srcs"], cells),
+                hdrs = json.encode(fixed["header_globs"]),
+                copts = render_attr(config_settings, varying["copts"], cells),
+                includes = render_attr(config_settings, varying["includes"], cells),
+            ))
+        elif record.kind == "cc_library_group":
+            has_cc = True
+            cc_chunks.append(_CC_LIBRARY_GROUP.format(
+                name = record.name,
+                deps = render_attr(config_settings, varying["deps"], cells),
+            ))
+
+    loads = ["load(\"@rules_zig//zig:defs.bzl\", \"zig_library\")"]
+    if has_cc:
+        loads.append("load(\"@rules_cc//cc:defs.bzl\", \"cc_library\")")
+    return "\n".join(loads + ["", _FILES] + cc_chunks + library_chunks)
+
 def _is_subtree(packages, owner):
     return bool(owner) and owner in packages and packages[owner]["path"] != None
 
