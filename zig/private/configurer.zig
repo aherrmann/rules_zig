@@ -1,7 +1,7 @@
 //! Configure a Zig package's `build.zig` and emit its public module graph as
 //! JSON, for translation into Bazel `zig_library` targets.
 //!
-//! Usage: configurer --zig <zig> --build-root <dir> [--system-integration NAME ...]
+//! Usage: configurer --zig <zig> --build-root <dir> [--system-integration NAME ...] [--zig-option -DNAME=VALUE ...]
 //!
 //! Modeled on `lib/compiler/configurer.zig`: it sets up a `std.Build`, runs the
 //! package's `build` function, then walks the module import graph (seeded by the
@@ -69,6 +69,7 @@ pub fn main(init: process.Init) !void {
     var zig_exe: ?[]const u8 = null;
     var build_root_sub_path: ?[]const u8 = null;
     var system_integrations: std.ArrayList([]const u8) = .empty;
+    var zig_options: std.ArrayList([]const u8) = .empty;
     var i: usize = 1;
     while (i < args.len) : (i += 1) {
         if (mem.eql(u8, args[i], "--zig")) {
@@ -77,6 +78,8 @@ pub fn main(init: process.Init) !void {
             build_root_sub_path = nextArg(args, &i);
         } else if (mem.eql(u8, args[i], "--system-integration")) {
             try system_integrations.append(arena, nextArg(args, &i));
+        } else if (mem.eql(u8, args[i], "--zig-option")) {
+            try zig_options.append(arena, nextArg(args, &i));
         } else {
             fatal("unrecognized argument: {s}", .{args[i]});
         }
@@ -118,7 +121,18 @@ pub fn main(init: process.Init) !void {
 
     const builder = try Build.create(&graph, build_root, dependencies.root_deps);
 
+    for (zig_options.items) |option| {
+        const setting = if (mem.startsWith(u8, option, "-D")) option[2..] else fatal("--zig-option requires -DNAME=VALUE, got '{s}'", .{option});
+        const eq = mem.indexOfScalar(u8, setting, '=') orelse
+            fatal("--zig-option requires -DNAME=VALUE, got '{s}'", .{option});
+        if (try builder.addUserInputOption(setting[0..eq], setting[eq + 1 ..]))
+            fatal("invalid --zig-option '{s}'", .{option});
+    }
+
     try builder.runBuild(root);
+
+    if (builder.validateUserInputDidItFail())
+        fatal("a --zig-option was not recognized by the package's build.zig", .{});
 
     try emit(arena, io, builder);
 }
