@@ -36,6 +36,24 @@ system_integration = tag_class(
     },
 )
 
+config = tag_class(
+    attrs = {
+        "name": attr.string(mandatory = True, doc = "Module-local name of this configuration cell."),
+        "optimize": attr.string(doc = "Zig optimize mode: debug | release_safe | release_small | release_fast."),
+        "select_on": attr.string_list(doc = "Extra Bazel condition labels ANDed into this cell's `select()` branch."),
+        "zig_flags": attr.string_list(doc = "Extra `-D` build options (NAME=VALUE) passed to the configurer for this cell."),
+    },
+)
+
+configure = tag_class(
+    attrs = {
+        "configs": attr.string_list(mandatory = True, doc = "Ordered config names that apply."),
+        "fallback": attr.string(mandatory = True, doc = "The config name used for the `//conditions:default` branch."),
+        "package": attr.string(doc = "If set, override the matrix for the named package only; otherwise global."),
+        "version": attr.string(doc = "Disambiguate `package` by version."),
+    },
+)
+
 _OPTIMIZE_MODES = {
     "debug": "Debug",
     "release_safe": "ReleaseSafe",
@@ -341,6 +359,13 @@ def _zig_packages_impl(module_ctx):
 
     system_integrations = system_integrations.keys()
 
+    error, matrix = collect_configs(module_ctx.modules)
+    if error != None:
+        fail("Invalid Zig package configuration matrix: {}.".format(error))
+    for name in matrix.ignored:
+        # buildifier: disable=print
+        print("ignoring config/configure tags from non-root module '{}'; set dev_dependency to True to avoid this warning".format(name))
+
     graph = _resolve_graph(module_ctx, zig, zon2json, cache, pkg_dir, manifests)
     graph = _localize_paths(graph, str(pkg_dir), manifest_labels)
 
@@ -349,6 +374,7 @@ def _zig_packages_impl(module_ctx):
     # Reachability follows every edge (URL and sub-tree path), so URL spokes reached
     # through a sub-tree dependency are configured too.
     reachable = {}
+    config_groups = {}
     for key, package in graph["packages"].items():
         reached = {}
         for _name, child in graph["packages"][key]["deps"].items():
@@ -356,23 +382,46 @@ def _zig_packages_impl(module_ctx):
             for dep in reachable[child]:
                 reached[dep] = True
         reachable[key] = reached
-        if package["url"] != None:
-            spokes = [dep for dep in reached if graph["packages"][dep]["url"] != None]
-            zig_package(
-                name = key,
-                url = package["url"],
-                zig_hash = key,
-                deps = json.encode(_deps_data(graph, key, reached)),
-                dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in spokes},
-                system_libraries = system_libraries,
-                system_integrations = system_integrations,
-            )
+        if package["url"] == None:
+            continue
+
+        error, cells = package_cells(key, matrix.cells_by_name, matrix.global_configure, matrix.per_package_configure)
+        if error != None:
+            fail("Invalid Zig package configuration matrix: {}.".format(error))
+
+        configs = {}
+        if cells != None:
+            config_settings = {}
+            for cell in cells:
+                if cell.config_setting != "":
+                    config_settings[cell.name] = "@zig_deps//config:cfg_" + cell.name
+                    config_groups[cell.name] = {"name": cell.name, "select_on": cell.select_on}
+            configs = {
+                "configs": json.encode([
+                    {"name": cell.name, "zig_options": cell.zig_options, "config_setting": cell.config_setting}
+                    for cell in cells
+                ]),
+                "config_settings": config_settings,
+            }
+
+        spokes = [dep for dep in reached if graph["packages"][dep]["url"] != None]
+        zig_package(
+            name = key,
+            url = package["url"],
+            zig_hash = key,
+            deps = json.encode(_deps_data(graph, key, reached)),
+            dep_build_files = {dep: "@{}//:build.zig".format(dep) for dep in spokes},
+            system_libraries = system_libraries,
+            system_integrations = system_integrations,
+            **configs
+        )
 
     manifests, targets = _hub_data(graph, root_tags)
     zig_deps_hub(
         name = "zig_deps",
         manifests = json.encode(manifests),
         packages = targets,
+        config_groups = json.encode([config_groups[name] for name in sorted(config_groups)]),
     )
 
     direct = ["zig_deps"] if root_nondev else []
@@ -420,5 +469,7 @@ zig_packages = module_extension(
         "from_file": from_file,
         "system_library": system_library,
         "system_integration": system_integration,
+        "config": config,
+        "configure": configure,
     },
 )
