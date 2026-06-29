@@ -108,6 +108,7 @@ fn main_pre_016() !void {
     });
     var child_env_map = try std.process.getEnvMap(allocator);
     defer child_env_map.deinit();
+    try child_env_map.put("ZIG_LIB_DIR", zig_lib_computed_path);
     try child_env_map.put("ZIG_GLOBAL_CACHE_DIR", global_cache_path);
     try child_env_map.put("ZIG_LOCAL_CACHE_DIR", global_cache_path);
 
@@ -187,6 +188,7 @@ fn main_016(init: std.process.Init) !void {
     for (init.environ_map.keys(), init.environ_map.values()) |key, value| {
         try child_env_map.put(key, value);
     }
+    try child_env_map.put("ZIG_LIB_DIR", zig_lib_computed_path);
     try child_env_map.put("ZIG_GLOBAL_CACHE_DIR", global_cache_path);
     try child_env_map.put("ZIG_LOCAL_CACHE_DIR", global_cache_path);
 
