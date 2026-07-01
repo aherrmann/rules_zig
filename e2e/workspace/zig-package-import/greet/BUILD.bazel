@@ -1,0 +1,21 @@
+load("@rules_zig//zig:defs.bzl", "zig_library")
+load("@zig_deps//:defs.bzl", "zig_dep")
+
+# A local path dependency must expose a module named after the dependency so
+# that dependents can resolve it through the hub.
+zig_library(
+    name = "greet",
+    srcs = glob(
+        ["src/**/*.zig"],
+        exclude = ["src/greet.zig"],
+    ),
+    import_name = "greet",
+    main = "src/greet.zig",
+    # Depends on `clap`, which uses the Zig 0.16+.
+    target_compatible_with = select({
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    visibility = ["//visibility:public"],
+    deps = [zig_dep("clap")],
+)

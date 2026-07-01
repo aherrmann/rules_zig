@@ -1,0 +1,311 @@
+"""Unit tests for the `zig_packages` module extension helpers."""
+
+load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
+load(
+    "//zig/private/bzlmod:zig_packages.bzl",
+    "check_cells",
+    "collect_configs",
+    "package_cells",
+    "package_name_version",
+    "resolve_cell",
+)
+
+def _config(*, name, optimize = "", select_on = [], zig_flags = []):
+    return struct(name = name, optimize = optimize, select_on = select_on, zig_flags = zig_flags)
+
+def _module(*, is_root, name = "m", config = [], configure = []):
+    return struct(is_root = is_root, name = name, tags = struct(config = config, configure = configure))
+
+def _cell(*, name, select_on = [], zig_options = [], config_setting = ""):
+    return struct(name = name, select_on = select_on, zig_options = zig_options, config_setting = config_setting)
+
+def _resolve_cell_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(
+        env,
+        (None, struct(
+            name = "dbg",
+            select_on = ["@rules_zig//zig/config/mode:debug"],
+            zig_options = ["-Doptimize=Debug"],
+        )),
+        resolve_cell(_config(name = "dbg", optimize = "debug")),
+        "optimize expands to a mode condition and -Doptimize",
+    )
+
+    asserts.equals(
+        env,
+        (None, struct(
+            name = "x",
+            select_on = ["@rules_zig//zig/config/mode:release_fast", "//my:flag"],
+            zig_options = ["-Doptimize=ReleaseFast", "-DDEFINE=a=b"],
+        )),
+        resolve_cell(_config(
+            name = "x",
+            optimize = "release_fast",
+            select_on = ["//my:flag"],
+            zig_flags = ["DEFINE=a=b"],
+        )),
+        "select_on and zig_flags append; a flag value may contain '='",
+    )
+
+    asserts.equals(
+        env,
+        (None, struct(name = "bare", select_on = [], zig_options = [])),
+        resolve_cell(_config(name = "bare")),
+        "a cell may carry no conditions",
+    )
+
+    asserts.equals(
+        env,
+        ("config 'x' has unknown optimize mode 'fast'", None),
+        resolve_cell(_config(name = "x", optimize = "fast")),
+        "an unknown optimize mode is rejected",
+    )
+
+    asserts.equals(
+        env,
+        ("config 'x' flag 'BAD' is not NAME=VALUE", None),
+        resolve_cell(_config(name = "x", zig_flags = ["BAD"])),
+        "a zig_flags entry must be NAME=VALUE",
+    )
+
+    return unittest.end(env)
+
+_resolve_cell_test = unittest.make(_resolve_cell_test_impl)
+
+def _check_cells_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    fallback = _cell(name = "dbg", select_on = ["//mode:debug"], config_setting = "")
+    rel = _cell(name = "rel", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseFast"], config_setting = "rel")
+
+    asserts.equals(
+        env,
+        (None, [fallback, rel]),
+        check_cells("pkg", [fallback, rel]),
+        "a fallback and a distinct non-fallback cell pass through",
+    )
+
+    duplicate = _cell(name = "rel2", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseFast"], config_setting = "rel2")
+    asserts.equals(
+        env,
+        (None, [fallback, rel]),
+        check_cells("pkg", [fallback, rel, duplicate]),
+        "duplicate cells are merged",
+    )
+
+    conflicting = _cell(name = "rel3", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseSafe"], config_setting = "rel3")
+    asserts.equals(
+        env,
+        ("package 'pkg' configs 'rel' and 'rel3' share conditions but differ in build options", None),
+        check_cells("pkg", [fallback, rel, conflicting]),
+        "shared conditions with differing options conflict",
+    )
+
+    general = _cell(name = "g", select_on = ["//os:linux"], config_setting = "g")
+    specific = _cell(name = "s", select_on = ["//os:linux", "//mode:release"], config_setting = "s")
+    asserts.equals(
+        env,
+        ("package 'pkg' config 'g' conditions are a subset of 's'; they would match ambiguously", None),
+        check_cells("pkg", [fallback, general, specific]),
+        "a cell whose conditions are a subset of another's is rejected",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' config 'e' has no select conditions", None),
+        check_cells("pkg", [fallback, _cell(name = "e", config_setting = "e")]),
+        "a non-fallback cell must have conditions",
+    )
+
+    return unittest.end(env)
+
+_check_cells_test = unittest.make(_check_cells_test_impl)
+
+def _package_name_version_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(
+        env,
+        ("cfgdep", "0.0.0"),
+        package_name_version("cfgdep-0.0.0-AAAABBBBCCCC"),
+        "name and version split off the digest",
+    )
+
+    asserts.equals(
+        env,
+        ("ezi_gex", "0.5.0-dev"),
+        package_name_version("ezi_gex-0.5.0-dev-fTQAPBMbFwDJ"),
+        "a version may itself contain '-'",
+    )
+
+    return unittest.end(env)
+
+_package_name_version_test = unittest.make(_package_name_version_test_impl)
+
+_CELLS_BY_NAME = {
+    "dbg": struct(name = "dbg", select_on = ["//mode:debug"], zig_options = ["-Doptimize=Debug"]),
+    "rel": struct(name = "rel", select_on = ["//mode:release"], zig_options = ["-Doptimize=ReleaseFast"]),
+}
+
+def _configure(*, configs, fallback, package = "", version = ""):
+    return struct(configs = configs, fallback = fallback, package = package, version = version)
+
+def _configured(base, config_setting):
+    return struct(name = base.name, select_on = base.select_on, zig_options = base.zig_options, config_setting = config_setting)
+
+def _package_cells_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    dbg = _configured(_CELLS_BY_NAME["dbg"], "")
+    rel = _configured(_CELLS_BY_NAME["rel"], "rel")
+
+    asserts.equals(
+        env,
+        (None, None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, None, {}),
+        "no configure means no matrix",
+    )
+
+    asserts.equals(
+        env,
+        (None, [dbg, rel]),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["dbg", "rel"], fallback = "dbg"), {}),
+        "global configure applies",
+    )
+
+    asserts.equals(
+        env,
+        (None, [_configured(_CELLS_BY_NAME["rel"], "")]),
+        package_cells(
+            "pkg-1.0.0-xyz",
+            _CELLS_BY_NAME,
+            _configure(configs = ["dbg", "rel"], fallback = "dbg"),
+            {("pkg", "1.0.0"): _configure(configs = ["rel"], fallback = "rel")},
+        ),
+        "a versioned per-package configure overrides the global one",
+    )
+
+    asserts.equals(
+        env,
+        (None, [dbg, rel]),
+        package_cells(
+            "pkg-1.0.0-xyz",
+            _CELLS_BY_NAME,
+            None,
+            {("pkg", ""): _configure(configs = ["dbg", "rel"], fallback = "dbg")},
+        ),
+        "a version-less per-package configure matches any version",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' configure fallback 'rel' is not among its configs", None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["dbg"], fallback = "rel"), {}),
+        "the fallback must be one of the configs",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' configure references unknown config 'nope'", None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["nope"], fallback = "nope"), {}),
+        "an unknown config name is rejected",
+    )
+
+    asserts.equals(
+        env,
+        ("package 'pkg' configure lists config 'dbg' more than once", None),
+        package_cells("pkg-1.0.0-xyz", _CELLS_BY_NAME, _configure(configs = ["dbg", "rel", "dbg"], fallback = "dbg"), {}),
+        "a config listed more than once is rejected",
+    )
+
+    return unittest.end(env)
+
+_package_cells_test = unittest.make(_package_cells_test_impl)
+
+def _collect_configs_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    asserts.equals(
+        env,
+        (None, struct(cells_by_name = {}, global_configure = None, per_package_configure = {}, ignored = [])),
+        collect_configs([]),
+        "no modules yields an empty matrix",
+    )
+
+    global_cfg = _configure(configs = ["dbg", "rel"], fallback = "dbg")
+    per_pkg = _configure(configs = ["rel"], fallback = "rel", package = "curl")
+    asserts.equals(
+        env,
+        (None, struct(
+            cells_by_name = {
+                "dbg": struct(name = "dbg", select_on = ["@rules_zig//zig/config/mode:debug"], zig_options = ["-Doptimize=Debug"]),
+                "rel": struct(name = "rel", select_on = ["@rules_zig//zig/config/mode:release_fast"], zig_options = ["-Doptimize=ReleaseFast"]),
+            },
+            global_configure = global_cfg,
+            per_package_configure = {("curl", ""): per_pkg},
+            ignored = [],
+        )),
+        collect_configs([_module(
+            is_root = True,
+            config = [_config(name = "dbg", optimize = "debug"), _config(name = "rel", optimize = "release_fast")],
+            configure = [global_cfg, per_pkg],
+        )]),
+        "root config and configure tags are collected",
+    )
+
+    asserts.equals(
+        env,
+        (None, struct(cells_by_name = {}, global_configure = None, per_package_configure = {}, ignored = ["dep"])),
+        collect_configs([_module(is_root = False, name = "dep", config = [_config(name = "x", optimize = "debug")])]),
+        "non-root tags are ignored and reported",
+    )
+
+    asserts.equals(
+        env,
+        ("conflicting config tags named 'x'", None),
+        collect_configs([_module(
+            is_root = True,
+            config = [_config(name = "x", optimize = "debug"), _config(name = "x", optimize = "release_fast")],
+        )]),
+        "config tags sharing a name with differing content conflict",
+    )
+
+    asserts.equals(
+        env,
+        ("at most one global configure tag is allowed", None),
+        collect_configs([_module(
+            is_root = True,
+            configure = [_configure(configs = ["dbg"], fallback = "dbg"), _configure(configs = ["rel"], fallback = "rel")],
+        )]),
+        "only one global configure is allowed",
+    )
+
+    asserts.equals(
+        env,
+        ("multiple configure tags for package 'curl'", None),
+        collect_configs([_module(
+            is_root = True,
+            configure = [
+                _configure(configs = ["dbg"], fallback = "dbg", package = "curl"),
+                _configure(configs = ["rel"], fallback = "rel", package = "curl"),
+            ],
+        )]),
+        "a package may not have two configure tags",
+    )
+
+    return unittest.end(env)
+
+_collect_configs_test = unittest.make(_collect_configs_test_impl)
+
+def zig_packages_test_suite(name):
+    unittest.suite(
+        name,
+        partial.make(_resolve_cell_test, size = "small"),
+        partial.make(_check_cells_test, size = "small"),
+        partial.make(_package_name_version_test, size = "small"),
+        partial.make(_package_cells_test, size = "small"),
+        partial.make(_collect_configs_test, size = "small"),
+    )

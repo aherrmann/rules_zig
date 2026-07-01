@@ -1,0 +1,39 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+load("@zig_deps//:defs.bzl", "zig_deps")
+
+zig_binary(
+    name = "app",
+    srcs = glob(
+        ["src/**/*.zig"],
+        exclude = ["src/main.zig"],
+    ),
+    main = "src/main.zig",
+    # `main.zig` and its dependencies (`clap`, `cbor`, `ezi_gex`) require Zig 0.16+.
+    target_compatible_with = select({
+        "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = zig_deps(),
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :app) > $(OUTS)",
+    tools = [":app"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)
+
+build_test(
+    name = "build_test",
+    size = "small",
+    targets = [":app"],
+)

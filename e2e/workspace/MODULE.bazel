@@ -15,9 +15,23 @@ zig = use_extension(
     "zig",
     dev_dependency = True,
 )
-zig.toolchain(zig_version = "0.16.0")
+zig.index(file = "extra-versions.json")
+zig.toolchain(
+    default = True,
+    zig_version = "0.16.0",
+)
 zig.toolchain(zig_version = "0.15.2")
+zig.toolchain(zig_version = "0.17.0-dev.813+2153f8143")
 use_repo(zig, "zig_toolchains")
+
+zig_packages = use_extension(
+    "@rules_zig//zig:packages.bzl",
+    "zig_packages",
+    dev_dependency = True,
+)
+zig_packages.from_file(build_zig_zon = "//zig-package-import/app:build.zig.zon")
+zig_packages.from_file(build_zig_zon = "//zig-package-import/greet:build.zig.zon")
+use_repo(zig_packages, "zig_deps")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

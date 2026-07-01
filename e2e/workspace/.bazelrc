@@ -5,3 +5,7 @@ try-import %workspace%/.bazelrc.user
 
 # docs: https://bazel.build/reference/command-line-reference#flag--workspace_status_command
 build --workspace_status_command=$(pwd)/workspace_status.sh
+
+# The importer requires the reworked Zig build system (configurer + `std` APIs),
+# see https://codeberg.org/ziglang/zig/pulls/35428.
+common --repo_env=RULES_ZIG_HOST_SDK=0.17.0-dev.813+2153f8143

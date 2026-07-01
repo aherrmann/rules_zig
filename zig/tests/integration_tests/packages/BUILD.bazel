@@ -1,0 +1,42 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_binary")
+load("@zig_deps//:defs.bzl", "zig_dep", "zig_deps")
+
+# `zig_deps()` imports each dependency's same-named module (including `multi`'s
+# primary `multi` module). `zig_dep("multi", module = "widget")` selects a second
+# module from the same dependency whose name differs from the dependency name.
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    deps = zig_deps() + [
+        "@child_module//:child_lib",
+        zig_dep(
+            "multi",
+            module = "widget",
+        ),
+    ],
+)
+
+cc_library(
+    name = "mymath_impl",
+    srcs = ["mymath.c"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "optmath_impl",
+    srcs = ["optmath.c"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "dbgonly_impl",
+    srcs = ["dbgonly.c"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "relonly_impl",
+    srcs = ["relonly.c"],
+    visibility = ["//visibility:public"],
+)

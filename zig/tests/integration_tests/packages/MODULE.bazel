@@ -1,0 +1,63 @@
+module(name = "packages")
+
+bazel_dep(name = "rules_zig", version = "0.0.0")
+bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "child_module", version = "0.0.0")
+
+local_path_override(
+    module_name = "rules_zig",
+    path = "../../../..",
+)
+
+local_path_override(
+    module_name = "child_module",
+    path = "child",
+)
+
+zig = use_extension("@rules_zig//zig:extensions.bzl", "zig")
+zig.index(file = "extra-versions.json")
+zig.toolchain(
+    default = True,
+    zig_version = "0.17.0-dev.813+2153f8143",
+)
+use_repo(zig, "zig_toolchains")
+
+zig_packages = use_extension("@rules_zig//zig:packages.bzl", "zig_packages")
+zig_packages.from_file(build_zig_zon = "//:build.zig.zon")
+zig_packages.from_file(build_zig_zon = "//path_deps/greeter:build.zig.zon")
+zig_packages.from_file(build_zig_zon = "//path_deps/message:build.zig.zon")
+zig_packages.system_library(
+    name = "mymath",
+    lib = "//:mymath_impl",
+)
+zig_packages.system_integration(name = "optmath")
+zig_packages.system_library(
+    name = "optmath",
+    lib = "//:optmath_impl",
+)
+zig_packages.system_library(
+    name = "dbgonly",
+    lib = "//:dbgonly_impl",
+)
+zig_packages.system_library(
+    name = "relonly",
+    lib = "//:relonly_impl",
+)
+zig_packages.config(
+    name = "dbg",
+    optimize = "debug",
+)
+zig_packages.config(
+    name = "rel",
+    optimize = "release_fast",
+)
+zig_packages.configure(
+    configs = [
+        "dbg",
+        "rel",
+    ],
+    fallback = "dbg",
+    package = "cfgdep",
+)
+use_repo(zig_packages, "zig_deps")

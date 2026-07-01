@@ -1,0 +1,78 @@
+.{
+    .name = .packages,
+    .version = "0.0.0",
+    .fingerprint = 0x9bb5c0a73538e72b,
+    .dependencies = .{
+        .leaf = .{
+            .url = "__LEAF_URL__",
+            .hash = "__LEAF_HASH__",
+        },
+        .host = .{
+            .url = "__HOST_URL__",
+            .hash = "__HOST_HASH__",
+        },
+        .top = .{
+            .url = "__TOP_URL__",
+            .hash = "__TOP_HASH__",
+        },
+        .multi = .{
+            .url = "__MULTI_URL__",
+            .hash = "__MULTI_HASH__",
+        },
+        .greeter = .{
+            .path = "path_deps/greeter",
+        },
+        .pruned = .{
+            .url = "__PRUNED_URL__",
+            .hash = "__PRUNED_HASH__",
+        },
+        .lib = .{
+            .url = "__LIBV1_URL__",
+            .hash = "__LIBV1_HASH__",
+        },
+        // Eager dependency on a package that has a *lazy* dependency; verifies
+        // that the importer fetches lazy deps eagerly.
+        .lazyhost = .{
+            .url = "__LAZYHOST_URL__",
+            .hash = "__LAZYHOST_HASH__",
+        },
+        .symlinked = .{
+            .url = "__SYMLINKED_URL__",
+            .hash = "__SYMLINKED_HASH__",
+        },
+        .genopts = .{
+            .url = "__GENOPTS_URL__",
+            .hash = "__GENOPTS_HASH__",
+        },
+        .usec = .{
+            .url = "__USEC_URL__",
+            .hash = "__USEC_HASH__",
+        },
+        .cdep = .{
+            .url = "__CDEP_URL__",
+            .hash = "__CDEP_HASH__",
+        },
+        .syslibdep = .{
+            .url = "__SYSLIBDEP_URL__",
+            .hash = "__SYSLIBDEP_HASH__",
+        },
+        .optdep = .{
+            .url = "__OPTDEP_URL__",
+            .hash = "__OPTDEP_HASH__",
+        },
+        .cppdep = .{
+            .url = "__CPPDEP_URL__",
+            .hash = "__CPPDEP_HASH__",
+        },
+        .cfgdep = .{
+            .url = "__CFGDEP_URL__",
+            .hash = "__CFGDEP_HASH__",
+        },
+        // A source-only sub-tree dependency; only enabled by the test.
+        // .srconly = .{ .url = "__SRCONLY_URL__", .hash = "__SRCONLY_HASH__" },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+    },
+}
