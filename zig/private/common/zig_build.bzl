@@ -12,7 +12,7 @@ load(
     "bazel_builtin_module",
     BAZEL_BUILTIN_ATTRS = "ATTRS",
 )
-load("//zig/private/common:cdeps.bzl", "zig_cdeps_copts", "zig_cdeps_linker_inputs")
+load("//zig/private/common:cdeps.bzl", "zig_cdeps_linker_inputs")
 load("//zig/private/common:csrcs.bzl", "zig_csrcs")
 load("//zig/private/common:data.bzl", "zig_collect_data", "zig_create_runfiles")
 load("//zig/private/common:escape_label.bzl", "escape_label")
@@ -458,13 +458,6 @@ def zig_build_impl(ctx, *, kind):
         transitive_inputs.append(c_module.transitive_inputs)
 
     if root_module.cc_info:
-        # Add headers to the sandbox for cImport and associated copts.
-        zig_cdeps_copts(
-            compilation_context = root_module.cc_info.compilation_context,
-            args = args,
-            transitive_inputs = transitive_inputs,
-        )
-
         cdeps_inputs = []
         if use_cc_common_link == False:
             # Add all cdeps linker inputs to the sandbox and zig args.

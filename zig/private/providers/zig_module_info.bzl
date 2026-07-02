@@ -2,6 +2,7 @@
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("//zig/private:cc_helper.bzl", "need_translate_c")
+load("//zig/private/common:cdeps.bzl", "zig_cdeps_copts")
 
 DOC = """\
 Information about a Zig module.
@@ -27,7 +28,7 @@ ZigModuleInfo = provider(
     doc = DOC,
 )
 
-def _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts, import_names):
+def _zig_module_context(name, canonical_name, main, deps, cdeps, compilation_context, zigopts, import_names):
     mappings = [
         struct(name = import_names.get(dep.canonical_name, dep.name), canonical_name = dep.canonical_name)
         for dep in deps
@@ -39,7 +40,8 @@ def _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts, import
         name = name,
         canonical_name = canonical_name,
         main = main.path,
-        zigopts = zigopts,
+        compilation_context = compilation_context,
+        zigopts = tuple(zigopts),
         dependency_mappings = tuple(mappings),
     )
 
@@ -65,7 +67,10 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
     cc_infos = cdeps + [dep.cc_info for dep in deps if dep.cc_info]
     cc_info = cc_common.merge_cc_infos(direct_cc_infos = cc_infos)
 
-    module_context = _zig_module_context(name, canonical_name, main, deps, cdeps, zigopts, import_names)
+    direct_compilation_context = cc_common.merge_cc_infos(direct_cc_infos = cdeps).compilation_context
+    cc_headers = [direct_compilation_context.headers]
+
+    module_context = _zig_module_context(name, canonical_name, main, deps, cdeps, direct_compilation_context, zigopts, import_names)
 
     module = ZigModuleInfo(
         name = name,
@@ -73,7 +78,7 @@ def zig_module_info(*, name, canonical_name, main, srcs = [], extra_srcs = [], d
         module_context = module_context,
         cc_info = cc_info,
         transitive_module_contexts = depset(direct = [dep.module_context for dep in deps], transitive = [dep.transitive_module_contexts for dep in deps], order = "postorder"),
-        transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps], order = "preorder"),
+        transitive_inputs = depset(direct = [main] + srcs + extra_srcs, transitive = [dep.transitive_inputs for dep in deps] + cc_headers, order = "preorder"),
     )
 
     return module
@@ -83,6 +88,7 @@ def _render_per_module_args(module):
     for mapping in module.dependency_mappings:
         args.extend(["--dep", "{}={}".format(mapping.name, mapping.canonical_name)])
 
+    args.extend(zig_cdeps_copts(module.compilation_context))
     args.extend(module.zigopts)
 
     args.append("-M{name}={src}".format(name = module.canonical_name, src = module.main))
@@ -99,9 +105,9 @@ def zig_module_specifications(*, root_module, args, c_module = None):
     """
 
     # The first module is the main module.
-    args.add_all(_render_per_module_args(root_module.module_context))
+    args.add_all([root_module.module_context], map_each = _render_per_module_args)
     args.add_all(root_module.transitive_module_contexts, map_each = _render_per_module_args)
 
     if c_module:
-        args.add_all(_render_per_module_args(c_module.module_context))
+        args.add_all([c_module.module_context], map_each = _render_per_module_args)
         args.add_all(c_module.transitive_module_contexts, map_each = _render_per_module_args)
