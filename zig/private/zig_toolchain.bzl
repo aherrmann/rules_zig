@@ -125,7 +125,7 @@ def _validate_zig_version(ctx, *, zig_exe, tools, zig_version):
             '  echo "Zig SDK version mismatch. Expected \'$2\' but got \'$actual_version\'." >&2',
             "  exit 1",
             "fi",
-            'touch "$3"',
+            'printf \'\' > "$3"',
         ]),
         mnemonic = "ZigVersionValidation",
         progress_message = "validate Zig SDK version for toolchain %{label}",
