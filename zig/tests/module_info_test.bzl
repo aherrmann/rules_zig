@@ -30,6 +30,19 @@ def _bazel_builtin_mod_flags(ctx, label):
 def _bazel_builtin_dep(label):
     return "'bazel_builtin={}'".format(_bazel_builtin_canonical_name(label))
 
+def _expected_cdeps_copts(compilation_context):
+    copts = []
+    copts.extend(["-D{}".format(d) for d in compilation_context.defines.to_list()])
+    copts.extend(["-I{}".format(i) for i in compilation_context.includes.to_list()])
+    copts.extend(["-I{}".format(i) for i in compilation_context.quote_includes.to_list()])
+    for i in compilation_context.system_includes.to_list():
+        copts.extend(["-isystem", i])
+    if hasattr(compilation_context, "external_includes"):
+        for i in compilation_context.external_includes.to_list():
+            copts.extend(["-isystem", i])
+    copts.extend(["-F{}".format(i) for i in compilation_context.framework_includes.to_list()])
+    return copts
+
 def _write_simple_module_expected_specs_args_impl(ctx):
     mod = ctx.attr.mod[ZigModuleInfo]
 
@@ -297,6 +310,7 @@ def _write_simple_module_with_global_c_expected_specs_args_impl(ctx):
 
     expected.extend(["--dep", bazel_builtins["data_global_c"].dep])
     expected.extend(["--dep", "'c=c'"])
+    expected.extend(_expected_cdeps_copts(mods["data_global_c"].module_context.compilation_context))
     expected.extend(["'-M{name}={src}'".format(
         name = mods["data_global_c"].canonical_name,
         src = mods["data_global_c"].module_context.main,

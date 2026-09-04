@@ -2,27 +2,61 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
-def zig_cdeps_copts(*, compilation_context, args, transitive_inputs):
-    """Computes arguments and inputs from a CcInfo.compilation_context.
+def zig_cdeps_copts(compilation_context):
+    """Renders CcInfo.compilation_context as Zig flags.
+
+    Zig requires C dependency flags to be set within the consuming module's
+    command-line section, i.e. before its `-M` flag. Therefore, C dependency
+    flags cannot be accumulated across the entire compiler invocation and
+    emitted globally.
+
+    This function is intended to be called from an `Args.add_all(..., map_each =
+    ...)` callback. It flattens `CompilationContext` `depset`s via `to_list`,
+    which [Bazel performance guidelines][1] warn against.
+
+    This is safe, because `Args.add_all` does not materialize the argument list,
+    but stores it for [lazy expansion][2]. Full expansion only occurs [during
+    execution][3] (see [`StarlarkCustomCommandLine`][4] [`preprocess`][5]).
+
+    Action key calculation does [invoke][6] the `map_each` callback (and thus
+    this `to_list`) for [fingerprinting][7], including at analysis time for
+    shared-action [conflict checking][8]. But it does not flatten the module
+    depset; it walks the structure with [per-subtree digest memoization][9]. The
+    `CompilationContext` `depset`s this `to_list` flattens are separately cached
+    on their `NestedSet` behind a [GC-evictable weak reference][10], so they are
+    recomputed only under memory pressure.
+
+    [1]: https://bazel.build/rules/performance#avoid-depset-to-list
+    [2]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/analysis/starlark/Args.java#L448-L463
+    [3]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/analysis/actions/SpawnAction.java#L366-L379
+    [4]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkCustomCommandLine.java#L92-L104
+    [5]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkCustomCommandLine.java#L328-L350
+    [6]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/analysis/actions/SpawnAction.java#L398-L408
+    [7]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/analysis/starlark/StarlarkCustomCommandLine.java#L544-L559
+    [8]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/actions/Actions.java#L76-L93
+    [9]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/collect/nestedset/NestedSetFingerprintCache.java#L99-L116
+    [10]: https://github.com/bazelbuild/bazel/blob/7bfc0881726bbdd6394f210f6132c6973f5532bb/src/main/java/com/google/devtools/build/lib/collect/nestedset/NestedSet.java#L153-L160
 
     Args:
-        compilation_context: cc_common.CompilationContext instance.
-        args: Args; mutable, Append compiler options to this collection.
-        transitive_inputs: List; mutable, Append inputs to this collection.
+        compilation_context: `CompilationContext`.
+
+    Returns:
+        list of string, Zig compiler flags.
     """
-    args.add_all(compilation_context.defines, format_each = "-D%s")
-    args.add_all(compilation_context.includes, format_each = "-I%s")
+    copts = []
+    copts.extend(["-D%s" % define for define in compilation_context.defines.to_list()])
+    copts.extend(["-I%s" % include for include in compilation_context.includes.to_list()])
 
     # Note, Zig does not support `-iquote` as of Zig 0.12.0
-    # args.add_all(compilation_context.quote_includes, format_each = "-iquote%s")
-    args.add_all(compilation_context.quote_includes, format_each = "-I%s")
-    args.add_all(compilation_context.system_includes, before_each = "-isystem")
+    copts.extend(["-I%s" % include for include in compilation_context.quote_includes.to_list()])
+    for include in compilation_context.system_includes.to_list():
+        copts.extend(["-isystem", include])
     if hasattr(compilation_context, "external_includes"):
         # Added in Bazel 7, see https://github.com/bazelbuild/bazel/commit/a6ef0b341a8ffe8ab27e5ace79d8eaae158c422b
-        args.add_all(compilation_context.external_includes, before_each = "-isystem")
-    args.add_all(compilation_context.framework_includes, format_each = "-F%s")
-
-    transitive_inputs.append(compilation_context.headers)
+        for include in compilation_context.external_includes.to_list():
+            copts.extend(["-isystem", include])
+    copts.extend(["-F%s" % include for include in compilation_context.framework_includes.to_list()])
+    return copts
 
 def zig_cdeps_linker_inputs(*, linking_context, solib_parents, os, inputs, args, data):
     """Compiler arguments and inputs from a CcInfo.linking_context.

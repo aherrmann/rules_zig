@@ -37,6 +37,10 @@ zig_configure_binary(
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
+    }) + select({
+        # fails on macOS, see //cc-dependencies/static-library:add-test
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "//conditions:default": [],
     }),
     use_cc_common_link = 1,
 )
@@ -81,6 +85,10 @@ zig_configure(
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
+    }) + select({
+        # fails on macOS, see //cc-dependencies/static-library:add-test
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "//conditions:default": [],
     }),
     use_cc_common_link = 1,
 )
@@ -105,6 +113,10 @@ zig_configure_test(
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
         "//conditions:default": [],
+    }) + select({
+        # fails on macOS, see //cc-dependencies/static-library:add-test
+        "@platforms//os:macos": ["@platforms//:incompatible"],
+        "//conditions:default": [],
     }),
     use_cc_common_link = 1,
 )
@@ -125,6 +137,10 @@ zig_configure(
         # Zig 0.15.1 sometimes creates malformed archives
         # https://github.com/ziglang/zig/issues/25069
         "@zig_toolchains//:0.15.2": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }) + select({
+        # fails on macOS, see //cc-dependencies/static-library:add-test
+        "@platforms//os:macos": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     use_cc_common_link = 1,

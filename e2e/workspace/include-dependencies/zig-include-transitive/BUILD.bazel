@@ -1,0 +1,44 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_zig//zig:defs.bzl", "zig_binary", "zig_library")
+
+cc_library(
+    name = "header",
+    hdrs = ["header.h"],
+    includes = ["."],
+)
+
+zig_library(
+    name = "cimport",
+    main = "cimport.zig",
+    deps = [":header"],
+)
+
+zig_binary(
+    name = "binary",
+    main = "main.zig",
+    deps = [":cimport"],
+)
+
+build_test(
+    name = "build",
+    size = "small",
+    targets = [
+        ":binary",
+    ],
+)
+
+genrule(
+    name = "output",
+    outs = ["output.actual"],
+    cmd = "$(execpath :binary) > $(OUTS)",
+    tools = [":binary"],
+)
+
+diff_test(
+    name = "output_test",
+    size = "small",
+    file1 = ":output.expected",
+    file2 = ":output.actual",
+)
